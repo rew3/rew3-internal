@@ -1,11 +1,14 @@
 package conf
 
 // Rew3 Entities.
+
+type Entity string
+
 const (
-	CRM_CONTACT     string = "crm_contact"
-	CRM_ACCOUNT     string = "crm_account"
-	CRM_LEAD        string = "crm_lead"
-	CRM_OPPORTUNITY string = "crm_opportunity"
+	CRM_CONTACT     Entity = "crm_contact"
+	CRM_ACCOUNT     Entity = "crm_account"
+	CRM_LEAD        Entity = "crm_lead"
+	CRM_OPPORTUNITY Entity = "crm_opportunity"
 
 	// Add more later.
 )
