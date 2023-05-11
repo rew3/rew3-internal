@@ -1,4 +1,4 @@
-package core
+package model
 
 /**
  * Model created to represent information about the targeted shared partner, for cases where:

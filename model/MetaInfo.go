@@ -1,7 +1,7 @@
-package core
+package model
 
 import (
-	"time"
+	"rew3.com/app-core/model/utility"
 )
 
 /**
@@ -32,16 +32,16 @@ import (
 
 type MetaInfo struct {
 	Version          int64
-	Created          time.Time
+	Created          utility.DateTime
 	CreatedBy        MiniUser
-	LastModified     time.Time
-	ModifiedBy       time.Time
+	LastModified     utility.DateTime
+	ModifiedBy       utility.DateTime
 	Owner            MiniUser
 	Member           string
 	Master           string
 	Deleted          string
 	DeletedBy        string
-	ArchivedAt       time.Time
+	ArchivedAt       utility.DateTime
 	ArchivedBy       string
 	Entity           string
 	Module           string

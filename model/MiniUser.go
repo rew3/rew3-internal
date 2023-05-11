@@ -1,4 +1,4 @@
-package core
+package model
 
 /**
  * A class to represent an ''Mini User''
