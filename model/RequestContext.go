@@ -4,7 +4,7 @@ import (
 	"math/big"
 
 	"go.mongodb.org/mongo-driver/bson/primitive"
-	. "rew3.com/app-core/conf"
+	. "github.com/rew3/app-core/conf"
 )
 
 type Rew3UserPersonalAlias struct {

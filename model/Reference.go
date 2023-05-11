@@ -3,7 +3,7 @@ package model
 import (
 	"encoding/json"
 
-	. "rew3.com/app-core/conf"
+	. "github.com/rew3/app-core/conf"
 )
 
 type Reference struct {
