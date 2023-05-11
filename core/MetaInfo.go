@@ -31,21 +31,21 @@ import (
  */
 
 type MetaInfo struct {
-	_version          int64
-	_created          time.Time
-	_createdBy        MiniUser
-	_lastModified     time.Time
-	_modifiedBy       time.Time
-	_owner            MiniUser
-	_member           string
-	_master           string
-	_deleted          string
-	_deletedBy        string
-	_archivedAt       time.Time
-	_archivedBy       string
-	_entity           string
-	_module           string
-	_agentId          string // If this exists, entire meta should belongs to an Agent,the field is populated if, the user in current context is an Agent
-	_accountType      AccountTypeAlias
-	_globalSharedMeta GlobalSharedMeta
+	Version          int64
+	Created          time.Time
+	CreatedBy        MiniUser
+	LastModified     time.Time
+	ModifiedBy       time.Time
+	Owner            MiniUser
+	Member           string
+	Master           string
+	Deleted          string
+	DeletedBy        string
+	ArchivedAt       time.Time
+	ArchivedBy       string
+	Entity           string
+	Module           string
+	AgentId          string // If this exists, entire meta should belongs to an Agent,the field is populated if, the user in current context is an Agent
+	AccountType      AccountTypeAlias
+	AlobalSharedMeta GlobalSharedMeta
 }

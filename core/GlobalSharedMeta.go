@@ -15,11 +15,11 @@ package core
 type MetaInfoModel interface{}
 
 type GlobalSharedMeta struct {
-	memberId         string
-	users            []string
-	accessType       SharedMetaAccessType
-	accountTypeAlias AccountTypeAlias
-	sharedToNetwork  bool
+	MemberId         string
+	Users            []string
+	AccessType       SharedMetaAccessType
+	AccountTypeAlias AccountTypeAlias
+	SharedToNetwork  bool
 }
 
 //extends MetaInfoModel

@@ -13,12 +13,12 @@ package core
  */
 
 type MiniUser struct {
-	_id         string
-	firstName   string
-	lastName    string
-	title       string
-	userpic     string
-	roleName    string
-	jobTitle    string
-	companyName string
+	Id          string
+	FirstName   string
+	LastName    string
+	Title       string
+	Userpic     string
+	RoleName    string
+	JobTitle    string
+	CompanyName string
 }
