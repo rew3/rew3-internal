@@ -1,9 +1,9 @@
-package model
+package models
 
 import (
 	"encoding/json"
 
-	. "github.com/rew3/app-core/conf"
+	. "github.com/rew3/app-core/models/_constant"
 )
 
 type Reference struct {
@@ -15,7 +15,8 @@ type Reference struct {
 }
 
 /*
-ToDo this method should be create in go later.
+ToDo this method should be create in go later. Create Single Instance rather than multiple.
+
 Need to figure how enum can be called same like withName method in scala enum
 func NewReference(entityName string, id string) *Reference {
 	return &Reference{

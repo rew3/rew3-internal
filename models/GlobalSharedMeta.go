@@ -1,4 +1,8 @@
-package model
+package models
+
+import (
+	. "github.com/rew3/app-core/models/_constant"
+)
 
 /*
  Model created to represent information about the targeted shared partner, for cases where:

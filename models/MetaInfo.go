@@ -1,6 +1,7 @@
-package model
+package models
 
 import (
+	. "github.com/rew3/app-core/models/_constant"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

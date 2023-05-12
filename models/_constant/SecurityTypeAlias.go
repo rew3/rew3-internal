@@ -1,4 +1,4 @@
-package model
+package _constant
 
 // Alias of the Security type
 
