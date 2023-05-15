@@ -1,8 +1,9 @@
 package app
 
 import (
+	"time"
+
 	. "github.com/rew3/app-core/app/_constants"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 /*
@@ -32,21 +33,21 @@ import (
 */
 
 type MetaInfo struct {
-	Version          int64               `bson:"_version"`
-	Created          *primitive.DateTime `bson:"_created,omitempty"`
-	CreatedBy        *MiniUser           `bson:"_created_by,omitempty"`
-	LastModified     *primitive.DateTime `bson:"_last_modified,omitempty"`
-	ModifiedBy       *primitive.DateTime `bson:"_modified_by,omitempty"`
-	Owner            *MiniUser           `bson:"_owner,omitempty"`
-	Member           *string             `bson:"_member,omitempty"`
-	Master           *string             `bson:"_master,omitempty"`
-	Deleted          *string             `bson:"_deleted,omitempty"`
-	DeletedBy        *string             `bson:"_deleted_by,omitempty"`
-	ArchivedAt       *primitive.DateTime `bson:"_archived_at,omitempty"`
-	ArchivedBy       *string             `bson:"_archived_by,omitempty"`
-	Entity           *string             `bson:"_entity,omitempty"`
-	Module           *string             `bson:"_module,omitempty"`
-	AgentId          *string             `bson:"_agent_id,omitempty"` // If this exists, entire meta should belongs to an Agent,the field is populated if, the user in current context is an Agent
-	AccountType      *AccountTypeAlias   `bson:"_account_type,omitempty"`
-	GlobalSharedMeta *GlobalSharedMeta   `bson:"_global_shared_meta,omitempty"`
+	Version          int64             `bson:"_version"`
+	Created          *time.Time        `bson:"_created,omitempty"`
+	CreatedBy        *MiniUser         `bson:"_created_by,omitempty"`
+	LastModified     *time.Time        `bson:"_last_modified,omitempty"`
+	ModifiedBy       *time.Time        `bson:"_modified_by,omitempty"`
+	Owner            *MiniUser         `bson:"_owner,omitempty"`
+	Member           *string           `bson:"_member,omitempty"`
+	Master           *string           `bson:"_master,omitempty"`
+	Deleted          *string           `bson:"_deleted,omitempty"`
+	DeletedBy        *string           `bson:"_deleted_by,omitempty"`
+	ArchivedAt       *time.Time        `bson:"_archived_at,omitempty"`
+	ArchivedBy       *string           `bson:"_archived_by,omitempty"`
+	Entity           *string           `bson:"_entity,omitempty"`
+	Module           *string           `bson:"_module,omitempty"`
+	AgentId          *string           `bson:"_agent_id,omitempty"` // If this exists, entire meta should belongs to an Agent,the field is populated if, the user in current context is an Agent
+	AccountType      *AccountTypeAlias `bson:"_account_type,omitempty"`
+	GlobalSharedMeta *GlobalSharedMeta `bson:"_global_shared_meta,omitempty"`
 }
