@@ -1,4 +1,4 @@
-package app
+package _constants
 
 // Alias of the Security type
 
