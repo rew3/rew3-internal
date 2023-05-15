@@ -1,4 +1,4 @@
-package models
+package app
 
 type SharedMetaAccessType string
 

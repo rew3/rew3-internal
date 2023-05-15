@@ -1,7 +1,7 @@
-package utility
+package misc
 
 import (
-	. "github.com/rew3/app-core/models/_constant"
+	. "github.com/rew3/core-base/app/_constants"
 )
 
 var modules = []Module{

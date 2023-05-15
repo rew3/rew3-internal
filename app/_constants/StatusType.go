@@ -1,4 +1,4 @@
-package _constant
+package app
 
 type StatusType string
 

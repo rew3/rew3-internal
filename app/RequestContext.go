@@ -1,9 +1,9 @@
-package models
+package app
 
 import (
 	"math/big"
 
-	. "github.com/rew3/app-core/models/_constant"
+	. "github.com/rew3/core-base/app/_constants"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
