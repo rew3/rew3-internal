@@ -3,7 +3,7 @@ package app
 import (
 	"encoding/json"
 
-	. "github.com/rew3/core-base/app/_constants"
+	. "github.com/rew3/app-core/app/_constants"
 )
 
 type Reference struct {

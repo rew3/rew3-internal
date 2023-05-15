@@ -1,7 +1,7 @@
 package app
 
 import (
-	. "github.com/rew3/core-base/app/_constants"
+	. "github.com/rew3/app-core/app/_constants"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
