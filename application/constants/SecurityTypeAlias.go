@@ -1,4 +1,4 @@
-package _consts
+package constants
 
 // Alias of the Security type
 

@@ -1,4 +1,4 @@
-package _consts
+package constants
 
 // Rew3 Modules.
 
