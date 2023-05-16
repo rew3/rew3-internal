@@ -1,1 +1,1 @@
-Core libraries used in Rew3 projects
+Core libraries used in erp projects
