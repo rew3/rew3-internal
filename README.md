@@ -1,1 +1,1 @@
-### Rew3 Core Library for Apps and Platform. 
+core libraries used in Rew3 projects
