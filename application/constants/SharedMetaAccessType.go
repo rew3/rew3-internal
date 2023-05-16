@@ -1,4 +1,4 @@
-package _constants
+package _consts
 
 type SharedMetaAccessType string
 

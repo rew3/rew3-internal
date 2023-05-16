@@ -1,4 +1,4 @@
-package app
+package application
 
 /*
  A class to represent ''Email''
@@ -12,7 +12,7 @@ package app
 */
 
 type Email struct {
-	emailType *string `bson:"phone_type,omitempty"`
-	value     *string `bson:"value,omitempty"`
-	isPrimary *int    `bson:"is_primary,omitempty"`
+	emailType string `bson:"phone_type,omitempty"`
+	value     string `bson:"value,omitempty"`
+	isPrimary int    `bson:"is_primary,omitempty"`
 }

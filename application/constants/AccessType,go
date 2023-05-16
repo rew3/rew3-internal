@@ -1,4 +1,4 @@
-package _constants
+package constant/AccessType
 
 type AccessType string
 

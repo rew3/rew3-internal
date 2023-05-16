@@ -1,35 +1,35 @@
-package app
+package application
 
 import (
 	"math/big"
 
-	. "github.com/rew3/app-core/app/_constants"
+	. "github.com/rew3/app-core/application/constants"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Rew3UserPersonalAlias struct {
-	FirstName  *string `bson:"first_name,omitempty"`
-	MiddleName *string `bson:"middle_name,omitempty"`
-	LastName   *string `bson:"last_name,omitempty"`
-	FullName   *string `bson:"full_name,omitempty"`
-	Salutation *string `bson:"salutation,omitempty"`
-	Gender     *string `bson:"gender,omitempty"`
+	FirstName  string `bson:"first_name,omitempty"`
+	MiddleName string `bson:"middle_name,omitempty"`
+	LastName   string `bson:"last_name,omitempty"`
+	FullName   string `bson:"full_name,omitempty"`
+	Salutation string `bson:"salutation,omitempty"`
+	Gender     string `bson:"gender,omitempty"`
 }
 
 type CompanyAlias struct {
 	Id            primitive.ObjectID `bson:"_id"`
-	NoOfEmployees *string            `bson:"noOfEmployees,omitempty"`
-	Website       *string            `bson:"website,omitempty"`
-	AnnualRevenue *big.Float         `bson:"annualRevenue,omitempty"`
-	Industry      *string            `bson:"industry,omitempty"`
-	Name          *string            `bson:"name,omitempty"`
+	NoOfEmployees string             `bson:"noOfEmployees,omitempty"`
+	Website       string             `bson:"website,omitempty"`
+	AnnualRevenue big.Float          `bson:"annualRevenue,omitempty"`
+	Industry      string             `bson:"industry,omitempty"`
+	Name          string             `bson:"name,omitempty"`
 }
 
 type UserInfo struct {
-	email       *[]Email               `bson:"email,omitempty"`
-	phoneNumber *[]Phone               `bson:"phone_number,omitempty"`
-	personal    *Rew3UserPersonalAlias `bson:"personal,omitempty"`
-	company     *CompanyAlias          `bson:"company,omitempty"`
+	email       []Email               `bson:"email,omitempty"`
+	phoneNumber []Phone               `bson:"phone_number,omitempty"`
+	personal    Rew3UserPersonalAlias `bson:"personal,omitempty"`
+	company     CompanyAlias          `bson:"company,omitempty"`
 }
 
 type TeamMiniAlias struct {

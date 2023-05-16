@@ -1,4 +1,4 @@
-package app
+package application
 
 /*
  A class to represent ''Phone''
@@ -12,7 +12,7 @@ package app
 */
 
 type Phone struct {
-	phoneType *string `bson:"phone_type,omitempty"`
-	value     *string `bson:"value,omitempty"`
-	isPrimary *int    `bson:"is_primary,omitempty"`
+	phoneType string `bson:"phone_type,omitempty"`
+	value     string `bson:"value,omitempty"`
+	isPrimary int    `bson:"is_primary,omitempty"`
 }

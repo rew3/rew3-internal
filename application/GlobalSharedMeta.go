@@ -1,7 +1,7 @@
-package app
+package application
 
 import (
-	. "github.com/rew3/app-core/app/_constants"
+	. "github.com/rew3/app-core/application/constants"
 )
 
 /*
@@ -19,11 +19,11 @@ import (
 type MetaInfoModel interface{}
 
 type GlobalSharedMeta struct {
-	MemberId         *string               `bson:"member_id,omitempty"`
-	Users            *[]string             `bson:"users,omitempty"`
-	AccessType       *SharedMetaAccessType `bson:"access_type,omitempty"`
-	AccountTypeAlias *AccountTypeAlias     `bson:"account_type_alias,omitempty"`
-	SharedToNetwork  *bool                 `bson:"shared_to_network,omitempty"`
+	MemberId         string               `bson:"member_id,omitempty"`
+	Users            []string             `bson:"users,omitempty"`
+	AccessType       SharedMetaAccessType `bson:"access_type,omitempty"`
+	AccountTypeAlias AccountTypeAlias     `bson:"account_type_alias,omitempty"`
+	SharedToNetwork  bool                 `bson:"shared_to_network,omitempty"`
 }
 
 //extends MetaInfoModel

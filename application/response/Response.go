@@ -1,7 +1,7 @@
-package app
+package response
 
 import (
-	. "github.com/rew3/app-core/app/_constants"
+	. "github.com/rew3/app-core/application/constants"
 )
 
 /*
@@ -25,7 +25,7 @@ import (
   @tparam T - interface{} type that can hold any type of data. Similar to Generic Type in Scala
 */
 
-type GQLResponse struct {
+type Response struct {
 	ID      string      `json:"id"`
 	Action  string      `json:"action"`
 	Message string      `json:"message"`

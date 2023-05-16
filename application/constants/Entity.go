@@ -1,4 +1,4 @@
-package _constants
+package _consts
 
 // Rew3 Entities.
 
