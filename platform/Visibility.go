@@ -1,9 +1,10 @@
-package application
+package platform
 
 import (
 	"time"
 
-	. "github.com/rew3/app-core/application/constants"
+	. "github.com/rew3/rew3-base/data"
+	. "github.com/rew3/rew3-base/platform/constants"
 )
 
 type TeamMini struct {

@@ -1,4 +1,4 @@
-package application
+package erp
 
 /*
  * Tyoe to represent ''Address''

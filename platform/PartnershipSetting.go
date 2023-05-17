@@ -1,7 +1,7 @@
-package application
+package platform
 
 import (
-	. "github.com/rew3/app-core/application/constants"
+	. "github.com/rew3/rew3-base/platform/constants"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

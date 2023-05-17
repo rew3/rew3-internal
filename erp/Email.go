@@ -1,4 +1,4 @@
-package application
+package erp
 
 /*
  A class to represent ''Email''

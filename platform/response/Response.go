@@ -1,7 +1,7 @@
 package response
 
 import (
-	. "github.com/rew3/app-core/application/constants"
+	. "github.com/rew3/rew3-base/platform/constants"
 )
 
 /*
