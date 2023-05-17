@@ -1,1 +1,1 @@
-### Rew3 Core Library for Apps and Platform. 
+Core libraries used in erp projects
