@@ -1,4 +1,4 @@
-module github.com/rew3/app-core
+module github.com/rew3/rew3-base
 
 go 1.20
 
