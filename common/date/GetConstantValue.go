@@ -1,4 +1,4 @@
-package misc
+package date
 
 import (
 	. "github.com/rew3/rew3-base/service/constants"
