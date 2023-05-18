@@ -1,10 +1,10 @@
-package platform
+package service
 
 import (
 	"time"
 
 	. "github.com/rew3/rew3-base/common/types"
-	. "github.com/rew3/rew3-base/platform/constants"
+	. "github.com/rew3/rew3-base/service/constants"
 )
 
 type TeamMini struct {

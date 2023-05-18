@@ -1,11 +1,11 @@
-package platform
+package service
 
 import (
 	"math/big"
 
 	. "github.com/rew3/rew3-base/common/types"
 	. "github.com/rew3/rew3-base/erp"
-	. "github.com/rew3/rew3-base/platform/constants"
+	. "github.com/rew3/rew3-base/service/constants"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

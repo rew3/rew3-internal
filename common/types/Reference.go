@@ -3,7 +3,7 @@ package data
 import (
 	"encoding/json"
 
-	. "github.com/rew3/rew3-base/platform/constants"
+	. "github.com/rew3/rew3-base/service/constants"
 )
 
 type Reference struct {
