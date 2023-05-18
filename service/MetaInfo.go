@@ -11,26 +11,26 @@ import (
  Class to represent the ''Meta Information'' of an entity
  This class will be required by all model class because security related things are also handled by this class.
 
- @param _version version of the entity
- @param _created created date and time
- @param _createdBy user who created the entity.
- @param _lastModified last modified date
- @param _modifiedBy user who modified the entity the last time .
- @param _owner user who is the owner of the entity .
- @param _member id of the member i.e the organization to whom the users belong
- @param _master
- @param _deleted deleted date and time
- @param _deletedBy user who deleted the record.
- @param _archivedAt the record archived date.
- @param _archivedBy user who archived the record.
- @param _entity Entity
- @param _module Module
- @param _agentId Agent Id
- @param _accountType The type of logged in Account
- @param _globalSharedMeta Global Shared Meta Information
+ @field _version version of the entity
+ @field _created created date and time
+ @field _createdBy user who created the entity.
+ @field _lastModified last modified date
+ @field _modifiedBy user who modified the entity the last time .
+ @field _owner user who is the owner of the entity .
+ @field _member id of the member i.e the organization to whom the users belong
+ @field _master
+ @field _deleted deleted date and time
+ @field _deletedBy user who deleted the record.
+ @field _archivedAt the record archived date.
+ @field _archivedBy user who archived the record.
+ @field _entity Entity
+ @field _module Module
+ @field _agentId Agent Id
+ @field _accountType The type of logged in Account
+ @field _globalSharedMeta Global Shared Meta Information
 
  @author rew3 on 2023/05/10
- @version 1.0.0
+
 */
 
 type MetaInfo struct {

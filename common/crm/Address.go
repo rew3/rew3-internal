@@ -1,27 +1,26 @@
 package crm
 
 /*
- * Tyoe to represent ''Address''
- *
- * @param state sate information, from the lookup
- * @param location location information, from the lookup
- * @param city city information, from the lookup
- * @param country country information, form the lookup
- * @param addressNumber address number
- * @param zip zip code
- * @param streetNumber street number
- * @param district name of the district
- * @param zone name of the zone
- * @param province name of the province
- * @param office name of the office
- * @param department name of the department
- * @param `type` type of the address
- * @param isPrimary determined if the address is primary secondary or primary
- * @param apt name of the apartment
- *
- * @author rew3 on 2023/05/15
- * @version 1.0.0
- */
+Type to represent ”Address”
+
+@field state sate information, from the lookup
+@field location location information, from the lookup
+@field city city information, from the lookup
+@field country country information, form the lookup
+@field addressNumber address number
+@field zip zip code
+@field streetNumber street number
+@field district name of the district
+@field zone name of the zone
+@field province name of the province
+@field office name of the office
+@field department name of the department
+@field `type` type of the address
+@field isPrimary determined if the address is primary secondary or primary
+@field apt name of the apartment
+
+@author rew3 on 2023/05/15
+*/
 type Address struct {
 	State         string `bson:"state,omitempty"`
 	Location      string `bson:"location,omitempty"`

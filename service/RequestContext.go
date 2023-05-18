@@ -20,34 +20,34 @@ type Rew3UserPersonalAlias struct {
 
 type CompanyAlias struct {
 	Id            primitive.ObjectID `bson:"_id"`
-	NoOfEmployees string             `bson:"noOfEmployees,omitempty"`
+	NoOfEmployees string             `bson:"no_of_employees,omitempty"`
 	Website       string             `bson:"website,omitempty"`
-	AnnualRevenue big.Float          `bson:"annualRevenue,omitempty"`
+	AnnualRevenue big.Float          `bson:"annual_revenue,omitempty"`
 	Industry      string             `bson:"industry,omitempty"`
 	Name          string             `bson:"name,omitempty"`
 }
 
 type UserInfo struct {
-	email       []Email               `bson:"email,omitempty"`
-	phoneNumber []Phone               `bson:"phone_number,omitempty"`
-	personal    Rew3UserPersonalAlias `bson:"personal,omitempty"`
-	company     CompanyAlias          `bson:"company,omitempty"`
+	Email       []Email               `bson:"email,omitempty"`
+	PhoneNumber []Phone               `bson:"phone_number,omitempty"`
+	Personal    Rew3UserPersonalAlias `bson:"personal,omitempty"`
+	Company     CompanyAlias          `bson:"company,omitempty"`
 }
 
 type TeamMiniAlias struct {
-	Id   primitive.ObjectID `bson:"_id,omitempty"`
-	name string             `bson:"name,omitempty"`
+	ID   primitive.ObjectID `bson:"_id,omitempty"`
+	Name string             `bson:"name,omitempty"`
 }
 
 /**
 * The model represents the information extracted from a defined sharing rule involving a user
-* @param entity entity defined in sharing rule
-* @param visibleUsers the users whose data is visible to the current user. It is calculated based on the Role assigned
+* @field entity entity defined in sharing rule
+* @field visibleUsers the users whose data is visible to the current user. It is calculated based on the Role assigned
  */
 
 type SharingRuleContext struct {
-	entity       Entity   `bson:"entity,omitempty"`
-	visibleUsers []string `bson:"visible_users,omitempty"`
+	Entity       Entity   `bson:"entity,omitempty"`
+	VisibleUsers []string `bson:"visible_users,omitempty"`
 }
 
 type TeamActions struct {
@@ -61,26 +61,25 @@ type OrganizationActions struct{}
 
 /**
 * Model used to represent different user actions in different account_types
-* @param teamActions only defined if account_type = TEAM
+* @field teamActions only defined if account_type = TEAM
  */
 type UserActions struct {
 	TeamActions TeamActions `bson:"team_actions,omitempty"`
 }
 
-/**
-* This class represents the [[RequestContext)]]
-*
-* @param member member information of the user in the current context
-* @param user user in the current context
-* @param fullName full name of the user
-* @param memberId unique identifier of the member
-* @param lang the language used in the current context
-* @param command command in the current context
-* @param eTag etag of the entity in the current context
-*
-* @author rew3 on 2016/08/01
-* @version 1.2.2
- */
+/*
+This class represents the [[RequestContext)]]
+
+@field member member information of the user in the current context
+@field user user in the current context
+@field fullName full name of the user
+@field memberId unique identifier of the member
+@field lang the language used in the current context
+@field command command in the current context
+@field eTag etag of the entity in the current context
+
+@author rew3 on 2023/05/15
+*/
 type RequestContext struct {
 	Member     string   `bson:"first_name,omitempty"`
 	User       MiniUser `bson:"mini_user,omitempty"`

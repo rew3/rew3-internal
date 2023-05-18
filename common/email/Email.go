@@ -8,16 +8,16 @@ import (
 /*
   A class to represent ''Email''
 
- @param emailType email type information, from the lookup
- @param value the email address
- @param isPrimary determines if the email is primary
+ @field emailType email type information, from the lookup
+ @field value the email address
+ @field isPrimary determines if the email is primary
 
  @author rew3 on 2023/05/11
- @version 1.0.0
+
 */
 
 type Email struct {
-	Id          primitive.ObjectID `bson:"_id"`
+	ID          primitive.ObjectID `bson:"_id"`
 	To          []string           `bson:"to,omitempty"`
 	BodyHtml    string             `bson:"body_html,omitempty"`
 	Body        string             `bson:"body,omitempty"`
@@ -28,7 +28,7 @@ type Email struct {
 }
 
 type Attachment struct {
-	Id               primitive.ObjectID `bson:"_id"`
+	ID               primitive.ObjectID `bson:"_id"`
 	Meta             string             `bson:"meta,omitempty"`
 	Reference        Reference          `bson:"reference,omitempty"`
 	FileName         string             `bson:"file_name,omitempty"`
