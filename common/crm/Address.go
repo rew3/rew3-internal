@@ -1,4 +1,4 @@
-package erp
+package crm
 
 /*
  * Tyoe to represent ''Address''

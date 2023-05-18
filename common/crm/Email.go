@@ -1,4 +1,4 @@
-package erp
+package crm
 
 /*
  A class to represent ''Email''
