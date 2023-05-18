@@ -3,7 +3,7 @@ package platform
 import (
 	"time"
 
-	. "github.com/rew3/rew3-base/data"
+	. "github.com/rew3/rew3-base/common/types"
 	. "github.com/rew3/rew3-base/platform/constants"
 )
 
