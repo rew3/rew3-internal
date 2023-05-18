@@ -16,7 +16,7 @@ Reference: https://gist.github.com/danielestevez/2044589
 
 4) Delete and recreate the tag remotely
 	`git push origin :{tagname} e.g. git push origin :v1.0.0` // deletes original remote tag
-	`git push origin {tagname} e.g. git pull origin :v1.0.0` // creates new remote tag
+	`git push origin {tagname} e.g. git push origin :v1.0.0` // creates new remote tag
 		
 5)  Update local repository with the updated tag.
 	git fetch --tags
