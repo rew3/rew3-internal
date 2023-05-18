@@ -17,14 +17,14 @@ import (
   @author rew3
   @version 1.0.0
 
-  @param id - Entity ID.
-  @param action - Type of action (e.g. create, update, delete etc.)
-  @param message - Response message.
-  @param status - Status of the operation.
+  @field id - Entity ID.
+  @field action - Type of action (e.g. create, update, delete etc.)
+  @field message - Response message.
+  @field status - Status of the operation.
 */
 
 type CommonResponse struct {
-	ID      string     `json:"id"`
+	Id      string     `json:"id"`
 	Action  string     `json:"action"`
 	Message string     `json:"message"`
 	Status  StatusType `json:"status"`

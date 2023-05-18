@@ -12,16 +12,13 @@ import (
 
   @see [[GQLCommonResponse]] for generic response model.
 
-  Created on 2023/05/12
+  author rew3 on 2023/05/12
 
-  @author rew3
-  @version 1.0.0
-
-  @param id - Entity ID.
-  @param action - Type of action (e.g. create, update, delete etc.)
-  @param message - Response message.
-  @param status - Status of the operation.
-  @param data - Request specific data.
+  @field id - Entity ID.
+  @field action - Type of action (e.g. create, update, delete etc.)
+  @field message - Response message.
+  @field status - Status of the operation.
+  @field data - Request specific data.
   @tparam T - interface{} type that can hold any type of data. Similar to Generic Type in Scala
 */
 
