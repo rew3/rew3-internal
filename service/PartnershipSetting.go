@@ -6,9 +6,9 @@ import (
 )
 
 type PartnershipSetting struct {
-	Id                primitive.ObjectID `bson:"_id"`
-	INVITEE           string             `bson:"invitee,omitempty"`
-	INVITEDBY         UserType           `bson:"invited_by,omitempty"`
-	PARTNERSHIPSTATUS PartnershipStatus  `bson:"partnership_status,omitempty"`
-	META              MetaInfo           `bson:"meta,omitempty"`
+	ID                primitive.ObjectID `bson:"_id"`
+	Invitee           string             `bson:"invitee,omitempty"`
+	InvitedBy         UserType           `bson:"invited_by,omitempty"`
+	PartnershipStatus PartnershipStatus  `bson:"partnership_status,omitempty"`
+	Meta              MetaInfo           `bson:"meta,omitempty"`
 }

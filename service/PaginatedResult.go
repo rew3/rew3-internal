@@ -7,13 +7,12 @@ import (
 
 /*
 This class provides pagination information to the query results
-@param data data response of the query
-@param limit number of entities returned
-@param pageNumber pageNumber of the repsonse
-@param pagesCount total pagesCount
-@param totalCount total number of entites
-@author rew3 on 2023/05/11.
-@version 1.0.0
+@field data data response of the query
+@field limit number of entities returned
+@field pageNumber pageNumber of the repsonse
+@field pagesCount total pagesCount
+@field totalCount total number of entites
+@author rew3 on 2023/05/11
 */
 type PaginatedResult struct {
 	Data       []json.RawMessage `bson:"data"`

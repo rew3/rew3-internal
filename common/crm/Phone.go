@@ -3,16 +3,16 @@ package crm
 /*
  A class to represent ''Phone''
 
- @param phoneType phone type information, from the lookup
- @param value phone number
- @param isPrimary determines if the the phone is primary or secondary
+ @field phoneType phone type information, from the lookup
+ @field value phone number
+ @field isPrimary determines if the the phone is primary or secondary
 
  @author rew3 on 2023/05/11
- @version 1.0.0
+
 */
 
 type Phone struct {
-	phoneType string `bson:"phone_type,omitempty"`
+	PhoneType string `bson:"phone_type,omitempty"`
 	value     string `bson:"value,omitempty"`
-	isPrimary int    `bson:"is_primary,omitempty"`
+	IsPrimary int    `bson:"is_primary,omitempty"`
 }
