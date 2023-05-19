@@ -18,7 +18,7 @@ Current version of build is `v1.0.1`, and branch is `v1.0.1-branch`
 
 4) Delete and recreate the tag remotely
 	`git push origin :{tagname} e.g. git push origin :v1.0.1` // deletes original remote tag
-	`git push origin {tagname} e.g. git push origin :v1.0.1` // creates new remote tag
+	`git push origin {tagname} e.g. git push origin v1.0.1` // creates new remote tag
 		
 5)  Update local repository with the updated tag.
 	git fetch --tags
