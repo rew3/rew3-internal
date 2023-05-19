@@ -1,8 +1,8 @@
-package data
+package db
 
 import (
-	m "github.com/rew3/rew3-base/data/meta"
-	s "github.com/rew3/rew3-base/data/security"
+	m "github.com/rew3/rew3-base/db/meta"
+	s "github.com/rew3/rew3-base/db/security"
 )
 
 type RepositoryContext struct {
