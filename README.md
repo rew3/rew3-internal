@@ -1,5 +1,8 @@
 ### Core libraries used in rew3 projects
 
+#### Folder Structure
+Reference: https://github.com/SKF/go-utility
+Reference: https://github.com/eiicon-company/go-core
 
 #### Creating Tags and Publishing Build to Github
 Reference: https://gist.github.com/danielestevez/2044589
