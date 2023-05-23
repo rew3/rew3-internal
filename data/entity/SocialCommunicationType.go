@@ -1,4 +1,4 @@
-package crm
+package entity
 
 /**
   Class to represent ''Social Communication Type''

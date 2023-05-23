@@ -1,4 +1,4 @@
-package crm
+package entity
 
 /*
    Class to represent a [[CaseMini]] . This class contains few important fields of [[Case]]

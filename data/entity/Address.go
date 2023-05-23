@@ -1,4 +1,4 @@
-package crm
+package entity
 
 /*
 Type to represent ”Address”

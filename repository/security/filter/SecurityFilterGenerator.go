@@ -1,8 +1,8 @@
 package filter
 
 import (
+	s "github.com/rew3/rew3-base/data/service"
 	c "github.com/rew3/rew3-base/repository/security/constants"
-	s "github.com/rew3/rew3-base/service"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

@@ -1,9 +1,9 @@
 package security
 
 import (
-	c "github.com/rew3/rew3-base/db/security/constants"
-	f "github.com/rew3/rew3-base/db/security/filter"
-	s "github.com/rew3/rew3-base/service"
+	s "github.com/rew3/rew3-base/data/service"
+	c "github.com/rew3/rew3-base/repository/security/constants"
+	f "github.com/rew3/rew3-base/repository/security/filter"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

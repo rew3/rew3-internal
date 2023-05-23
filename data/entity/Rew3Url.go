@@ -1,4 +1,4 @@
-package crm
+package entity
 
 /*
    A Type to represent [[Rew3Url]].

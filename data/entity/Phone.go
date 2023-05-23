@@ -1,4 +1,4 @@
-package crm
+package entity
 
 /*
  A class to represent ''Phone''

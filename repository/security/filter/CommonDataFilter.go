@@ -1,12 +1,11 @@
 package filter
 
 import (
-	s "github.com/rew3/rew3-base/service"
+	s "github.com/rew3/rew3-base/data/service"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
-type CommonDataFilter struct {}
-
+type CommonDataFilter struct{}
 
 func (filter *CommonDataFilter) ConstructArchivedFilter(param s.RequestParam) bson.D {
 	/*requestParam.filters.get.\(s"${ApiConstants.archiveParamName}") match {
@@ -20,15 +19,14 @@ func (filter *CommonDataFilter) ConstructArchivedFilter(param s.RequestParam) bs
 		case true => showOnlyArchived
 		case false => hideArchivedFilter
 	  }*/
-	  return bson.D{}
+	return bson.D{}
 }
 
 func (filter *CommonDataFilter) RemoveArchivedFilter(param s.RequestParam) bson.D {
 	/*val updatedFilters = requestParam.filters.get.-(s"${ApiConstants.archiveParamName}")
-    requestParam.copy(filters = Some(updatedFilters))*/
-	  return bson.D{}
+	  requestParam.copy(filters = Some(updatedFilters))*/
+	return bson.D{}
 }
-
 
 func (filter *CommonDataFilter) HideSoftDeletedFilter(param s.RequestParam) bson.D {
 	// DBQueryBuilder.existsNot("meta._deleted")

@@ -3,9 +3,8 @@ package service
 import (
 	"math/big"
 
-	. "github.com/rew3/rew3-base/service/constants"
-	. "github.com/rew3/rew3-base/types"
-	. "github.com/rew3/rew3-base/types/crm"
+	. "github.com/rew3/rew3-base/data/entity"
+	. "github.com/rew3/rew3-base/data/service/constants"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

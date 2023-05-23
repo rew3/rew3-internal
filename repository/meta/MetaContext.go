@@ -1,8 +1,8 @@
 package meta
 
 import (
-	consts "github.com/rew3/rew3-base/service/constants"
-	tpe "github.com/rew3/rew3-base/types"
+	tpe "github.com/rew3/rew3-base/data/entity"
+	consts "github.com/rew3/rew3-base/data/service/constants"
 )
 
 type MetaContext struct {

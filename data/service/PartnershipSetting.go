@@ -1,7 +1,7 @@
 package service
 
 import (
-	. "github.com/rew3/rew3-base/service/constants"
+	. "github.com/rew3/rew3-base/data/service/constants"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

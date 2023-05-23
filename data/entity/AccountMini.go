@@ -1,4 +1,4 @@
-package crm
+package entity
 
 /*
  * Type to represent a [[AccountMini]] . This class contains few important fields of [[Account]]

@@ -1,9 +1,9 @@
-package types
+package entity
 
 import (
 	"encoding/json"
 
-	. "github.com/rew3/rew3-base/service/constants"
+	. "github.com/rew3/rew3-base/data/service/constants"
 )
 
 type Reference struct {

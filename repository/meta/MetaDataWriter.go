@@ -1,7 +1,7 @@
 package meta
 
 import (
-	s "github.com/rew3/rew3-base/service"
+	s "github.com/rew3/rew3-base/data/service"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -30,8 +30,8 @@ func (writer *MetaDataWriter) WriteUpdateMeta(data *bson.M, originalMeta *s.Meta
 		AccountType: context.AccountType,
 	}
 	// Update a meta field
-	// Todo need to update existing meta.. not write new meta later. updateOriginalMeta. 
-	// Remove meta from data, and add updated original meta. 
+	// Todo need to update existing meta.. not write new meta later. updateOriginalMeta.
+	// Remove meta from data, and add updated original meta.
 	doc := bson.M(*data)
 	doc["meta"] = writer.updateMeta(mc)
 	return doc
