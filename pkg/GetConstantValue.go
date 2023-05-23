@@ -1,4 +1,4 @@
-package utility
+package pkg
 
 import (
 	. "github.com/rew3/rew3-base/service/constants"
