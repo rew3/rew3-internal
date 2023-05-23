@@ -36,5 +36,5 @@ type Attachment struct {
 	Description      string             `bson:"description,omitempty"`
 	Path             string             `bson:"path,omitempty"`
 	IsFavourite      bool               `bson:"is_favourite,omitempty"`
-	DocumentMetadata DocMetadata        `bson:"document_metadata,omitempty"`
+	DocumentMetadata AttachmentMetadata `bson:"document_metadata,omitempty"`
 }

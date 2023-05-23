@@ -4,6 +4,7 @@ import (
 	. "github.com/rew3/rew3-base/service/constants"
 )
 
+// A method for conversing constant (enum) to string value
 var modules = []Module{
 	CRM,
 	RMS,

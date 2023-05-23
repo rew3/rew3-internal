@@ -1,6 +1,6 @@
 package email
 
-type DocMetadata struct {
+type AttachmentMetadata struct {
 	Title        string `bson:"title,omitempty"`
 	Creator      string `bson:"creator,omitempty"`
 	Subject      string `bson:"subject,omitempty"`
