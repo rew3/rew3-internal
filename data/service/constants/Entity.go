@@ -1,7 +1,5 @@
 package constants
 
-// Rew3 Entities.
-
 type Entity string
 
 const (
