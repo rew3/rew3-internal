@@ -27,3 +27,9 @@ Current version of build is `v1.0.1`, and branch is `v1.0.1-branch`
 	git fetch --tags
 	
 Note, we have issue in version 1.0.0, so we use version 1.0.1 for rew3-base. 
+
+Update on git tag:
+- Simply update tag `git tag -f <tag_name_to_update> <hash_code_new_commit>`
+- Push to repository `git push origin {tagname}`
+
+Reference: https://www.toolsqa.com/git/git-delete-tag/#:~:text=Similar%20to%20this%2C%20sometimes%2C%20we,depicting%20that%20the%20stable%20Version1.

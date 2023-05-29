@@ -1,4 +1,4 @@
-package db
+package repository
 
 import (
 	m "github.com/rew3/rew3-base/repository/meta"
