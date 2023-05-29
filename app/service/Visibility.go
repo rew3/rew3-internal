@@ -3,8 +3,8 @@ package service
 import (
 	"time"
 
-	. "github.com/rew3/rew3-base/data/entity"
-	. "github.com/rew3/rew3-base/data/service/constants"
+	. "github.com/rew3/rew3-base/app/model"
+	. "github.com/rew3/rew3-base/app/service/constants"
 )
 
 type TeamMini struct {

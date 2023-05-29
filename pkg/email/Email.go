@@ -1,7 +1,7 @@
 package email
 
 import (
-	. "github.com/rew3/rew3-base/data/entity"
+	. "github.com/rew3/rew3-base/app/model"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

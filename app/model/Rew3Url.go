@@ -1,4 +1,4 @@
-package entity
+package model
 
 /*
    A Type to represent [[Rew3Url]].

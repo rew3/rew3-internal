@@ -1,4 +1,4 @@
-package entity
+package model
 
 type LeadMini struct {
 	ID        string `bson:"_id"`

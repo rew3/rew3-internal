@@ -1,4 +1,4 @@
-package entity
+package model
 
 /**
   Class to represent ''Social Communication Type''

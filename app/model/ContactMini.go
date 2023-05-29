@@ -1,4 +1,4 @@
-package entity
+package model
 
 type ContactMini struct {
 	ID        string `bson:"_id"`

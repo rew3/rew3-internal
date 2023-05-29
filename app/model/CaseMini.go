@@ -1,4 +1,4 @@
-package entity
+package model
 
 /*
    Class to represent a [[CaseMini]] . This class contains few important fields of [[Case]]

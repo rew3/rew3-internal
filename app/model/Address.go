@@ -1,4 +1,4 @@
-package entity
+package model
 
 /*
 Type to represent ”Address”

@@ -1,6 +1,6 @@
 package service
 
-import . "github.com/rew3/rew3-base/data/service/constants"
+import . "github.com/rew3/rew3-base/app/service/constants"
 
 /* Variables */
 var modules = map[Module][]Entity{

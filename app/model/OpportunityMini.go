@@ -1,4 +1,4 @@
-package entity
+package model
 
 type OpportunityMini struct {
 	ID              string      `bson:"_id"`

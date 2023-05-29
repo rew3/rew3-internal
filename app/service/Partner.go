@@ -1,7 +1,7 @@
 package service
 
 import (
-	. "github.com/rew3/rew3-base/data/service/constants"
+	. "github.com/rew3/rew3-base/app/service/constants"
 )
 
 type Partner struct {
