@@ -1,4 +1,4 @@
-package entity
+package model
 
 /*
  * Type to represent a [[AccountMini]] . This class contains few important fields of [[Account]]

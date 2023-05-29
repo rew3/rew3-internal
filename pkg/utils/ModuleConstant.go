@@ -1,7 +1,7 @@
 package utils
 
 import (
-	. "github.com/rew3/rew3-base/data/service/constants"
+	. "github.com/rew3/rew3-base/app/service/constants"
 )
 
 // A method for conversing constant (enum) to string value
