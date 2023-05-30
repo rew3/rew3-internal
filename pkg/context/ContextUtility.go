@@ -18,7 +18,7 @@ func WithRequestContext(ctx context.Context, reqContext s.RequestContext) contex
 }
 
 // Retrieve the RequestContext from the context
-func GetRequestContext(ctx context.Context) s.RequestContext {
-	reqContext, _ := ctx.Value(requestContextKey).(s.RequestContext)
-	return reqContext
+func GetRequestContext(ctx context.Context) (s.RequestContext, bool) {
+	reqContext, status := ctx.Value(requestContextKey).(s.RequestContext)
+	return reqContext, status
 }
