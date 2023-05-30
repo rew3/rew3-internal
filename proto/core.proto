@@ -3,7 +3,7 @@ syntax = "proto3";
 import "google/protobuf/wrappers.proto";
 import "google/protobuf/struct.proto";
 
-option go_package = "app/pb/proto";
+option go_package = "app/core/proto";
 
 package proto;
 
