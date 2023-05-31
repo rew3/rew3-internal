@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	s "github.com/rew3/rew3-base/app/cqrs"
+	s "github.com/rew3/rew3-base/cqrs"
 )
 
 type CommandExecutor struct {
