@@ -1,9 +1,9 @@
-package model
+package common
 
 import (
 	"encoding/json"
 
-	. "github.com/rew3/rew3-base/app/service/constants"
+	. "github.com/rew3/rew3-base/app/common/constants"
 )
 
 type Reference struct {

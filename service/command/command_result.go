@@ -1,7 +1,7 @@
 package command
 
 import (
-	s "github.com/rew3/rew3-base/app/service"
+	s "github.com/rew3/rew3-base/service/response"
 )
 
 type CommandResult[Entity any] struct {

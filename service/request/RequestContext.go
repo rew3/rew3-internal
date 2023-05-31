@@ -1,10 +1,12 @@
-package service
+package request
 
 import (
 	"math/big"
 
-	. "github.com/rew3/rew3-base/app/model"
-	. "github.com/rew3/rew3-base/app/service/constants"
+	. "github.com/rew3/rew3-base/app/account"
+	. "github.com/rew3/rew3-base/app/account/constant"
+	. "github.com/rew3/rew3-base/app/common/constant"
+	. "github.com/rew3/rew3-base/app/crm"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

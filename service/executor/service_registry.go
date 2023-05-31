@@ -1,10 +1,10 @@
-package core
+package executor
 
 import (
 	"fmt"
 
-	c "github.com/rew3/rew3-base/cqrs/command"
-	q "github.com/rew3/rew3-base/cqrs/query"
+	c "github.com/rew3/rew3-base/service/command"
+	q "github.com/rew3/rew3-base/service/query"
 )
 
 type ServiceRegistry struct {
@@ -37,6 +37,7 @@ func (r *ServiceRegistry) RegisterQueryHandler(queryName string, handler q.Query
  * Get Command handler.
  */
 func (r *ServiceRegistry) GetCommandHandler(commandName string) (c.CommandHandler, error) {
+
 	handler, ok := r.commandHandlers[commandName]
 	if !ok {
 		return nil, fmt.Errorf("command handler not found for command: %s", commandName)

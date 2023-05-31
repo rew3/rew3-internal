@@ -1,26 +1,21 @@
-package core
-
-import (
-	c "github.com/rew3/rew3-base/cqrs/command"
-	q "github.com/rew3/rew3-base/cqrs/query"
-)
+package executor
 
 type ExecutorService struct {
-	commandExecutor c.CommandExecutor
-	queryExecutor   q.QueryExecutor
+	commandExecutor CommandExecutor
+	queryExecutor   QueryExecutor
 }
 
 func NewExecutorService(registry *ServiceRegistry) *ExecutorService {
 	return &ExecutorService{
-		commandExecutor: c.NewCommandExecutor{registry},
-		queryExecutor:   q.NewQueryExecutor{registry},
+		commandExecutor: NewCommandExecutor{registry},
+		queryExecutor:   NewQueryExecutor{registry},
 	}
 }
 
-func (service *ExecutorService) getCommandExecutor() *c.CommandExecutor {
+func (service *ExecutorService) getCommandExecutor() *CommandExecutor {
 	return &service.commandExecutor
 }
 
-func (service *ExecutorService) getQueryExecutor() *q.QueryExecutor {
+func (service *ExecutorService) getQueryExecutor() *QueryExecutor {
 	return &service.queryExecutor
 }

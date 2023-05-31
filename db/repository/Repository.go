@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	s "github.com/rew3/rew3-base/app/service"
+	req "github.com/rew3/rew3-base/service/request"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -25,17 +25,17 @@ type Repository[Entity any] interface {
 
 	/* Reads */
 	FindById(ctx context.Context, id string) *Entity
-	Find(ctx context.Context, param s.RequestParam) []*Entity
+	Find(ctx context.Context, param req.RequestParam) []*Entity
 	FindBySelector(ctx context.Context, selector json.RawMessage, offset int, limit int, sort json.RawMessage) []*Entity
-	Count(ctx context.Context, param s.RequestParam) int64
+	Count(ctx context.Context, param req.RequestParam) int64
 	CountBySelector(ctx context.Context, selector json.RawMessage, offset int, limit int, sort json.RawMessage) int64
 	Aggregate(ctx context.Context) []*Entity
 	AggregateWithLookupJoin(ctx context.Context) []*Entity
 
 	/*Public Reads*/
 	FindByIdPublic(ctx context.Context, id string) *Entity
-	FindPublic(ctx context.Context, param s.RequestParam) []*Entity
+	FindPublic(ctx context.Context, param req.RequestParam) []*Entity
 	FindBySelectorPublic(ctx context.Context, selector json.RawMessage, offset int, limit int, sort json.RawMessage) []*Entity
-	CountPublic(ctx context.Context, param s.RequestParam) int64
+	CountPublic(ctx context.Context, param req.RequestParam) int64
 	CountBySelectorPublic(ctx context.Context, selector json.RawMessage, offset int, limit int, sort json.RawMessage) int64
 }

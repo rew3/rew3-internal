@@ -1,5 +1,7 @@
 package command
 
+import "context"
+
 type CommandHandler interface {
-	HandleCommand(command Command)
+	Handle(command Command, ctx context.Context)
 }
