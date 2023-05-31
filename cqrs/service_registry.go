@@ -3,8 +3,8 @@ package core
 import (
 	"fmt"
 
-	c "github.com/rew3/rew3-base/app/core/command"
-	q "github.com/rew3/rew3-base/app/core/query"
+	c "github.com/rew3/rew3-base/cqrs/command"
+	q "github.com/rew3/rew3-base/cqrs/query"
 )
 
 type ServiceRegistry struct {
