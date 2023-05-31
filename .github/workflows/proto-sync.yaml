@@ -1,0 +1,33 @@
+name: Sync Rew3 Base Proto Directory
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  sync_proto_directory:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout rew3-base repository
+        uses: actions/checkout@v2
+        with:
+          repository: rew3/rew3-base
+          path: rew3-base
+          token: ${{ secrets.GITHUBWORKFLOWTOKEN }}
+
+      - name: Checkout erp-crm repository
+        uses: actions/checkout@v2
+        with:
+          repository: rew3/erp-crm
+          path: erp-crm
+          token: ${{ secrets.GITHUBWORKFLOWTOKEN }}
+
+      - name: Delete existing proto/base directory
+        run: rm -rf erp-crm/proto/base
+
+      - name: Sync Proto Directory
+        run: |
+          mkdir -p erp-crm/proto/rew3base
+          cp -R rew3-base/proto erp-crm/proto/rew3base
