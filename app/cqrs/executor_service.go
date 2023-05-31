@@ -1,8 +1,8 @@
 package core
 
 import (
-	c "github.com/rew3/rew3-base/app/core/command"
-	q "github.com/rew3/rew3-base/app/core/query"
+	c "github.com/rew3/rew3-base/app/cqrs/command"
+	q "github.com/rew3/rew3-base/app/cqrs/query"
 )
 
 type ExecutorService struct {
