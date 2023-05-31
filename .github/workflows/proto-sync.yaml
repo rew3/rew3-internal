@@ -24,8 +24,8 @@ jobs:
           path: erp-crm
           token: ${{ secrets.GITHUBWORKFLOWTOKEN }}
 
-      - name: Delete existing proto/base directory
-        run: rm -rf erp-crm/proto/base
+      - name: Delete existing proto/rew3base directory
+        run: rm -rf erp-crm/proto/rew3base
 
       - name: Sync Proto Directory
         run: |
