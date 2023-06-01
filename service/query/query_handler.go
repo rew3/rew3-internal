@@ -3,5 +3,5 @@ package query
 import "context"
 
 type QueryHandler interface {
-	Handle(query Query, ctx context.Context)
+	Handle(query Query, ctx context.Context, resultChannel *QueryResultChannel)
 }

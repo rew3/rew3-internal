@@ -4,34 +4,60 @@ import (
 	s "github.com/rew3/rew3-base/service/response"
 )
 
-type CommandResult[Entity any] struct {
-	Success      bool
-	Response     s.ExecutionResult[Entity]
-	ErrorMessage string
+/**
+ * Command Result.
+ */
+type CommandResult struct {
+	Response s.ExecutionResult[interface{}]
 }
 
-func Success[Entity any](response s.ExecutionResult[Entity]) CommandResult[Entity] {
-	return CommandResult[Entity]{
-		Success:  true,
-		Response: response,
+/**
+ * Command result channel.
+ */
+type CommandResultChannel struct {
+	Result chan CommandResult
+}
+
+func NewCommandResultChannel() *CommandResultChannel {
+	return &CommandResultChannel{
+		Result: make(chan CommandResult),
 	}
 }
 
-func Failure[Entity any](error string) CommandResult[Entity] {
-	return CommandResult[Entity]{
-		Success:      false,
-		ErrorMessage: error,
+/**
+ * Parse the command result for given result type.
+ * Provide default value in case of failure of parsing command result. 
+ */
+func ParseQueryResult[T any](result CommandResult, defaultValue T) *s.ExecutionResult[T] {
+	if !result.Response.IsSuccessful {
+		return &s.ExecutionResult[T]{
+			IsSuccessful: result.Response.IsSuccessful,
+			Status:       result.Response.Status,
+			Message:      result.Response.Message,
+			Id:           result.Response.Id,
+			Action:       result.Response.Action,
+			Data:         defaultValue,
+		}
+	} else {
+		switch value := result.Response.Data.(type) {
+		case T:
+			return &s.ExecutionResult[T]{
+				IsSuccessful: result.Response.IsSuccessful,
+				Status:       result.Response.Status,
+				Message:      result.Response.Message,
+				Id:           result.Response.Id,
+				Action:       result.Response.Action,
+				Data:         value,
+			}
+		default:
+			return &s.ExecutionResult[T]{
+				IsSuccessful: result.Response.IsSuccessful,
+				Status:       result.Response.Status,
+				Message:      result.Response.Message,
+				Id:           result.Response.Id,
+				Action:       result.Response.Action,
+				Data:         defaultValue,
+			}
+		}
 	}
-}
-
-func (r CommandResult[Entity]) IsSuccess() bool {
-	return r.Success
-}
-
-func (r CommandResult[Entity]) GetResponse() s.ExecutionResult[Entity] {
-	return r.Response
-}
-
-func (r CommandResult[Entity]) GetErrorMessage() string {
-	return r.ErrorMessage
 }
