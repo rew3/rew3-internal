@@ -20,7 +20,7 @@ func NewCommandExecutor(registry *ServiceRegistry) *CommandExecutor {
 /**
  * Execute Command.
  */
-func (executor *CommandExecutor) Execute(command c.Command, ctx context.Context) c.CommandResult {
+func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command) c.CommandResult {
 	commandName := command.GetName()
 	handler, err := executor.serviceRegistry.GetCommandHandler(commandName)
 	if err != nil {

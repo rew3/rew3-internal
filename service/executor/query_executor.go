@@ -23,7 +23,7 @@ func NewQueryExecutor(registry *ServiceRegistry) *QueryExecutor {
 /**
  * Execute Query.
  */
-func (executor *QueryExecutor) Execute(query q.Query, ctx context.Context) q.QueryResult {
+func (executor *QueryExecutor) Execute(ctx context.Context, query q.Query) q.QueryResult {
 	queryName := query.GetName()
 	handler, err := executor.serviceRegistry.GetQueryHandler(queryName)
 	if err != nil {

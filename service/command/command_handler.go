@@ -3,5 +3,5 @@ package command
 import "context"
 
 type CommandHandler interface {
-	Handle(command Command, ctx context.Context, resultChannel CommandResultChannel)
+	Handle(ctx context.Context, command Command, resultChannel CommandResultChannel)
 }
