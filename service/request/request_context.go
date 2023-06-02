@@ -3,10 +3,10 @@ package request
 import (
 	"math/big"
 
-	. "github.com/rew3/rew3-base/app/account"
-	. "github.com/rew3/rew3-base/app/account/constant"
-	. "github.com/rew3/rew3-base/app/common/constant"
-	. "github.com/rew3/rew3-base/app/crm"
+	a "github.com/rew3/rew3-base/app/account"
+	ac "github.com/rew3/rew3-base/app/account/constants"
+	c "github.com/rew3/rew3-base/app/common"
+	cc "github.com/rew3/rew3-base/app/common/constants"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -22,15 +22,16 @@ import (
   @field AccountTypeAlias TEAM or ORGANIZATION
 */
 
-type MetaInfoModel interface{}
+//type MetaInfoModel interface{}
 
-type GlobalSharedMeta struct {
+// Deprecated.
+/*type GlobalSharedMeta struct {
 	MemberId         string               `bson:"member_id,omitempty"`
 	Users            []string             `bson:"users,omitempty"`
 	AccessType       SharedMetaAccessType `bson:"access_type,omitempty"`
 	AccountTypeAlias AccountTypeAlias     `bson:"account_type_alias,omitempty"`
 	SharedToNetwork  bool                 `bson:"shared_to_network,omitempty"`
-}
+}*/
 
 type Rew3UserPersonalAlias struct {
 	FirstName  string `bson:"first_name,omitempty"`
@@ -51,8 +52,8 @@ type CompanyAlias struct {
 }
 
 type UserInfo struct {
-	Email       []Email               `bson:"email,omitempty"`
-	PhoneNumber []Phone               `bson:"phone_number,omitempty"`
+	Email       []c.Email             `bson:"email,omitempty"`
+	PhoneNumber []c.Phone             `bson:"phone_number,omitempty"`
 	Personal    Rew3UserPersonalAlias `bson:"personal,omitempty"`
 	Company     CompanyAlias          `bson:"company,omitempty"`
 }
@@ -69,8 +70,8 @@ type TeamMiniAlias struct {
  */
 
 type SharingRuleContext struct {
-	Entity       Entity   `bson:"entity,omitempty"`
-	VisibleUsers []string `bson:"visible_users,omitempty"`
+	Entity       cc.Entity `bson:"entity,omitempty"`
+	VisibleUsers []string  `bson:"visible_users,omitempty"`
 }
 
 type TeamActions struct {
@@ -104,26 +105,25 @@ This class represents the [[RequestContext)]]
 @author rew3 on 2023/05/15
 */
 type RequestContext struct {
-	Member     string   `bson:"first_name,omitempty"`
-	User       MiniUser `bson:"mini_user,omitempty"`
-	FullName   string   `bson:"full_name,omitempty"`
-	Lang       string   `bson:"lang" i18n:"lang,default=en"` //Default is en. Later we need to unmarshal this using i18n.NewBundle(nil)
-	Command    string   `bson:"command,omitempty"`
-	ETag       string   `bson:"e_tag,omitempty"`
-	Entity     string   `bson:"entity,omitempty"`
-	Module     string   `bson:"module,omitempty"`
-	IsExternal bool     `bson:"is_external,omitempty"`
-	IsAdmin    bool     `bson:"is_admin,omitempty"`
-	Info       UserInfo `bson:"user_info,omitempty"`
-	Timezone   string   `bson:"timezone,omitempty"` // values must be are TZInfo identifiers for eg: Europe/Prague,
-	// America/Guatemala for more info: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+	Member           string               `bson:"first_name,omitempty"`
+	User             a.MiniUser           `bson:"mini_user,omitempty"`
+	FullName         string               `bson:"full_name,omitempty"`
+	Lang             string               `bson:"lang" i18n:"lang,default=en"` //Default is en. Later we need to unmarshal this using i18n.NewBundle(nil)
+	Command          string               `bson:"command,omitempty"`
+	ETag             string               `bson:"e_tag,omitempty"`
+	Entity           string               `bson:"entity,omitempty"`
+	Module           string               `bson:"module,omitempty"`
+	IsExternal       bool                 `bson:"is_external,omitempty"`
+	IsAdmin          bool                 `bson:"is_admin,omitempty"`
+	Info             UserInfo             `bson:"user_info,omitempty"`
+	Timezone         string               `bson:"timezone,omitempty"`          // values must be are TZInfo identifiers for eg: Europe/Prague, // America/Guatemala for more info: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 	Teams            []TeamMiniAlias      `bson:"teams,omitempty"`             // list of teams to which user of the current context belongs to
 	SubordinateUsers []string             `bson:"subordinate_users,omitempty"` // id of the users who lie below the hierarchy of the current user
 	RulesContext     []SharingRuleContext `bson:"rules_context,omitempty"`
-	GlobalSharedMeta GlobalSharedMeta     `bson:"global_shared_meta,omitempty"` // this should be populated from the application layer, based on this, shared meta will be constructed
-	AccountType      AccountTypeAlias     `bson:"account_type,omitempty"`
-	securityType     SecurityTypeAlias    `bson:"security_type,omitempty"`
-	actions          UserActions          `bson:"actions,omitempty"`
+	//GlobalSharedMeta GlobalSharedMeta     `bson:"global_shared_meta,omitempty"` // this should be populated from the application layer, based on this, shared meta will be constructed
+	AccountType  ac.AccountTypeAlias  `bson:"account_type,omitempty"`
+	SecurityType ac.SecurityTypeAlias `bson:"security_type,omitempty"`
+	Actions      UserActions          `bson:"actions,omitempty"`
 }
 
 func (r *RequestContext) WithCommand(command string) *RequestContext {

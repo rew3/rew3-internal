@@ -1,4 +1,4 @@
-package model
+package common
 
 /*
 Type to represent ”Address”

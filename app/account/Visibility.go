@@ -3,8 +3,7 @@ package account
 import (
 	"time"
 
-	. "github.com/rew3/rew3-base/app/model"
-	. "github.com/rew3/rew3-base/app/service/constants"
+	ac "github.com/rew3/rew3-base/app/account/constants"
 )
 
 type TeamMini struct {
@@ -13,13 +12,13 @@ type TeamMini struct {
 }
 
 type IndividualVisibility struct {
-	IndividualId   string           `bson:"individual_id,omitempty"`
-	PermissionType []PermissionType `bson:"permission_type,omitempty"`
+	IndividualId   string              `bson:"individual_id,omitempty"`
+	PermissionType []ac.PermissionType `bson:"permission_type,omitempty"`
 }
 
 type GroupVisibility struct {
-	EntityId       string           `bson:"entity_id,omitempty"` // teamId, groupId etc
-	PermissionType []PermissionType `bson:"permission_type,omitempty"`
+	EntityId       string              `bson:"entity_id,omitempty"` // teamId, groupId etc
+	PermissionType []ac.PermissionType `bson:"permission_type,omitempty"`
 }
 
 type TeamVisibility struct {
@@ -29,12 +28,11 @@ type TeamVisibility struct {
 }
 
 type RecordVisibility struct {
-	VisibilityType VisibilityType `bson:"visibility_type,omitempty"`
+	VisibilityType ac.VisibilityType `bson:"visibility_type,omitempty"`
 	//  user or contacId, provided when visibility type is individual. Doing this way, we dont
 	// have to maintain ACL or RecordLevelSharing Data
 	// In case team, we can fetch the team info to see if the current context user is in the
 	// same team as contact
-	IndividualVisibility []MiniUser           `bson:"individual_visibility,omitempty"`
-	TeamVisibility       []TeamMini           `bson:"team_visibility,omitempty"`
-	PartnershipSetting   []PartnershipSetting `bson:"partnership_setting,omitempty"`
+	IndividualVisibility []MiniUser `bson:"individual_visibility,omitempty"`
+	TeamVisibility       []TeamMini `bson:"team_visibility,omitempty"`
 }

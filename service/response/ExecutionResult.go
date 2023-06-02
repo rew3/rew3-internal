@@ -1,7 +1,7 @@
 package response
 
 import (
-	"github.com/rew3/rew3-base/app/service/constants"
+	"github.com/rew3/rew3-base/app/common/constants"
 )
 
 type ExecutionResult[T any] struct {

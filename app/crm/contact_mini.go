@@ -1,4 +1,4 @@
-package model
+package crm
 
 type ContactMini struct {
 	ID        string `bson:"_id"`

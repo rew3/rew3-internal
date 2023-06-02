@@ -1,4 +1,4 @@
-package model
+package crm
 
 type OpportunityMini struct {
 	ID              string      `bson:"_id"`

@@ -1,4 +1,4 @@
-package model
+package crm
 
 /*
    Class to represent a [[CaseMini]] . This class contains few important fields of [[Case]]

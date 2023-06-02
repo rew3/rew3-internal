@@ -1,38 +1,38 @@
 package module
 
 import (
-	. "github.com/rew3/rew3-base/app/service/constants"
+	cs "github.com/rew3/rew3-base/app/common/constants"
 )
 
 // A method for conversing constant (enum) to string value
-var modules = []Module{
-	CRM,
-	RMS,
+var modules = []cs.Module{
+	cs.CRM,
+	cs.RMS,
 }
 
-var entities = []Entity{
-	CRM_CONTACT,
-	CRM_ACCOUNT,
-	CRM_LEAD,
-	CRM_OPPORTUNITY,
-	CRM_CASE,
-	RMS_LISTING,
-	RMS_REQUEST,
+var entities = []cs.Entity{
+	cs.CRM_CONTACT,
+	cs.CRM_ACCOUNT,
+	cs.CRM_LEAD,
+	cs.CRM_OPPORTUNITY,
+	cs.CRM_CASE,
+	cs.RMS_LISTING,
+	cs.RMS_REQUEST,
 }
 
-var statuses = []StatusType{
-	OK,
-	CREATED,
-	DELETED,
-	ACCEPTED,
-	BAD_REQUEST,
-	UNAUTHORIZED,
-	FORBIDDEN,
-	INTERNAL_SERVER_ERROR,
-	BAD_GATEWAY,
-	SERVICE_UNAVAILABLE,
-	GATEWAY_TIMEOUT,
-	NOT_FOUND,
+var statuses = []cs.StatusType{
+	cs.OK,
+	cs.CREATED,
+	cs.DELETED,
+	cs.ACCEPTED,
+	cs.BAD_REQUEST,
+	cs.UNAUTHORIZED,
+	cs.FORBIDDEN,
+	cs.INTERNAL_SERVER_ERROR,
+	cs.BAD_GATEWAY,
+	cs.SERVICE_UNAVAILABLE,
+	cs.GATEWAY_TIMEOUT,
+	cs.NOT_FOUND,
 }
 
 type InvalidException struct {
@@ -47,19 +47,19 @@ func (e *InvalidException) Error() string {
 // If the constant is not found, an empty string is returned.
 func GetConstantValue(constant interface{}) (string, error) {
 	switch c := constant.(type) {
-	case Entity:
+	case cs.Entity:
 		for _, entity := range entities {
 			if entity == c {
 				return string(c), nil //try to return the value of constant.
 			}
 		}
-	case Module:
+	case cs.Module:
 		for _, module := range modules {
 			if module == c {
 				return string(c), nil
 			}
 		}
-	case StatusType:
+	case cs.StatusType:
 		for _, status := range statuses {
 			if status == c {
 				return string(c), nil

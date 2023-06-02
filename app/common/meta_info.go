@@ -3,8 +3,8 @@ package common
 import (
 	"time"
 
-	. "github.com/rew3/rew3-base/app/account"
-	. "github.com/rew3/rew3-base/app/account/constants"
+	a "github.com/rew3/rew3-base/app/account"
+	ac "github.com/rew3/rew3-base/app/account/constants"
 )
 
 /*
@@ -36,10 +36,10 @@ import (
 type MetaInfo struct {
 	Version          int64            `bson:"_version"`
 	Created          time.Time        `bson:"_created,omitempty"`
-	CreatedBy        MiniUser         `bson:"_created_by,omitempty"`
+	CreatedBy        a.MiniUser         `bson:"_created_by,omitempty"`
 	LastModified     time.Time        `bson:"_last_modified,omitempty"`
 	ModifiedBy       time.Time        `bson:"_modified_by,omitempty"`
-	Owner            MiniUser         `bson:"_owner,omitempty"`
+	Owner            a.MiniUser         `bson:"_owner,omitempty"`
 	Member           string           `bson:"_member,omitempty"`
 	Master           string           `bson:"_master,omitempty"`
 	Deleted          string           `bson:"_deleted,omitempty"`
@@ -49,6 +49,6 @@ type MetaInfo struct {
 	Entity           string           `bson:"_entity,omitempty"`
 	Module           string           `bson:"_module,omitempty"`
 	AgentId          string           `bson:"_agent_id,omitempty"` // If this exists, entire meta should belongs to an Agent,the field is populated if, the user in current context is an Agent
-	AccountType      AccountTypeAlias `bson:"_account_type,omitempty"`
-	GlobalSharedMeta GlobalSharedMeta `bson:"_global_shared_meta,omitempty"`
+	AccountType      ac.AccountTypeAlias `bson:"_account_type,omitempty"`
+	//GlobalSharedMeta GlobalSharedMeta `bson:"_global_shared_meta,omitempty"`
 }

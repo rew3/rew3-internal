@@ -1,7 +1,7 @@
 package email
 
 import (
-	. "github.com/rew3/rew3-base/app/model"
+	ac "github.com/rew3/rew3-base/app/common"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -30,7 +30,7 @@ type Email struct {
 type Attachment struct {
 	ID               primitive.ObjectID `bson:"_id"`
 	Meta             string             `bson:"meta,omitempty"`
-	Reference        Reference          `bson:"reference,omitempty"`
+	Reference        ac.Reference       `bson:"reference,omitempty"`
 	FileName         string             `bson:"file_name,omitempty"`
 	MimeType         string             `bson:"mime_type,omitempty"`
 	Description      string             `bson:"description,omitempty"`

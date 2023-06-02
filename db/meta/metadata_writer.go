@@ -1,7 +1,8 @@
 package meta
 
 import (
-	s "github.com/rew3/rew3-base/app/service"
+	s "github.com/rew3/rew3-base/service/request"
+	ac "github.com/rew3/rew3-base/app/common"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -21,7 +22,7 @@ func (writer *MetaDataWriter) WriteNewMeta(data *bson.M, context *s.RequestConte
 	return doc
 }
 
-func (writer *MetaDataWriter) WriteUpdateMeta(data *bson.M, originalMeta *s.MetaInfo, context *s.RequestContext) bson.M {
+func (writer *MetaDataWriter) WriteUpdateMeta(data *bson.M, originalMeta *ac.MetaInfo, context *s.RequestContext) bson.M {
 	mc := MetaContext{
 		ContextUser: context.User,
 		MemberId:    context.Member,

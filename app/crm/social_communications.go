@@ -1,4 +1,4 @@
-package model
+package crm
 
 /*
 Class to represent ”Social Communications”

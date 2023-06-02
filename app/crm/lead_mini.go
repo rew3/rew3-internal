@@ -1,4 +1,4 @@
-package model
+package crm
 
 type LeadMini struct {
 	ID        string `bson:"_id"`
