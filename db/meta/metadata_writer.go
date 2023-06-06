@@ -1,8 +1,8 @@
 package meta
 
 import (
-	s "github.com/rew3/rew3-base/service/request"
-	ac "github.com/rew3/rew3-base/app/common"
+	ac "github.com/rew3/rew3-internal/app/common"
+	s "github.com/rew3/rew3-internal/service/request"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

@@ -8,8 +8,8 @@ import (
 	"log"
 	"time"
 
-	rcUtil "github.com/rew3/rew3-base/pkg/context"
-	service "github.com/rew3/rew3-base/service/request"
+	rcUtil "github.com/rew3/rew3-internal/pkg/context"
+	service "github.com/rew3/rew3-internal/service/request"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -137,7 +137,7 @@ func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id stri
 func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector json.RawMessage, data *Entity) (bool, error) {
 	// TODO need to apply security filter.
 	filter, err := repo.jsonToBson(selector)
-	if(err != nil) {
+	if err != nil {
 		return false, err
 	}
 	doc, err := repo.entityToBson(data)
@@ -162,7 +162,7 @@ func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector
 func (repo *MongoRepository[Entity]) UpdateWithRawData(ctx context.Context, selector json.RawMessage, data json.RawMessage) (bool, error) {
 	// TODO need to apply security filter.
 	filter, err := repo.jsonToBson(selector)
-	if(err != nil) {
+	if err != nil {
 		return false, err
 	}
 	update, err := repo.jsonToBson(data)
@@ -171,7 +171,7 @@ func (repo *MongoRepository[Entity]) UpdateWithRawData(ctx context.Context, sele
 		return false, err
 	}
 	var record Entity
-	err = repo.Collection.FindOneAndUpdate(ctx, filter, bson.M{"$set" : update}, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&record)
+	err = repo.Collection.FindOneAndUpdate(ctx, filter, bson.M{"$set": update}, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&record)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			log.Print("Record not found with provided selector")
