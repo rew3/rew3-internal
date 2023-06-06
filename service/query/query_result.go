@@ -6,7 +6,7 @@ import "errors"
  * Query Result.
  */
 type QueryResult struct {
-	Data  interface{}
+	Data  *interface{}
 	Error string
 }
 
