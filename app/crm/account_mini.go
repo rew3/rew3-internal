@@ -1,7 +1,7 @@
 package crm
 
 import (
-	c "github.com/rew3/rew3-base/app/common"
+	c "github.com/rew3/rew3-internal/app/common"
 )
 
 /*

@@ -3,8 +3,8 @@ package common
 import (
 	"time"
 
-	a "github.com/rew3/rew3-base/app/account"
-	ac "github.com/rew3/rew3-base/app/account/constants"
+	a "github.com/rew3/rew3-internal/app/account"
+	ac "github.com/rew3/rew3-internal/app/account/constants"
 )
 
 /*

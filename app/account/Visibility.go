@@ -3,7 +3,7 @@ package account
 import (
 	"time"
 
-	ac "github.com/rew3/rew3-base/app/account/constants"
+	ac "github.com/rew3/rew3-internal/app/account/constants"
 )
 
 type TeamMini struct {
