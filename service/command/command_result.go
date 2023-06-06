@@ -1,7 +1,7 @@
 package command
 
 import (
-	s "github.com/rew3/rew3-base/service/response"
+	s "github.com/rew3/rew3-internal/service/response"
 )
 
 /**
@@ -26,7 +26,7 @@ func NewCommandResultChannel() *CommandResultChannel {
 
 /**
  * Parse the command result for given result type.
- * Provide default value in case of failure of parsing command result. 
+ * Provide default value in case of failure of parsing command result.
  */
 func ParseQueryResult[T any](result CommandResult, defaultValue T) *s.ExecutionResult[T] {
 	if !result.Response.IsSuccessful {

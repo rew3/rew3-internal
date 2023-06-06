@@ -3,7 +3,7 @@ package context
 import (
 	"context"
 
-	s "github.com/rew3/rew3-base/service/request"
+	s "github.com/rew3/rew3-internal/service/request"
 )
 
 type contextKey int

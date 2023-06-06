@@ -3,10 +3,10 @@ package request
 import (
 	"math/big"
 
-	a "github.com/rew3/rew3-base/app/account"
-	ac "github.com/rew3/rew3-base/app/account/constants"
-	c "github.com/rew3/rew3-base/app/common"
-	cc "github.com/rew3/rew3-base/app/common/constants"
+	a "github.com/rew3/rew3-internal/app/account"
+	ac "github.com/rew3/rew3-internal/app/account/constants"
+	c "github.com/rew3/rew3-internal/app/common"
+	cc "github.com/rew3/rew3-internal/app/common/constants"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

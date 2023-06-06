@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	q "github.com/rew3/rew3-base/service/query"
+	q "github.com/rew3/rew3-internal/service/query"
 )
 
 /**
@@ -24,14 +24,14 @@ func NewQueryExecutor(registry *ServiceRegistry) *QueryExecutor {
  * Execute Query.
  */
 func (executor *QueryExecutor) Execute(ctx context.Context, query q.Query) q.QueryResult {
-	queryName := query.GetName()
+	queryName := q.QueryName(query)
 	handler, err := executor.serviceRegistry.GetQueryHandler(queryName)
 	if err != nil {
 		fmt.Printf("No handler registered for query type: %s\n", queryName)
 		return q.QueryResult{Error: "Unable to process given query."}
 	} else {
 		resultChannel := q.NewQueryResultChannel()
-		handler.Handle(query, ctx, resultChannel)
+		handler.Handle(ctx, query, resultChannel)
 		result := <-resultChannel.Result
 		return result
 	}

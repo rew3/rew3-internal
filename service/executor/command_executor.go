@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	c "github.com/rew3/rew3-base/service/command"
+	c "github.com/rew3/rew3-internal/service/command"
 )
 
 type CommandExecutor struct {
@@ -21,14 +21,14 @@ func NewCommandExecutor(registry *ServiceRegistry) *CommandExecutor {
  * Execute Command.
  */
 func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command) c.CommandResult {
-	commandName := command.GetName()
+	commandName := c.CommandName(command)
 	handler, err := executor.serviceRegistry.GetCommandHandler(commandName)
 	if err != nil {
 		fmt.Printf("No handler registered for command type: %s\n", commandName)
 		return c.CommandResult{}
 	} else {
 		resultChannel := c.NewCommandResultChannel()
-		handler.Handle(command, ctx, *resultChannel)
+		handler.Handle(ctx, command, *resultChannel)
 		result := <-resultChannel.Result
 		return result
 	}

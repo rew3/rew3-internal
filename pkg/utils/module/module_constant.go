@@ -1,7 +1,7 @@
 package module
 
 import (
-	cs "github.com/rew3/rew3-base/app/common/constants"
+	cs "github.com/rew3/rew3-internal/app/common/constants"
 )
 
 // A method for conversing constant (enum) to string value

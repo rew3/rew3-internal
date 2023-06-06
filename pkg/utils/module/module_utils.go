@@ -1,6 +1,6 @@
 package module
 
-import cs "github.com/rew3/rew3-base/app/common/constants"
+import cs "github.com/rew3/rew3-internal/app/common/constants"
 
 /* Variables */
 var modulesToEntitiesMap = map[cs.Module][]cs.Entity{

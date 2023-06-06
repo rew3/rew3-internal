@@ -3,8 +3,8 @@ package executor
 import (
 	"fmt"
 
-	c "github.com/rew3/rew3-base/service/command"
-	q "github.com/rew3/rew3-base/service/query"
+	c "github.com/rew3/rew3-internal/service/command"
+	q "github.com/rew3/rew3-internal/service/query"
 )
 
 type ServiceRegistry struct {
@@ -22,22 +22,24 @@ func NewServiceRegistry() *ServiceRegistry {
 /**
  * Register Command handler.
  */
-func (r *ServiceRegistry) RegisterCommandHandler(commandName string, handler c.CommandHandler) {
+func (r *ServiceRegistry) RegisterCommandHandler(command c.Command, handler c.CommandHandler) {
+	commandName := c.CommandName(command)
 	r.commandHandlers[commandName] = handler
 }
 
 /**
  * Register Query handler.
  */
-func (r *ServiceRegistry) RegisterQueryHandler(queryName string, handler q.QueryHandler) {
+func (r *ServiceRegistry) RegisterQueryHandler(query q.Query, handler q.QueryHandler) {
+	queryName := q.QueryName(query)
 	r.queryHandlers[queryName] = handler
 }
 
 /**
  * Get Command handler.
  */
-func (r *ServiceRegistry) GetCommandHandler(commandName string) (c.CommandHandler, error) {
-
+func (r *ServiceRegistry) GetCommandHandler(command c.Command) (c.CommandHandler, error) {
+	commandName := c.CommandName(command)
 	handler, ok := r.commandHandlers[commandName]
 	if !ok {
 		return nil, fmt.Errorf("command handler not found for command: %s", commandName)
@@ -48,7 +50,8 @@ func (r *ServiceRegistry) GetCommandHandler(commandName string) (c.CommandHandle
 /**
  * Get Query handler.
  */
-func (r *ServiceRegistry) GetQueryHandler(queryName string) (q.QueryHandler, error) {
+func (r *ServiceRegistry) GetQueryHandler(query q.Query) (q.QueryHandler, error) {
+	queryName := q.QueryName(query)
 	handler, ok := r.queryHandlers[queryName]
 	if !ok {
 		return nil, fmt.Errorf("query handler not found for query: %s", queryName)
