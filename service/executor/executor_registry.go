@@ -8,21 +8,21 @@ import (
 )
 
 type ServiceRegistry struct {
-	commandHandlers map[string]c.CommandHandler
-	queryHandlers   map[string]q.QueryHandler
+	commandHandlers map[string]*c.CommandHandler
+	queryHandlers   map[string]*q.QueryHandler
 }
 
 func NewServiceRegistry() *ServiceRegistry {
 	return &ServiceRegistry{
-		commandHandlers: make(map[string]c.CommandHandler),
-		queryHandlers:   make(map[string]q.QueryHandler),
+		commandHandlers: make(map[string]*c.CommandHandler),
+		queryHandlers:   make(map[string]*q.QueryHandler),
 	}
 }
 
 /**
  * Register Command handler.
  */
-func (r *ServiceRegistry) RegisterCommandHandler(command c.Command, handler c.CommandHandler) {
+func (r *ServiceRegistry) RegisterCommandHandler(command c.Command, handler *c.CommandHandler) {
 	commandName := c.CommandName(command)
 	r.commandHandlers[commandName] = handler
 }
@@ -30,7 +30,7 @@ func (r *ServiceRegistry) RegisterCommandHandler(command c.Command, handler c.Co
 /**
  * Register Query handler.
  */
-func (r *ServiceRegistry) RegisterQueryHandler(query q.Query, handler q.QueryHandler) {
+func (r *ServiceRegistry) RegisterQueryHandler(query q.Query, handler *q.QueryHandler) {
 	queryName := q.QueryName(query)
 	r.queryHandlers[queryName] = handler
 }
@@ -38,7 +38,7 @@ func (r *ServiceRegistry) RegisterQueryHandler(query q.Query, handler q.QueryHan
 /**
  * Get Command handler.
  */
-func (r *ServiceRegistry) GetCommandHandler(command c.Command) (c.CommandHandler, error) {
+func (r *ServiceRegistry) GetCommandHandler(command c.Command) (*c.CommandHandler, error) {
 	commandName := c.CommandName(command)
 	handler, ok := r.commandHandlers[commandName]
 	if !ok {
@@ -50,7 +50,7 @@ func (r *ServiceRegistry) GetCommandHandler(command c.Command) (c.CommandHandler
 /**
  * Get Query handler.
  */
-func (r *ServiceRegistry) GetQueryHandler(query q.Query) (q.QueryHandler, error) {
+func (r *ServiceRegistry) GetQueryHandler(query q.Query) (*q.QueryHandler, error) {
 	queryName := q.QueryName(query)
 	handler, ok := r.queryHandlers[queryName]
 	if !ok {
