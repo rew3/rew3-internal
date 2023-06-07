@@ -22,13 +22,13 @@ func NewCommandExecutor(registry *ServiceRegistry) *CommandExecutor {
  */
 func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command) c.CommandResult {
 	commandName := c.CommandName(command)
-	handler, err := executor.serviceRegistry.GetCommandHandler(commandName)
+	controller, err := executor.serviceRegistry.GetCommandController(commandName)
 	if err != nil {
-		fmt.Printf("No handler registered for command type: %s\n", commandName)
+		fmt.Printf("No handler/controller registered for command type: %s\n", commandName)
 		return c.CommandResult{}
 	} else {
 		resultChannel := c.NewCommandResultChannel()
-		handler.Handle(ctx, command, *resultChannel)
+		controller.Dispatch(ctx, command, resultChannel)
 		result := <-resultChannel.Result
 		return result
 	}

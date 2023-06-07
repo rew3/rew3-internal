@@ -8,53 +8,53 @@ import (
 )
 
 type ServiceRegistry struct {
-	commandHandlers map[string]*c.CommandHandler
-	queryHandlers   map[string]*q.QueryHandler
+	commandControllers map[string]c.CommandController
+	queryControllers   map[string]q.QueryController
 }
 
 func NewServiceRegistry() *ServiceRegistry {
 	return &ServiceRegistry{
-		commandHandlers: make(map[string]*c.CommandHandler),
-		queryHandlers:   make(map[string]*q.QueryHandler),
+		commandControllers: make(map[string]c.CommandController),
+		queryControllers:   make(map[string]q.QueryController),
 	}
 }
 
 /**
- * Register Command handler.
+ * Register Command handler/controllers.
  */
-func (r *ServiceRegistry) RegisterCommandHandler(command c.Command, handler *c.CommandHandler) {
+func (r *ServiceRegistry) RegisterCommandController(command c.Command, controller c.CommandController) {
 	commandName := c.CommandName(command)
-	r.commandHandlers[commandName] = handler
+	r.commandControllers[commandName] = controller
 }
 
 /**
- * Register Query handler.
+ * Register Query handler/controllers.
  */
-func (r *ServiceRegistry) RegisterQueryHandler(query q.Query, handler *q.QueryHandler) {
+func (r *ServiceRegistry) RegisterQueryController(query q.Query, controller q.QueryController) {
 	queryName := q.QueryName(query)
-	r.queryHandlers[queryName] = handler
+	r.queryControllers[queryName] = controller
 }
 
 /**
- * Get Command handler.
+ * Get Command handler/controllers.
  */
-func (r *ServiceRegistry) GetCommandHandler(command c.Command) (*c.CommandHandler, error) {
+func (r *ServiceRegistry) GetCommandController(command c.Command) (c.CommandController, error) {
 	commandName := c.CommandName(command)
-	handler, ok := r.commandHandlers[commandName]
+	handler, ok := r.commandControllers[commandName]
 	if !ok {
-		return nil, fmt.Errorf("command handler not found for command: %s", commandName)
+		return nil, fmt.Errorf("command handler/controller not found for command: %s", commandName)
 	}
 	return handler, nil
 }
 
 /**
- * Get Query handler.
+ * Get Query handler/controllers.
  */
-func (r *ServiceRegistry) GetQueryHandler(query q.Query) (*q.QueryHandler, error) {
+func (r *ServiceRegistry) GetQueryController(query q.Query) (q.QueryController, error) {
 	queryName := q.QueryName(query)
-	handler, ok := r.queryHandlers[queryName]
+	handler, ok := r.queryControllers[queryName]
 	if !ok {
-		return nil, fmt.Errorf("query handler not found for query: %s", queryName)
+		return nil, fmt.Errorf("query handler/controller not found for query: %s", queryName)
 	}
 	return handler, nil
 }

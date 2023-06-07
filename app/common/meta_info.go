@@ -38,17 +38,16 @@ type MetaInfo struct {
 	Created      time.Time           `bson:"_created,omitempty"`
 	CreatedBy    a.MiniUser          `bson:"_created_by,omitempty"`
 	LastModified time.Time           `bson:"_last_modified,omitempty"`
-	ModifiedBy   time.Time           `bson:"_modified_by,omitempty"`
+	ModifiedBy   a.MiniUser          `bson:"_modified_by,omitempty"`
 	Owner        a.MiniUser          `bson:"_owner,omitempty"`
 	Member       string              `bson:"_member,omitempty"`
 	Master       string              `bson:"_master,omitempty"`
-	Deleted      string              `bson:"_deleted,omitempty"`
+	Deleted      time.Time           `bson:"_deleted,omitempty"`
 	DeletedBy    string              `bson:"_deleted_by,omitempty"`
 	ArchivedAt   time.Time           `bson:"_archived_at,omitempty"`
 	ArchivedBy   string              `bson:"_archived_by,omitempty"`
 	Entity       string              `bson:"_entity,omitempty"`
 	Module       string              `bson:"_module,omitempty"`
-	AgentId      string              `bson:"_agent_id,omitempty"` // If this exists, entire meta should belongs to an Agent,the field is populated if, the user in current context is an Agent
 	AccountType  ac.AccountTypeAlias `bson:"_account_type,omitempty"`
 	//GlobalSharedMeta GlobalSharedMeta `bson:"_global_shared_meta,omitempty"`
 }

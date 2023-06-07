@@ -18,8 +18,8 @@ type CommandResultChannel struct {
 	Result chan CommandResult
 }
 
-func NewCommandResultChannel() *CommandResultChannel {
-	return &CommandResultChannel{
+func NewCommandResultChannel() CommandResultChannel {
+	return CommandResultChannel{
 		Result: make(chan CommandResult),
 	}
 }

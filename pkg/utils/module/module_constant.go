@@ -2,6 +2,7 @@ package module
 
 import (
 	cs "github.com/rew3/rew3-internal/app/common/constants"
+	baseResponse "github.com/rew3/rew3-internal/service/response/constants"
 )
 
 // A method for conversing constant (enum) to string value
@@ -20,19 +21,19 @@ var entities = []cs.Entity{
 	cs.RMS_REQUEST,
 }
 
-var statuses = []cs.StatusType{
-	cs.OK,
-	cs.CREATED,
-	cs.DELETED,
-	cs.ACCEPTED,
-	cs.BAD_REQUEST,
-	cs.UNAUTHORIZED,
-	cs.FORBIDDEN,
-	cs.INTERNAL_SERVER_ERROR,
-	cs.BAD_GATEWAY,
-	cs.SERVICE_UNAVAILABLE,
-	cs.GATEWAY_TIMEOUT,
-	cs.NOT_FOUND,
+var statuses = []baseResponse.StatusType{
+	baseResponse.OK,
+	baseResponse.CREATED,
+	baseResponse.DELETED,
+	baseResponse.ACCEPTED,
+	baseResponse.BAD_REQUEST,
+	baseResponse.UNAUTHORIZED,
+	baseResponse.FORBIDDEN,
+	baseResponse.INTERNAL_SERVER_ERROR,
+	baseResponse.BAD_GATEWAY,
+	baseResponse.SERVICE_UNAVAILABLE,
+	baseResponse.GATEWAY_TIMEOUT,
+	baseResponse.NOT_FOUND,
 }
 
 type InvalidException struct {
@@ -59,7 +60,7 @@ func GetConstantValue(constant interface{}) (string, error) {
 				return string(c), nil
 			}
 		}
-	case cs.StatusType:
+	case baseResponse.StatusType:
 		for _, status := range statuses {
 			if status == c {
 				return string(c), nil

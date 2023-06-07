@@ -6,7 +6,7 @@ import "errors"
  * Query Result.
  */
 type QueryResult struct {
-	Data  *interface{}
+	Data  interface{}
 	Error string
 }
 
@@ -17,8 +17,8 @@ type QueryResultChannel struct {
 	Result chan QueryResult
 }
 
-func NewQueryResultChannel() *QueryResultChannel {
-	return &QueryResultChannel{
+func NewQueryResultChannel() QueryResultChannel {
+	return QueryResultChannel{
 		Result: make(chan QueryResult),
 	}
 }

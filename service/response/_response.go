@@ -1,7 +1,7 @@
 package response
 
 import (
-	. "github.com/rew3/rew3-internal/app/common/constant"
+	c "github.com/rew3/rew3-internal/service/response/constants"
 )
 
 /*
@@ -23,9 +23,9 @@ import (
 */
 
 type Response struct {
-	ID      string      `json:"id"`
-	Action  string      `json:"action"`
-	Message string      `json:"message"`
-	Status  StatusType  `json:"status"`
-	Data    interface{} `json:"data,omitempty"`
+	ID      string       `json:"id"`
+	Action  string       `json:"action"`
+	Message string       `json:"message"`
+	Status  c.StatusType `json:"status"`
+	Data    interface{}  `json:"data,omitempty"`
 }

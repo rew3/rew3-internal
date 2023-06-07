@@ -14,8 +14,7 @@ type ModelValidator struct {
 }
 
 func (mv *ModelValidator) ValidateModel(model interface{}) error {
-	err := mv.validator.Struct(model)
-	if err != nil {
+	if err := mv.validator.Struct(model); err != nil {
 		if _, ok := err.(*validator.InvalidValidationError); ok {
 			return fmt.Errorf("invalid validation error: %w", err)
 		}

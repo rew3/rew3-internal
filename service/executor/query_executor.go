@@ -25,13 +25,13 @@ func NewQueryExecutor(registry *ServiceRegistry) *QueryExecutor {
  */
 func (executor *QueryExecutor) Execute(ctx context.Context, query q.Query) q.QueryResult {
 	queryName := q.QueryName(query)
-	handler, err := executor.serviceRegistry.GetQueryHandler(queryName)
+	controller, err := executor.serviceRegistry.GetQueryController(queryName)
 	if err != nil {
-		fmt.Printf("No handler registered for query type: %s\n", queryName)
+		fmt.Printf("No handler/controller registered for query type: %s\n", queryName)
 		return q.QueryResult{Error: "Unable to process given query."}
 	} else {
 		resultChannel := q.NewQueryResultChannel()
-		handler.Handle(ctx, query, resultChannel)
+		controller.Dispatch(ctx, query, resultChannel)
 		result := <-resultChannel.Result
 		return result
 	}
