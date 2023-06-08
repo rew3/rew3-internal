@@ -1,7 +1,7 @@
 package command
 
 import (
-	s "github.com/rew3/rew3-internal/service/response"
+	s "github.com/rew3/rew3-internal/service/common/response"
 )
 
 /**
