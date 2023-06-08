@@ -10,7 +10,7 @@ import (
 
 	mongoUtility "github.com/rew3/rew3-internal/db/utils"
 	rcUtil "github.com/rew3/rew3-internal/pkg/context"
-	service "github.com/rew3/rew3-internal/service/request"
+	service "github.com/rew3/rew3-internal/service/common/request"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"

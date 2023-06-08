@@ -4,7 +4,7 @@ import (
 	"context"
 	"encoding/json"
 
-	req "github.com/rew3/rew3-internal/service/request"
+	req "github.com/rew3/rew3-internal/service/common/request"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

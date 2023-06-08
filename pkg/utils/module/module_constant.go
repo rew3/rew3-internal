@@ -2,7 +2,7 @@ package module
 
 import (
 	cs "github.com/rew3/rew3-internal/app/common/constants"
-	baseResponse "github.com/rew3/rew3-internal/service/response/constants"
+	baseResponse "github.com/rew3/rew3-internal/service/common/response/constants"
 )
 
 // A method for conversing constant (enum) to string value

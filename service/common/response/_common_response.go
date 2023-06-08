@@ -1,7 +1,7 @@
 package response
 
 import (
-	c "github.com/rew3/rew3-internal/service/response/constants"
+	c "github.com/rew3/rew3-internal/service/common/response/constants"
 )
 
 /*

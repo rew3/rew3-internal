@@ -2,7 +2,7 @@ package filter
 
 import (
 	c "github.com/rew3/rew3-internal/db/security/constants"
-	s "github.com/rew3/rew3-internal/service/request"
+	s "github.com/rew3/rew3-internal/service/common/request"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
