@@ -13,6 +13,6 @@ package common
 
 type Phone struct {
 	PhoneType string `bson:"phone_type,omitempty"`
-	value     string `bson:"value,omitempty"`
+	Value     string `bson:"value,omitempty"`
 	IsPrimary int    `bson:"is_primary,omitempty"`
 }

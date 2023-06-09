@@ -13,6 +13,6 @@ package common
 
 type Email struct {
 	EmailType string `bson:"email_type,omitempty"`
-	value     string `bson:"value,omitempty"`
+	Value     string `bson:"value,omitempty"`
 	IsPrimary int    `bson:"is_primary,omitempty"`
 }
