@@ -7,7 +7,6 @@ import (
 	ac "github.com/rew3/rew3-internal/app/account/constants"
 	c "github.com/rew3/rew3-internal/app/common"
 	cc "github.com/rew3/rew3-internal/app/common/constants"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 /*
@@ -43,12 +42,12 @@ type Rew3UserPersonalAlias struct {
 }
 
 type CompanyAlias struct {
-	Id            primitive.ObjectID `bson:"_id"`
-	NoOfEmployees string             `bson:"no_of_employees,omitempty"`
-	Website       string             `bson:"website,omitempty"`
-	AnnualRevenue big.Float          `bson:"annual_revenue,omitempty"`
-	Industry      string             `bson:"industry,omitempty"`
-	Name          string             `bson:"name,omitempty"`
+	Id            string    `bson:"_id"`
+	NoOfEmployees string    `bson:"no_of_employees,omitempty"`
+	Website       string    `bson:"website,omitempty"`
+	AnnualRevenue big.Float `bson:"annual_revenue,omitempty"`
+	Industry      string    `bson:"industry,omitempty"`
+	Name          string    `bson:"name,omitempty"`
 }
 
 type UserInfo struct {
@@ -59,8 +58,8 @@ type UserInfo struct {
 }
 
 type TeamMiniAlias struct {
-	ID   primitive.ObjectID `bson:"_id,omitempty"`
-	Name string             `bson:"name,omitempty"`
+	ID   string `bson:"_id,omitempty"`
+	Name string `bson:"name,omitempty"`
 }
 
 /**
