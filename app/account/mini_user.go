@@ -13,12 +13,12 @@ package account
 */
 
 type MiniUser struct {
-	Id          string `bson:"_id"`
-	FirstName   string `bson:"first_name,omitempty"`
-	LastName    string `bson:"last_name,omitempty"`
-	Title       string `bson:"title,omitempty"`
-	Userpic     string `bson:"userpic,omitempty"`
-	RoleName    string `bson:"role_name,omitempty"`
-	JobTitle    string `bson:"job_title,omitempty"`
-	CompanyName string `bson:"company_name,omitempty"`
+	Id          string `json:"_id" bson:"_id"`
+	FirstName   string `json:"first_name,omitempty" bson:"first_name,omitempty"`
+	LastName    string `json:"last_name,omitempty" bson:"last_name,omitempty"`
+	Title       string `json:"title,omitempty" bson:"title,omitempty"`
+	Userpic     string `json:"userpic,omitempty" bson:"userpic,omitempty"`
+	RoleName    string `json:"role_name,omitempty" bson:"role_name,omitempty"`
+	JobTitle    string `json:"job_title,omitempty" bson:"job_title,omitempty"`
+	CompanyName string `json:"company_name,omitempty" bson:"company_name,omitempty"`
 }

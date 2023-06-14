@@ -24,10 +24,10 @@ import (
  */
 
 type AccountMini struct {
-	ID            string    `bson:"_id,omitempty"`
-	NoOfEmployees string    `bson:"no_of_employees,omitempty"`
-	Website       c.Rew3Url `bson:"website,omitempty"`
-	AnnualRevenue int       `bson:"annual_revenue,omitempty"` //It was BigDecimal
-	Industry      string    `bson:"industry,omitempty"`
-	Name          string    `bson:"name,omitempty"`
+	ID            string    `json:"_id,omitempty" bson:"_id,omitempty"`
+	NoOfEmployees string    `json:"no_of_employees,omitempty" bson:"no_of_employees,omitempty"`
+	Website       c.Rew3Url `json:"website,omitempty" bson:"website,omitempty"`
+	AnnualRevenue int       `json:"annual_revenue,omitempty" bson:"annual_revenue,omitempty"` //It was BigDecimal
+	Industry      string    `json:"industry,omitempty" bson:"industry,omitempty"`
+	Name          string    `json:"name,omitempty" bson:"name,omitempty"`
 }

@@ -25,41 +25,41 @@ import (
 
 // Deprecated.
 /*type GlobalSharedMeta struct {
-	MemberId         string               `bson:"member_id,omitempty"`
-	Users            []string             `bson:"users,omitempty"`
-	AccessType       SharedMetaAccessType `bson:"access_type,omitempty"`
-	AccountTypeAlias AccountTypeAlias     `bson:"account_type_alias,omitempty"`
-	SharedToNetwork  bool                 `bson:"shared_to_network,omitempty"`
+	MemberId         string               `json:"member_id,omitempty" bson:"member_id,omitempty"`
+	Users            []string             `json:"users,omitempty" bson:"users,omitempty"`
+	AccessType       SharedMetaAccessType `json:"access_type,omitempty" bson:"access_type,omitempty"`
+	AccountTypeAlias AccountTypeAlias     `json:"account_type_alias,omitempty" bson:"account_type_alias,omitempty"`
+	SharedToNetwork  bool                 `json:"shared_to_network,omitempty" bson:"shared_to_network,omitempty"`
 }*/
 
 type Rew3UserPersonalAlias struct {
-	FirstName  string `bson:"first_name,omitempty"`
-	MiddleName string `bson:"middle_name,omitempty"`
-	LastName   string `bson:"last_name,omitempty"`
-	FullName   string `bson:"full_name,omitempty"`
-	Salutation string `bson:"salutation,omitempty"`
-	Gender     string `bson:"gender,omitempty"`
+	FirstName  string `json:"first_name,omitempty" bson:"first_name,omitempty"`
+	MiddleName string `json:"middle_name,omitempty" bson:"middle_name,omitempty"`
+	LastName   string `json:"last_name,omitempty" bson:"last_name,omitempty"`
+	FullName   string `json:"full_name,omitempty" bson:"full_name,omitempty"`
+	Salutation string `json:"salutation,omitempty" bson:"salutation,omitempty"`
+	Gender     string `json:"gender,omitempty" bson:"gender,omitempty"`
 }
 
 type CompanyAlias struct {
-	Id            string    `bson:"_id"`
-	NoOfEmployees string    `bson:"no_of_employees,omitempty"`
-	Website       string    `bson:"website,omitempty"`
-	AnnualRevenue big.Float `bson:"annual_revenue,omitempty"`
-	Industry      string    `bson:"industry,omitempty"`
-	Name          string    `bson:"name,omitempty"`
+	Id            string    `json:"_id" bson:"_id"`
+	NoOfEmployees string    `json:"no_of_employees,omitempty" bson:"no_of_employees,omitempty"`
+	Website       string    `json:"website,omitempty" bson:"website,omitempty"`
+	AnnualRevenue big.Float `json:"annual_revenue,omitempty" bson:"annual_revenue,omitempty"`
+	Industry      string    `json:"industry,omitempty" bson:"industry,omitempty"`
+	Name          string    `json:"name,omitempty" bson:"name,omitempty"`
 }
 
 type UserInfo struct {
-	Email       []c.Email             `bson:"email,omitempty"`
-	PhoneNumber []c.Phone             `bson:"phone_number,omitempty"`
-	Personal    Rew3UserPersonalAlias `bson:"personal,omitempty"`
-	Company     CompanyAlias          `bson:"company,omitempty"`
+	Email       []c.Email             `json:"email,omitempty" bson:"email,omitempty"`
+	PhoneNumber []c.Phone             `json:"phone_number,omitempty" bson:"phone_number,omitempty"`
+	Personal    Rew3UserPersonalAlias `json:"personal,omitempty" bson:"personal,omitempty"`
+	Company     CompanyAlias          `json:"company,omitempty" bson:"company,omitempty"`
 }
 
 type TeamMiniAlias struct {
-	ID   string `bson:"_id,omitempty"`
-	Name string `bson:"name,omitempty"`
+	ID   string `json:"_id,omitempty" bson:"_id,omitempty"`
+	Name string `json:"name,omitempty" bson:"name,omitempty"`
 }
 
 /**
@@ -69,12 +69,12 @@ type TeamMiniAlias struct {
  */
 
 type SharingRuleContext struct {
-	Entity       cc.Entity `bson:"entity,omitempty"`
-	VisibleUsers []string  `bson:"visible_users,omitempty"`
+	Entity       cc.Entity `json:"entity,omitempty" bson:"entity,omitempty"`
+	VisibleUsers []string  `json:"visible_users,omitempty" bson:"visible_users,omitempty"`
 }
 
 type TeamActions struct {
-	PostSignUpCompleted bool `bson:"post_sign_up_completed, omitempty"`
+	PostSignUpCompleted bool `json:"post_sign_up_completed, omitempty" bson:"post_sign_up_completed, omitempty"`
 }
 
 /**
@@ -87,7 +87,7 @@ type OrganizationActions struct{}
 * @field teamActions only defined if account_type = TEAM
  */
 type UserActions struct {
-	TeamActions TeamActions `bson:"team_actions,omitempty"`
+	TeamActions TeamActions `json:"team_actions,omitempty" bson:"team_actions,omitempty"`
 }
 
 /*
@@ -104,25 +104,25 @@ This class represents the [[RequestContext)]]
 @author rew3 on 2023/05/15
 */
 type RequestContext struct {
-	Member           string               `bson:"first_name,omitempty"`
-	User             a.MiniUser           `bson:"mini_user,omitempty"`
-	FullName         string               `bson:"full_name,omitempty"`
+	Member           string               `json:"first_name,omitempty" bson:"first_name,omitempty"`
+	User             a.MiniUser           `json:"mini_user,omitempty" bson:"mini_user,omitempty"`
+	FullName         string               `json:"full_name,omitempty" bson:"full_name,omitempty"`
 	Lang             string               `bson:"lang" i18n:"lang,default=en"` //Default is en. Later we need to unmarshal this using i18n.NewBundle(nil)
-	Command          string               `bson:"command,omitempty"`
-	ETag             string               `bson:"e_tag,omitempty"`
-	Entity           string               `bson:"entity,omitempty"`
-	Module           string               `bson:"module,omitempty"`
-	IsExternal       bool                 `bson:"is_external,omitempty"`
-	IsAdmin          bool                 `bson:"is_admin,omitempty"`
-	Info             UserInfo             `bson:"user_info,omitempty"`
-	Timezone         string               `bson:"timezone,omitempty"`          // values must be are TZInfo identifiers for eg: Europe/Prague, // America/Guatemala for more info: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-	Teams            []TeamMiniAlias      `bson:"teams,omitempty"`             // list of teams to which user of the current context belongs to
-	SubordinateUsers []string             `bson:"subordinate_users,omitempty"` // id of the users who lie below the hierarchy of the current user
-	RulesContext     []SharingRuleContext `bson:"rules_context,omitempty"`
-	//GlobalSharedMeta GlobalSharedMeta     `bson:"global_shared_meta,omitempty"` // this should be populated from the application layer, based on this, shared meta will be constructed
-	AccountType  ac.AccountTypeAlias  `bson:"account_type,omitempty"`
-	SecurityType ac.SecurityTypeAlias `bson:"security_type,omitempty"`
-	Actions      UserActions          `bson:"actions,omitempty"`
+	Command          string               `json:"command,omitempty" bson:"command,omitempty"`
+	ETag             string               `json:"e_tag,omitempty" bson:"e_tag,omitempty"`
+	Entity           string               `json:"entity,omitempty" bson:"entity,omitempty"`
+	Module           string               `json:"module,omitempty" bson:"module,omitempty"`
+	IsExternal       bool                 `json:"is_external,omitempty" bson:"is_external,omitempty"`
+	IsAdmin          bool                 `json:"is_admin,omitempty" bson:"is_admin,omitempty"`
+	Info             UserInfo             `json:"user_info,omitempty" bson:"user_info,omitempty"`
+	Timezone         string               `json:"timezone,omitempty" bson:"timezone,omitempty"`                   // values must be are TZInfo identifiers for eg: Europe/Prague, // America/Guatemala for more info: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+	Teams            []TeamMiniAlias      `json:"teams,omitempty" bson:"teams,omitempty"`                         // list of teams to which user of the current context belongs to
+	SubordinateUsers []string             `json:"subordinate_users,omitempty" bson:"subordinate_users,omitempty"` // id of the users who lie below the hierarchy of the current user
+	RulesContext     []SharingRuleContext `json:"rules_context,omitempty" bson:"rules_context,omitempty"`
+	//GlobalSharedMeta GlobalSharedMeta     `json:"global_shared_meta,omitempty" bson:"global_shared_meta,omitempty"` // this should be populated from the application layer, based on this, shared meta will be constructed
+	AccountType  ac.AccountTypeAlias  `json:"account_type,omitempty" bson:"account_type,omitempty"`
+	SecurityType ac.SecurityTypeAlias `json:"security_type,omitempty" bson:"security_type,omitempty"`
+	Actions      UserActions          `json:"actions,omitempty" bson:"actions,omitempty"`
 }
 
 func (r *RequestContext) WithCommand(command string) *RequestContext {

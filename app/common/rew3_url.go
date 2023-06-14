@@ -13,7 +13,7 @@ package common
 */
 
 type Rew3Url struct {
-	SCHEME  *string `bson:"scheme,omitempty"`
-	DOMAIN  *string `bson:"domain,omitempty"`
-	FULLURL *string `bson:"full_url,omitempty"`
+	SCHEME  string `json:"scheme,omitempty" bson:"scheme,omitempty"`
+	DOMAIN  string `json:"domain,omitempty" bson:"domain,omitempty"`
+	FULLURL string `json:"full_url,omitempty" bson:"full_url,omitempty"`
 }

@@ -10,7 +10,7 @@ Class to represent ”Social Communications”
 @author rew3 on 2023/05/18
 */
 type SocialCommunications struct {
-	Value                   string                  `bson:"value,omitempty"`
-	SocialCommunicationType SocialCommunicationType `bson:"social_communication_type,omitempty"`
-	IsPrimary               int                     `bson:"is_primary,omitempty"`
+	Value                   string                  `json:"value,omitempty" bson:"value,omitempty"`
+	SocialCommunicationType SocialCommunicationType `json:"social_communication_type,omitempty" bson:"social_communication_type,omitempty"`
+	IsPrimary               int                     `json:"is_primary,omitempty" bson:"is_primary,omitempty"`
 }

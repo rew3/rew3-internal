@@ -12,7 +12,7 @@ package common
 */
 
 type Email struct {
-	EmailType string `bson:"email_type,omitempty"`
-	Value     string `bson:"value,omitempty"`
-	IsPrimary int    `bson:"is_primary,omitempty"`
+	EmailType string `json:"email_type,omitempty" bson:"email_type,omitempty"`
+	Value     string `json:"value,omitempty" bson:"value,omitempty"`
+	IsPrimary int    `json:"is_primary,omitempty" bson:"is_primary,omitempty"`
 }

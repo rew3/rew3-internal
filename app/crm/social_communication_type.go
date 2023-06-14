@@ -10,6 +10,6 @@ package crm
 */
 
 type SocialCommunicationType struct {
-	ID    string `bson:"_id,omitempty"`
-	Title string `bson:"title,omitempty"`
+	ID    string `json:"_id,omitempty" bson:"_id,omitempty"`
+	Title string `json:"title,omitempty" bson:"title,omitempty"`
 }

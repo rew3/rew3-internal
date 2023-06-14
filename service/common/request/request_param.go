@@ -3,12 +3,12 @@ package request
 import "encoding/json"
 
 type RequestParam struct {
-	Limit         int                 `bson:"limit,omitempty"`
-	Expand        bool                `bson:"expand,omitempty"`
-	LimitFields   string              `bson:"limit_fields,omitempty"`
-	Offset        int                 `bson:"offset,omitempty"`
-	Sort          json.RawMessage     `bson:"sort,omitempty"`    //We can use *map[string]interface{} as well
-	Filters       json.RawMessage     `bson:"filters,omitempty"` //*map[string]interface{}
+	Limit         int                 `json:"limit,omitempty" bson:"limit,omitempty"`
+	Expand        bool                `json:"expand,omitempty" bson:"expand,omitempty"`
+	LimitFields   string              `json:"limit_fields,omitempty" bson:"limit_fields,omitempty"`
+	Offset        int                 `json:"offset,omitempty" bson:"offset,omitempty"`
+	Sort          json.RawMessage     `json:"sort,omitempty" bson:"sort,omitempty"`    //We can use *map[string]interface{} as well
+	Filters       json.RawMessage     `json:"filters,omitempty" bson:"filters,omitempty"` //*map[string]interface{}
 	RawParameters map[string][]string //This is not saved in DB. Rather used in following methods
 }
 

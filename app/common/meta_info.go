@@ -34,20 +34,20 @@ import (
 */
 
 type MetaInfo struct {
-	Version      int64               `bson:"_version"`
-	Created      time.Time           `bson:"_created,omitempty"`
-	CreatedBy    a.MiniUser          `bson:"_created_by,omitempty"`
-	LastModified time.Time           `bson:"_last_modified,omitempty"`
-	ModifiedBy   a.MiniUser          `bson:"_modified_by,omitempty"`
-	Owner        a.MiniUser          `bson:"_owner,omitempty"`
-	Member       string              `bson:"_member,omitempty"`
-	Master       string              `bson:"_master,omitempty"`
-	Deleted      time.Time           `bson:"_deleted,omitempty"`
-	DeletedBy    string              `bson:"_deleted_by,omitempty"`
-	ArchivedAt   time.Time           `bson:"_archived_at,omitempty"`
-	ArchivedBy   string              `bson:"_archived_by,omitempty"`
-	Entity       string              `bson:"_entity,omitempty"`
-	Module       string              `bson:"_module,omitempty"`
-	AccountType  ac.AccountTypeAlias `bson:"_account_type,omitempty"`
-	//GlobalSharedMeta GlobalSharedMeta `bson:"_global_shared_meta,omitempty"`
+	Version      int64               `json:"_version" bson:"_version"`
+	Created      time.Time           `json:"_created,omitempty" bson:"_created,omitempty"`
+	CreatedBy    a.MiniUser          `json:"_created_by,omitempty" bson:"_created_by,omitempty"`
+	LastModified time.Time           `json:"_last_modified,omitempty" bson:"_last_modified,omitempty"`
+	ModifiedBy   a.MiniUser          `json:"_modified_by,omitempty" bson:"_modified_by,omitempty"`
+	Owner        a.MiniUser          `json:"_owner,omitempty" bson:"_owner,omitempty"`
+	Member       string              `json:"_member,omitempty" bson:"_member,omitempty"`
+	Master       string              `json:"_master,omitempty" bson:"_master,omitempty"`
+	Deleted      time.Time           `json:"_deleted,omitempty" bson:"_deleted,omitempty"`
+	DeletedBy    string              `json:"_deleted_by,omitempty" bson:"_deleted_by,omitempty"`
+	ArchivedAt   time.Time           `json:"_archived_at,omitempty" bson:"_archived_at,omitempty"`
+	ArchivedBy   string              `json:"_archived_by,omitempty" bson:"_archived_by,omitempty"`
+	Entity       string              `json:"_entity,omitempty" bson:"_entity,omitempty"`
+	Module       string              `json:"_module,omitempty" bson:"_module,omitempty"`
+	AccountType  ac.AccountTypeAlias `json:"_account_type,omitempty" bson:"_account_type,omitempty"`
+	//GlobalSharedMeta GlobalSharedMeta `json:"_global_shared_meta,omitempty" bson:"_global_shared_meta,omitempty"`
 }
