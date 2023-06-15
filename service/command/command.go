@@ -9,5 +9,5 @@ import "reflect"
 type Command interface{}
 
 func CommandName(command Command) string {
-	return reflect.TypeOf((command)).Elem().Name()
+	return reflect.TypeOf(&command).Elem().Name()
 }

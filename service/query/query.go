@@ -9,5 +9,5 @@ import "reflect"
 type Query interface{}
 
 func QueryName(query Query) string {
-	return reflect.TypeOf((query)).Elem().Name()
+	return reflect.TypeOf(&query).Elem().Name()
 }
