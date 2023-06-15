@@ -28,7 +28,7 @@ func NewCommandResultChannel() CommandResultChannel {
  * Parse the command result for given result type.
  * Provide default value in case of failure of parsing command result.
  */
-func ParseQueryResult[T any](result CommandResult, defaultValue T) *s.ExecutionResult[T] {
+func ParseCommandResult[T any](result CommandResult, defaultValue T) *s.ExecutionResult[T] {
 	if !result.Response.IsSuccessful {
 		return &s.ExecutionResult[T]{
 			IsSuccessful: result.Response.IsSuccessful,
