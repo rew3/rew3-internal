@@ -34,7 +34,7 @@ func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command)
 		case result := <-resultChannel.Result:
 			fmt.Println("Command result received by Command Executor.")
 			return result
-		case <-time.After(2 * time.Second):
+		case <-time.After(30 * time.Second):
 			fmt.Println("Timeout reached while receiving data by Command Executor.")
 			return c.CommandResult{}
 		}
