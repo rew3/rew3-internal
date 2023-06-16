@@ -60,6 +60,15 @@ func ParseCommandResult[T any](result CommandResult, defaultValue T) *s.Executio
 				Action:       result.Response.Action,
 				Data:         data,
 			}
+		} else if data, ok := result.Response.Data.(*T); ok {
+			return &s.ExecutionResult[T]{
+				IsSuccessful: result.Response.IsSuccessful,
+				Status:       result.Response.Status,
+				Message:      result.Response.Message,
+				Id:           result.Response.Id,
+				Action:       result.Response.Action,
+				Data:         *data,
+			}
 		} else {
 			return &s.ExecutionResult[T]{
 				IsSuccessful: result.Response.IsSuccessful,

@@ -17,6 +17,12 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
+/**
+ * Mongo Repository.
+ *
+ * Note: For Entity, _id field should be string type not ObjectID type. It will be automatically converted to
+ * Object ID and while persisting to database, and to Hex string while retrieving from database.
+ */
 type MongoRepository[Entity any] struct {
 	Collection        *mongo.Collection
 	RepositoryContext *RepositoryContext
@@ -24,7 +30,7 @@ type MongoRepository[Entity any] struct {
 
 func (repo *MongoRepository[Entity]) Insert(ctx context.Context, data *Entity) (*Entity, error) {
 	log.Printf("Creating record...")
-	doc, err := mongoUtility.EntityToBson(data)
+	doc, err := mongoUtility.EntityToBson(data, true)
 	if err != nil {
 		log.Printf("Failed to create record: %v\n", err)
 		return nil, err
@@ -41,13 +47,11 @@ func (repo *MongoRepository[Entity]) Insert(ctx context.Context, data *Entity) (
 	}
 	log.Printf("Record created with id - %v\n", res.InsertedID.(primitive.ObjectID))
 
-	var insertedDoc Entity
-	err = repo.Collection.FindOne(ctx, bson.M{"_id": res.InsertedID}).Decode(&insertedDoc)
-	if err != nil {
-		// Handle the error
+	var insertedDoc bson.M
+	if err = repo.Collection.FindOne(ctx, bson.M{"_id": res.InsertedID}).Decode(&insertedDoc); err != nil {
 		return nil, err
 	} else {
-		return &insertedDoc, nil
+		return mongoUtility.BsonToEntity[Entity](insertedDoc, true)
 	}
 }
 
@@ -63,13 +67,14 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 		return nil, errors.New("request context is not available")
 	}
 	filter := bson.M{"_id": objectID}
-	doc, err := mongoUtility.EntityToBson(data)
+	doc, err := mongoUtility.EntityToBson(data, false)
 	if err != nil {
 		log.Printf("Failed to update record: %v\n", err)
 		return nil, err
 	}
+	delete(doc, "_id") // todo later delete meta etc. TODO, get by ID, read meta and add meta. 
 	docWithMeta := repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(&doc, &rc)
-	var record Entity
+	var record bson.M
 	err = repo.Collection.FindOneAndUpdate(ctx, filter, docWithMeta, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&record)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -79,7 +84,7 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 		log.Printf("Failed to update record: %v\n", err)
 		return nil, err
 	}
-	return &record, nil
+	return mongoUtility.BsonToEntity[Entity](record, true)
 }
 
 func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id string, data *Entity) (bool, error) {
@@ -90,7 +95,7 @@ func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id stri
 		return false, err
 	}
 	filter := bson.M{"_id": objectID}
-	doc, err := mongoUtility.EntityToBson(data)
+	doc, err := mongoUtility.EntityToBson(data, false)
 	if err != nil {
 		log.Printf("Failed to update record: %v\n", err)
 		return false, err
@@ -117,11 +122,12 @@ func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector
 	if !isEcAvailable {
 		return false, errors.New("request context is not available")
 	}
-	doc, err := mongoUtility.EntityToBson(data)
+	doc, err := mongoUtility.EntityToBson(data, false)
 	if err != nil {
 		log.Printf("Failed to update record: %v\n", err)
 		return false, err
 	}
+	delete(doc, "_id")
 	docWithMeta := repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(&doc, &rc)
 	var record Entity
 	err = repo.Collection.FindOneAndUpdate(ctx, filter, docWithMeta, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&record)
