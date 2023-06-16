@@ -63,7 +63,7 @@ func (writer *MetaDataWriter) newMeta(mc MetaContext) bson.M {
 		Module:       mc.Module,
 		AccountType:  mc.AccountType,
 	}
-	if bsonMeta, err := mUtil.EntityToBson[ac.MetaInfo](&meta); err == nil {
+	if bsonMeta, err := mUtil.EntityToBson[ac.MetaInfo](&meta, false); err == nil {
 		return bsonMeta
 	}
 	return bson.M{}

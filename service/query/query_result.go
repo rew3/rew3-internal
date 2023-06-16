@@ -46,6 +46,8 @@ func ParseQueryResult[T any](result *QueryResult, defaultValue T) (T, error) {
 	} else {
 		if data, ok := result.Data.(T); ok {
 			return data, nil
+		} else if data, ok := result.Data.(*T); ok {
+			return *data, nil
 		} else {
 			return defaultValue, errors.New("Query result is invalid, unable to parse result")
 		}
