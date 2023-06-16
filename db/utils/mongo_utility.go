@@ -58,7 +58,7 @@ func EntityToBson[Entity any](entity *Entity, convertToObjectId bool) (bson.M, e
  */
 func BsonToEntity[Entity any](document bson.M, convertIdToHex bool) (*Entity, error) {
 	if convertIdToHex {
-		if err := ConvertHexToObjectID(document); err != nil {
+		if err := ConvertObjectIDToHex(document); err != nil {
 			return nil, err
 		}
 	}
