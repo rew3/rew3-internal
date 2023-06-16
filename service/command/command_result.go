@@ -23,7 +23,7 @@ type CommandResultChannel struct {
 
 func NewCommandResultChannel() *CommandResultChannel {
 	return &CommandResultChannel{
-		Result: make(chan CommandResult),
+		Result: make(chan CommandResult, 1),
 	}
 }
 func (cs *CommandResultChannel) Send(data CommandResult) {
