@@ -4,7 +4,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
+	c "github.com/rew3/rew3-internal/service/command"
 	q "github.com/rew3/rew3-internal/service/query"
 )
 
@@ -33,7 +35,13 @@ func (executor *QueryExecutor) Execute(ctx context.Context, query q.Query) q.Que
 	} else {
 		resultChannel := q.NewQueryResultChannel()
 		controller.Dispatch(ctx, query, resultChannel)
-		result := <-resultChannel.Result
-		return result
+		select {
+		case result := <-resultChannel.Result:
+			fmt.Println("Command result received by Query Executor.")
+			return result
+		case <-time.After(30 * time.Second):
+			fmt.Println("Timeout reached while receiving data by Query Executor.")
+			return q.QueryResult{}
+		}
 	}
 }
