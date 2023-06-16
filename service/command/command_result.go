@@ -51,17 +51,16 @@ func ParseCommandResult[T any](result CommandResult, defaultValue T) *s.Executio
 			Data:         defaultValue,
 		}
 	} else {
-		switch value := result.Response.Data.(type) {
-		case T:
+		if data, ok := result.Response.Data.(T); ok {
 			return &s.ExecutionResult[T]{
 				IsSuccessful: result.Response.IsSuccessful,
 				Status:       result.Response.Status,
 				Message:      result.Response.Message,
 				Id:           result.Response.Id,
 				Action:       result.Response.Action,
-				Data:         value,
+				Data:         data,
 			}
-		default:
+		} else {
 			return &s.ExecutionResult[T]{
 				IsSuccessful: result.Response.IsSuccessful,
 				Status:       result.Response.Status,

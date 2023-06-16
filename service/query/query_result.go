@@ -1,13 +1,17 @@
 package query
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+	"time"
+)
 
 /**
  * Query Result.
  */
 type QueryResult struct {
 	Data  interface{}
-	Error string
+	Error error
 }
 
 /**
@@ -17,25 +21,33 @@ type QueryResultChannel struct {
 	Result chan QueryResult
 }
 
-func NewQueryResultChannel() QueryResultChannel {
-	return QueryResultChannel{
-		Result: make(chan QueryResult),
+func NewQueryResultChannel() *QueryResultChannel {
+	return &QueryResultChannel{
+		Result: make(chan QueryResult, 1),
 	}
+}
+func (cs *QueryResultChannel) Send(data QueryResult) {
+	select {
+	case cs.Result <- data:
+		fmt.Println("Data sent to Query Result Channel.")
+	case <-time.After(time.Second):
+		fmt.Println("Timeout reached while sending data to Query Result Channel.")
+	}
+	close(cs.Result)
 }
 
 /**
  * Parse the query result for given result type.
  * Provide default value in case of failure of parsing query result.
  */
-func ParseQueryResult[T any](result *QueryResult, defaultValue T) (*T, error) {
+func ParseQueryResult[T any](result *QueryResult, defaultValue T) (T, error) {
 	if result.Data == nil {
-		return &defaultValue, errors.New(result.Error)
+		return defaultValue, result.Error
 	} else {
-		switch value := result.Data.(type) {
-		case T:
-			return &value, nil
-		default:
-			return &defaultValue, errors.New("Query result is invalid")
+		if data, ok := result.Data.(T); ok {
+			return data, nil
+		} else {
+			return defaultValue, errors.New("Query result is invalid, unable to parse result")
 		}
 	}
 }
