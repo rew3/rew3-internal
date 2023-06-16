@@ -1,6 +1,9 @@
 package command
 
 import (
+	"fmt"
+	"time"
+
 	s "github.com/rew3/rew3-internal/service/common/response"
 )
 
@@ -18,10 +21,19 @@ type CommandResultChannel struct {
 	Result chan CommandResult
 }
 
-func NewCommandResultChannel() CommandResultChannel {
-	return CommandResultChannel{
+func NewCommandResultChannel() *CommandResultChannel {
+	return &CommandResultChannel{
 		Result: make(chan CommandResult),
 	}
+}
+func (cs *CommandResultChannel) Send(data CommandResult) {
+	select {
+	case cs.Result <- data:
+		fmt.Println("Data sent to Command Result Channel.")
+	case <-time.After(time.Second):
+		fmt.Println("Timeout reached while sending data to Command Result Channel.")
+	}
+	close(cs.Result)
 }
 
 /**

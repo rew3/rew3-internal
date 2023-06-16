@@ -3,6 +3,7 @@ package executor
 import (
 	"context"
 	"fmt"
+	"time"
 
 	c "github.com/rew3/rew3-internal/service/command"
 )
@@ -29,7 +30,13 @@ func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command)
 	} else {
 		resultChannel := c.NewCommandResultChannel()
 		controller.Dispatch(ctx, command, resultChannel)
-		result := <-resultChannel.Result
-		return result
+		select {
+		case result := <-resultChannel.Result:
+			fmt.Println("Command result received by Command Executor.")
+			return result
+		case <-time.After(2 * time.Second):
+			fmt.Println("Timeout reached while receiving data by Command Executor.")
+			return c.CommandResult{}
+		}
 	}
 }
