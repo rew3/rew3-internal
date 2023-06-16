@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"time"
 
-	c "github.com/rew3/rew3-internal/service/command"
 	q "github.com/rew3/rew3-internal/service/query"
 )
 
