@@ -15,7 +15,7 @@ import (
  * Request context resolver.
  */
 func handle[T any](ctx context.Context, operation func(service.RequestContext) (T, error)) (T, error) {
-	if rc, isRcAvailable := rcUtil.GetRequestContext(ctx); !isRcAvailable {
+	if rc, isRcAvailable := rcUtil.GetRequestContext(ctx); isRcAvailable {
 		return operation(rc)
 	} else {
 		var t T
