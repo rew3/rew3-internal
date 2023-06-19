@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
+	"github.com/rew3/rew3-internal/db/repository/constants"
+	mongoUtility "github.com/rew3/rew3-internal/db/utils"
 	rcUtil "github.com/rew3/rew3-internal/pkg/context"
 	service "github.com/rew3/rew3-internal/service/common/request"
-	mongoUtility "github.com/rew3/rew3-internal/db/utils"
-	"github.com/rew3/rew3-internal/db/repository/constants"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -24,10 +24,19 @@ func handle[T any](ctx context.Context, operation func(service.RequestContext) (
 }
 
 /**
- * Remove Internal fields form given document. 
+ * Remove Internal fields form given document.
  */
-func removeInternalFields(doc bson.D) bson.D {
-	doc = mongoUtility.RemoveFieldFromBsonD(doc, string(constants.ID_FIELD))
-	doc = mongoUtility.RemoveFieldFromBsonD(doc, string(constants.META_FIELD))
+func removeInternalFields(doc bson.D, skip ...constants.InternalField) bson.D {
+	skipSet := make(map[string]bool)
+	for _, field := range skip {
+		skipSet[string(field)] = true
+	}
+	if _, skip := skipSet[string(constants.ID_FIELD)]; !skip {
+		doc = mongoUtility.RemoveFieldFromBsonD(doc, string(constants.ID_FIELD))
+	}
+	if _, skip := skipSet[string(constants.META_FIELD)]; !skip {
+		doc = mongoUtility.RemoveFieldFromBsonD(doc, string(constants.ID_FIELD))
+	}
 	return doc
 }
+

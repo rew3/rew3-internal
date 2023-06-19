@@ -380,6 +380,7 @@ func SetBsonDFieldValue(doc bson.D, field string, value interface{}) error {
 	}
 }
 
+
 /*
  * Add New field value for given bson.D docuemnt.
  */

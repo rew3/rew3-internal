@@ -8,6 +8,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/rew3/rew3-internal/db/repository/constants"
 	mongoUtility "github.com/rew3/rew3-internal/db/utils"
 	rcUtil "github.com/rew3/rew3-internal/pkg/context"
 	service "github.com/rew3/rew3-internal/service/common/request"
@@ -28,6 +29,9 @@ type MongoRepository[Entity any] struct {
 	RepositoryContext *RepositoryContext
 }
 
+/*
+ * Insert record.
+ */
 func (repo *MongoRepository[Entity]) Insert(ctx context.Context, data *Entity) (*Entity, error) {
 	return handle(ctx, func(rc service.RequestContext) (*Entity, error) {
 		doc, err := mongoUtility.EntityToBsonD(data, false, true)
@@ -52,6 +56,10 @@ func (repo *MongoRepository[Entity]) Insert(ctx context.Context, data *Entity) (
 	})
 }
 
+/*
+ * Update record.
+ * Note: Include original meta info in Entity.
+ */
 func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data *Entity) (*Entity, error) {
 	return handle(ctx, func(rc service.RequestContext) (*Entity, error) {
 		objectID, err := primitive.ObjectIDFromHex(id)
@@ -64,7 +72,7 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 			log.Printf("Invalid Input: Failed to update record: %v\n", err)
 			return nil, err
 		}
-		doc = removeInternalFields(doc)
+		doc = removeInternalFields(doc, constants.META_FIELD)
 		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
 		update := bson.M{"$set": doc}
 		var record bson.D
@@ -83,6 +91,10 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 	})
 }
 
+/*
+ * Update record.
+ * Note: Meta information is not updated.
+ */
 func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id string, data *Entity) (bool, error) {
 	return handle(ctx, func(rc service.RequestContext) (bool, error) {
 		objectID, err := primitive.ObjectIDFromHex(id)
@@ -119,7 +131,7 @@ func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector
 			log.Printf("Invalid Input: Failed to update record: %v\n", err)
 			return false, err
 		}
-		doc = removeInternalFields(doc)
+		doc = removeInternalFields(doc, constants.META_FIELD)
 		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
 		update := bson.M{"$set": doc}
 		filter, err := mongoUtility.JsonToBsonM(selector)
@@ -147,7 +159,7 @@ func (repo *MongoRepository[Entity]) UpdateWithRawData(ctx context.Context, sele
 			log.Printf("Invalid Input: Failed to update record: %v\n", err)
 			return false, err
 		}
-		doc = removeInternalFields(doc)
+		doc = removeInternalFields(doc, constants.META_FIELD)
 		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
 		update := bson.M{"$set": doc}
 		filter, err := mongoUtility.JsonToBsonM(selector)
