@@ -1,8 +1,8 @@
 package crm
 
 type ContactMini struct {
-	ID        string `bson:"_id"`
-	FirstName string `bson:"first_name,omitempty"`
-	LastName  string `bson:"last_name,omitempty"`
-	Title     string `bson:"title,omitempty"`
+	ID        string `json:"_id,omitempty" bson:"_id,omitempty"`
+	FirstName string `json:"first_name,omitempty" bson:"first_name,omitempty"`
+	LastName  string `json:"last_name,omitempty" bson:"last_name,omitempty"`
+	Title     string `json:"title,omitempty" bson:"title,omitempty"`
 }
