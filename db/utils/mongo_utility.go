@@ -76,6 +76,9 @@ func EntityToBsonM[Entity any](entity *Entity, convertToObjectId bool, removeEmp
 			return nil, err
 		}
 	}
+	if(removeEmptyFields) {
+		doc = RemoveEmptyBsonMFields(doc)
+	}
 	return doc, nil
 }
 
@@ -96,6 +99,9 @@ func EntityToBsonD[Entity any](entity *Entity, convertToObjectId bool, removeEmp
 		if err := BsonDHexToObjectID(doc); err != nil {
 			return nil, err
 		}
+	}
+	if(removeEmptyFields) {
+		doc = RemoveEmptyBsonDFields(doc)
 	}
 	return doc, nil
 }
