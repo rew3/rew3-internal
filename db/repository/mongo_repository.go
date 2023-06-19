@@ -66,10 +66,11 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 		}
 		doc = removeInternalFields(doc)
 		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
+		update := bson.M{"$set": doc}
 		var record bson.D
 		filter := bson.M{"_id": objectID}
 		// TODO apply security.
-		err = repo.Collection.FindOneAndUpdate(ctx, filter, doc, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&record)
+		err = repo.Collection.FindOneAndUpdate(ctx, filter, update, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&record)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				log.Printf("Record not found with ID %s\n", id)
@@ -95,9 +96,10 @@ func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id stri
 			return false, err
 		}
 		doc = removeInternalFields(doc)
+		update := bson.M{"$set": doc}
 		filter := bson.M{"_id": objectID}
 		// TODO apply security.
-		_, err = repo.Collection.UpdateOne(ctx, filter, doc)
+		_, err = repo.Collection.UpdateOne(ctx, filter, update)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				log.Printf("Record not found with ID %s\n", id)
@@ -119,12 +121,13 @@ func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector
 		}
 		doc = removeInternalFields(doc)
 		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
+		update := bson.M{"$set": doc}
 		filter, err := mongoUtility.JsonToBsonM(selector)
 		if err != nil {
 			return false, err
 		}
 		// TODO apply security.
-		_, err = repo.Collection.UpdateOne(ctx, filter, doc)
+		_, err = repo.Collection.UpdateOne(ctx, filter, update)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				log.Printf("Record not found with provided selector")
@@ -146,12 +149,13 @@ func (repo *MongoRepository[Entity]) UpdateWithRawData(ctx context.Context, sele
 		}
 		doc = removeInternalFields(doc)
 		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
+		update := bson.M{"$set": doc}
 		filter, err := mongoUtility.JsonToBsonM(selector)
 		if err != nil {
 			return false, err
 		}
 		// TODO apply security.
-		_, err = repo.Collection.UpdateOne(ctx, filter, doc)
+		_, err = repo.Collection.UpdateOne(ctx, filter, update)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				log.Printf("Record not found with provided selector")
