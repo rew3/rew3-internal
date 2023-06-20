@@ -12,7 +12,7 @@ package crm
 */
 
 type CaseMini struct {
-	ID      string `json:"_id" bson:"_id"`
+	ID      string `json:"_id,omitempty" bson:"_id,omitempty"`
 	Subject string `json:"subject,omitempty" bson:"subject,omitempty"`
 	Title   string `json:"title,omitempty" bson:"title,omitempty"`
 }

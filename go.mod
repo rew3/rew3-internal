@@ -6,7 +6,7 @@ require (
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/segmentio/encoding v0.3.6
-	go.mongodb.org/mongo-driver v1.11.6
+	go.mongodb.org/mongo-driver v1.11.7
 	google.golang.org/protobuf v1.30.0
 )
 
