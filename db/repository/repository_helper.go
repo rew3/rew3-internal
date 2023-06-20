@@ -35,8 +35,7 @@ func removeInternalFields(doc bson.D, skip ...constants.InternalField) bson.D {
 		doc = mongoUtility.RemoveFieldFromBsonD(doc, string(constants.ID_FIELD))
 	}
 	if _, skip := skipSet[string(constants.META_FIELD)]; !skip {
-		doc = mongoUtility.RemoveFieldFromBsonD(doc, string(constants.ID_FIELD))
+		doc = mongoUtility.RemoveFieldFromBsonD(doc, string(constants.META_FIELD))
 	}
 	return doc
 }
-

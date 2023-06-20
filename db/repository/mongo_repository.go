@@ -10,7 +10,6 @@ import (
 
 	"github.com/rew3/rew3-internal/db/repository/constants"
 	mongoUtility "github.com/rew3/rew3-internal/db/utils"
-	rcUtil "github.com/rew3/rew3-internal/pkg/context"
 	service "github.com/rew3/rew3-internal/service/common/request"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -75,7 +74,7 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 		doc = removeInternalFields(doc, constants.META_FIELD)
 		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
 		update := bson.M{"$set": doc}
-		var record bson.D
+		var record Entity
 		filter := bson.M{"_id": objectID}
 		// TODO apply security.
 		err = repo.Collection.FindOneAndUpdate(ctx, filter, update, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&record)
@@ -87,7 +86,7 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 			log.Printf("Failed to update record: %v\n", err)
 			return nil, err
 		}
-		return mongoUtility.BsonDToEntity[Entity](record, true)
+		return &record, nil
 	})
 }
 
@@ -213,19 +212,14 @@ func (repo *MongoRepository[Entity]) UnsetFields(ctx context.Context, selector j
 func (repo *MongoRepository[Entity]) Archive(ctx context.Context, id string) (bool, error) {
 	return handle(ctx, func(rc service.RequestContext) (bool, error) {
 		// TODO - add security filter.
-
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
 			log.Printf("Invalid ID: %v\n", err)
 			return false, errors.New("provide document ID is not valid")
 		}
-		ec, isEcAvailable := rcUtil.GetRequestContext(ctx)
-		if !isEcAvailable {
-			return false, errors.New("request Context is not available")
-		}
 		updateData := bson.M{
 			"meta._archived_at": time.Now(),
-			"meta._archived_by": ec.User.Id,
+			"meta._archived_by": rc.User.Id,
 		}
 		update := bson.M{"$set": updateData}
 		res, err := repo.Collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
@@ -244,10 +238,6 @@ func (repo *MongoRepository[Entity]) UnArchive(ctx context.Context, id string) (
 		if err != nil {
 			log.Printf("Invalid ID: %v\n", err)
 			return false, errors.New("provide document ID is not valid")
-		}
-		_, isEcAvailable := rcUtil.GetRequestContext(ctx)
-		if !isEcAvailable {
-			return false, errors.New("request Context is not available")
 		}
 		selector, err := mongoUtility.BsonMToJson(bson.M{"_id": objectID})
 		if err != nil {
@@ -292,11 +282,52 @@ func (repo *MongoRepository[Entity]) FindAndDelete(ctx context.Context, selector
 }
 
 func (repo *MongoRepository[Entity]) BulkInsert(ctx context.Context, data []*Entity) (bool, error) {
-	return false, nil
+	return handle(ctx, func(rc service.RequestContext) (bool, error) {
+		bsonDocuments := []*bson.D{}
+		for _, entity := range data {
+			doc, err := mongoUtility.EntityToBsonD(&entity, true, true)
+			if err != nil {
+				return false, fmt.Errorf("invalid entity data : %v", doc)
+			}
+			doc = removeInternalFields(doc)
+			doc = repo.RepositoryContext.MetaDataWriter.WriteNewMeta(doc, &rc)
+			bsonDocuments = append(bsonDocuments, &doc)
+		}
+		docs := make([]interface{}, len(bsonDocuments))
+		for i, doc := range bsonDocuments {
+			docs[i] = doc.Map()
+		}
+		_, err := repo.Collection.InsertMany(ctx, docs)
+		if err != nil {
+			log.Printf("Failed to bulk create record: %v\n", err)
+			return false, err
+		}
+		return true, nil
+	})
 }
 
-func (repo *MongoRepository[Entity]) BulkUpdate(ctx context.Context, data []*Entity) (bool, error) {
-	return false, nil
+func (repo *MongoRepository[Entity]) BulkUpdate(ctx context.Context, data map[string]*Entity) (bool, error) {
+	return handle(ctx, func(rc service.RequestContext) (bool, error) {
+		var writes []mongo.WriteModel
+		for key, entity := range data {
+			filter := bson.M{"_id": key}
+			doc, err := mongoUtility.EntityToBsonD(&entity, true, true)
+			if err != nil {
+				return false, fmt.Errorf("invalid entity data : %v", doc)
+			}
+			doc = removeInternalFields(doc, constants.META_FIELD)
+			doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
+			update := bson.M{"$set": doc}
+			updateModel := mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update)
+			writes = append(writes, updateModel)
+		}
+		_, err := repo.Collection.BulkWrite(context.TODO(), writes)
+		if err != nil {
+			log.Printf("Failed to bulk create record: %v\n", err)
+			return false, err
+		}
+		return true, nil
+	})
 }
 
 func (repo *MongoRepository[Entity]) FindById(ctx context.Context, id string) *Entity {
