@@ -9,11 +9,17 @@ import (
 /**
  * Model validator.
  */
-type ModelValidator struct {
+type DataValidator struct {
 	validator *validator.Validate
 }
 
-func (mv *ModelValidator) ValidateModel(model interface{}) error {
+func NewDataValidator() *DataValidator {
+	return &DataValidator{
+		validator: validator.New(),
+	}
+}
+
+func (mv *DataValidator) ValidatData(model interface{}) error {
 	if err := mv.validator.Struct(model); err != nil {
 		if _, ok := err.(*validator.InvalidValidationError); ok {
 			return fmt.Errorf("invalid validation error: %w", err)
