@@ -14,12 +14,23 @@ import (
 /**
  * Request context resolver.
  */
-func handle[T any](ctx context.Context, operation func(service.RequestContext) (T, error)) (T, error) {
+func handleWrite[T any](ctx context.Context, operation func(service.RequestContext) (T, error)) (T, error) {
 	if rc, isRcAvailable := rcUtil.GetRequestContext(ctx); isRcAvailable {
 		return operation(rc)
 	} else {
 		var t T
 		return t, errors.New("request context is not available")
+	}
+}
+
+/**
+ * Request context resolver.
+ */
+func handleRead[T any](ctx context.Context, operation func(service.RequestContext) T, defaultValue T) T {
+	if rc, isRcAvailable := rcUtil.GetRequestContext(ctx); isRcAvailable {
+		return operation(rc)
+	} else {
+		return defaultValue
 	}
 }
 
