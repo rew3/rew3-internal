@@ -32,7 +32,8 @@ func (ds DataSecurity) GenerateExtendedFilter(
 	scope c.DataAccessScope,
 	context *s.RequestContext,
 	param *s.RequestParam,
-	isApplyArchiveFilter bool,
+	hideArchivedFilter bool,
+	hideSoftDeletedFilter bool,
 	transitionalFilters ...*bson.D) bson.D {
 
 	return bson.D{}

@@ -21,7 +21,7 @@ type Repository[Entity any] interface {
 	Delete(ctx context.Context, id string) (bool, error)
 	FindAndDelete(ctx context.Context, selector json.RawMessage) (bool, error)
 	BulkInsert(ctx context.Context, data []*Entity) (bool, error)
-	BulkUpdate(ctx context.Context, data []*Entity) (bool, error)
+	BulkUpdate(ctx context.Context, data map[string]*Entity) (bool, error)
 
 	/* Reads */
 	FindById(ctx context.Context, id string) *Entity

@@ -33,7 +33,7 @@ func (filter *CommonDataFilter) HideSoftDeletedFilter(param s.RequestParam) bson
 	return bson.D{}
 }
 
-func (filter *CommonDataFilter) ShoArchivedFilter(param s.RequestParam) bson.D {
+func (filter *CommonDataFilter) ShowArchivedFilter(param s.RequestParam) bson.D {
 	// DBQueryBuilder.exists("meta._archived_at")
 	return bson.D{}
 }

@@ -14,12 +14,23 @@ import (
 /**
  * Request context resolver.
  */
-func handle[T any](ctx context.Context, operation func(service.RequestContext) (T, error)) (T, error) {
+func handleWrite[T any](ctx context.Context, operation func(service.RequestContext) (T, error)) (T, error) {
 	if rc, isRcAvailable := rcUtil.GetRequestContext(ctx); isRcAvailable {
 		return operation(rc)
 	} else {
 		var t T
 		return t, errors.New("request context is not available")
+	}
+}
+
+/**
+ * Request context resolver.
+ */
+func handleRead[T any](ctx context.Context, operation func(service.RequestContext) T, defaultValue T) T {
+	if rc, isRcAvailable := rcUtil.GetRequestContext(ctx); isRcAvailable {
+		return operation(rc)
+	} else {
+		return defaultValue
 	}
 }
 
@@ -35,8 +46,7 @@ func removeInternalFields(doc bson.D, skip ...constants.InternalField) bson.D {
 		doc = mongoUtility.RemoveFieldFromBsonD(doc, string(constants.ID_FIELD))
 	}
 	if _, skip := skipSet[string(constants.META_FIELD)]; !skip {
-		doc = mongoUtility.RemoveFieldFromBsonD(doc, string(constants.ID_FIELD))
+		doc = mongoUtility.RemoveFieldFromBsonD(doc, string(constants.META_FIELD))
 	}
 	return doc
 }
-

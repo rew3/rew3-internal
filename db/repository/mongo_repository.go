@@ -10,7 +10,6 @@ import (
 
 	"github.com/rew3/rew3-internal/db/repository/constants"
 	mongoUtility "github.com/rew3/rew3-internal/db/utils"
-	rcUtil "github.com/rew3/rew3-internal/pkg/context"
 	service "github.com/rew3/rew3-internal/service/common/request"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -33,7 +32,7 @@ type MongoRepository[Entity any] struct {
  * Insert record.
  */
 func (repo *MongoRepository[Entity]) Insert(ctx context.Context, data *Entity) (*Entity, error) {
-	return handle(ctx, func(rc service.RequestContext) (*Entity, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (*Entity, error) {
 		doc, err := mongoUtility.EntityToBsonD(data, false, true)
 		if err != nil {
 			log.Printf("Invalid Input: Failed to create record: %v\n", err)
@@ -61,7 +60,7 @@ func (repo *MongoRepository[Entity]) Insert(ctx context.Context, data *Entity) (
  * Note: Include original meta info in Entity.
  */
 func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data *Entity) (*Entity, error) {
-	return handle(ctx, func(rc service.RequestContext) (*Entity, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (*Entity, error) {
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
 			log.Printf("Invalid Record ID: %v\n", err)
@@ -75,7 +74,7 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 		doc = removeInternalFields(doc, constants.META_FIELD)
 		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
 		update := bson.M{"$set": doc}
-		var record bson.D
+		var record Entity
 		filter := bson.M{"_id": objectID}
 		// TODO apply security.
 		err = repo.Collection.FindOneAndUpdate(ctx, filter, update, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&record)
@@ -87,7 +86,7 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 			log.Printf("Failed to update record: %v\n", err)
 			return nil, err
 		}
-		return mongoUtility.BsonDToEntity[Entity](record, true)
+		return &record, nil
 	})
 }
 
@@ -96,7 +95,7 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
  * Note: Meta information is not updated.
  */
 func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id string, data *Entity) (bool, error) {
-	return handle(ctx, func(rc service.RequestContext) (bool, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
 			log.Printf("Invalid Record ID: %v\n", err)
@@ -125,7 +124,7 @@ func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id stri
 }
 
 func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector json.RawMessage, data *Entity) (bool, error) {
-	return handle(ctx, func(rc service.RequestContext) (bool, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		doc, err := mongoUtility.EntityToBsonD(data, false, true)
 		if err != nil {
 			log.Printf("Invalid Input: Failed to update record: %v\n", err)
@@ -153,7 +152,7 @@ func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector
 }
 
 func (repo *MongoRepository[Entity]) UpdateWithRawData(ctx context.Context, selector json.RawMessage, data json.RawMessage) (bool, error) {
-	return handle(ctx, func(rc service.RequestContext) (bool, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		doc, err := mongoUtility.JsonToBsonD(data)
 		if err != nil {
 			log.Printf("Invalid Input: Failed to update record: %v\n", err)
@@ -181,7 +180,7 @@ func (repo *MongoRepository[Entity]) UpdateWithRawData(ctx context.Context, sele
 }
 
 func (repo *MongoRepository[Entity]) UnsetFields(ctx context.Context, selector json.RawMessage, fields []string, multipleDoc bool) (bool, error) {
-	return handle(ctx, func(rc service.RequestContext) (bool, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		// TODO - add security filter.
 		unset := bson.M{}
 		for _, field := range fields {
@@ -211,21 +210,16 @@ func (repo *MongoRepository[Entity]) UnsetFields(ctx context.Context, selector j
 }
 
 func (repo *MongoRepository[Entity]) Archive(ctx context.Context, id string) (bool, error) {
-	return handle(ctx, func(rc service.RequestContext) (bool, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		// TODO - add security filter.
-
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
 			log.Printf("Invalid ID: %v\n", err)
 			return false, errors.New("provide document ID is not valid")
 		}
-		ec, isEcAvailable := rcUtil.GetRequestContext(ctx)
-		if !isEcAvailable {
-			return false, errors.New("request Context is not available")
-		}
 		updateData := bson.M{
 			"meta._archived_at": time.Now(),
-			"meta._archived_by": ec.User.Id,
+			"meta._archived_by": rc.User.Id,
 		}
 		update := bson.M{"$set": updateData}
 		res, err := repo.Collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
@@ -238,16 +232,12 @@ func (repo *MongoRepository[Entity]) Archive(ctx context.Context, id string) (bo
 }
 
 func (repo *MongoRepository[Entity]) UnArchive(ctx context.Context, id string) (bool, error) {
-	return handle(ctx, func(rc service.RequestContext) (bool, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		// TODO - add security filter.
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
 			log.Printf("Invalid ID: %v\n", err)
 			return false, errors.New("provide document ID is not valid")
-		}
-		_, isEcAvailable := rcUtil.GetRequestContext(ctx)
-		if !isEcAvailable {
-			return false, errors.New("request Context is not available")
 		}
 		selector, err := mongoUtility.BsonMToJson(bson.M{"_id": objectID})
 		if err != nil {
@@ -259,7 +249,7 @@ func (repo *MongoRepository[Entity]) UnArchive(ctx context.Context, id string) (
 }
 
 func (repo *MongoRepository[Entity]) Delete(ctx context.Context, id string) (bool, error) {
-	return handle(ctx, func(rc service.RequestContext) (bool, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		// TODO - add security filter.
 		objectID, err1 := primitive.ObjectIDFromHex(id)
 		if err1 != nil {
@@ -277,7 +267,7 @@ func (repo *MongoRepository[Entity]) Delete(ctx context.Context, id string) (boo
 }
 
 func (repo *MongoRepository[Entity]) FindAndDelete(ctx context.Context, selector json.RawMessage) (bool, error) {
-	return handle(ctx, func(rc service.RequestContext) (bool, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		// TODO - add security filter.
 		filter, err := mongoUtility.JsonToBsonM(selector)
 		if err != nil {
@@ -292,85 +282,146 @@ func (repo *MongoRepository[Entity]) FindAndDelete(ctx context.Context, selector
 }
 
 func (repo *MongoRepository[Entity]) BulkInsert(ctx context.Context, data []*Entity) (bool, error) {
-	return false, nil
+	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
+		bsonDocuments := []*bson.D{}
+		for _, entity := range data {
+			doc, err := mongoUtility.EntityToBsonD(&entity, true, true)
+			if err != nil {
+				return false, fmt.Errorf("invalid entity data : %v", doc)
+			}
+			doc = removeInternalFields(doc)
+			doc = repo.RepositoryContext.MetaDataWriter.WriteNewMeta(doc, &rc)
+			bsonDocuments = append(bsonDocuments, &doc)
+		}
+		docs := make([]interface{}, len(bsonDocuments))
+		for i, doc := range bsonDocuments {
+			docs[i] = doc.Map()
+		}
+		_, err := repo.Collection.InsertMany(ctx, docs)
+		if err != nil {
+			log.Printf("Failed to bulk create record: %v\n", err)
+			return false, err
+		}
+		return true, nil
+	})
 }
 
-func (repo *MongoRepository[Entity]) BulkUpdate(ctx context.Context, data []*Entity) (bool, error) {
-	return false, nil
+func (repo *MongoRepository[Entity]) BulkUpdate(ctx context.Context, data map[string]*Entity) (bool, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
+		var writes []mongo.WriteModel
+		for key, entity := range data {
+			filter := bson.M{"_id": key}
+			doc, err := mongoUtility.EntityToBsonD(&entity, true, true)
+			if err != nil {
+				return false, fmt.Errorf("invalid entity data : %v", doc)
+			}
+			doc = removeInternalFields(doc, constants.META_FIELD)
+			doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
+			update := bson.M{"$set": doc}
+			updateModel := mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update)
+			writes = append(writes, updateModel)
+		}
+		_, err := repo.Collection.BulkWrite(context.TODO(), writes)
+		if err != nil {
+			log.Printf("Failed to bulk create record: %v\n", err)
+			return false, err
+		}
+		return true, nil
+	})
 }
 
 func (repo *MongoRepository[Entity]) FindById(ctx context.Context, id string) *Entity {
-	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		log.Printf("Invalid ID: %v\n", err)
-		return nil
-	}
-	var document Entity
-	//repo.RepositoryContext.DataSecurity.
-	err = repo.Collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&document)
-	if err != nil {
-		if err == mongo.ErrNoDocuments {
-			log.Printf("Record not found with ID %s\n", id)
+	return handleRead(ctx, func(rc service.RequestContext) *Entity {
+		objectID, err := primitive.ObjectIDFromHex(id)
+		if err != nil {
+			log.Printf("Invalid ID: %v\n", err)
 			return nil
 		}
-		log.Printf("Failed to get document: %v\n", err)
-		return nil
-	}
-	return &document
+		var document Entity
+		//repo.RepositoryContext.DataSecurity.
+		err = repo.Collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&document)
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				log.Printf("Record not found with ID %s\n", id)
+				return nil
+			}
+			log.Printf("Failed to get document: %v\n", err)
+			return nil
+		}
+		return &document
+	}, nil)
 }
 
 func (repo *MongoRepository[Entity]) Find(ctx context.Context, param service.RequestParam) []*Entity {
-	results := []*Entity{}
-	cur, err := repo.Collection.Find(ctx, bson.M{})
-	if err != nil {
-		log.Printf("Error listing documents: %v", err)
-		return results
-	}
-	defer cur.Close(ctx)
-	for cur.Next(ctx) {
-		var document Entity
-		err := cur.Decode(&document)
+	return handleRead(ctx, func(rc service.RequestContext) []*Entity {
+		results := []*Entity{}
+		cur, err := repo.Collection.Find(ctx, bson.M{})
 		if err != nil {
-			log.Printf("Error decoding document: %v", err)
+			log.Printf("Error listing documents: %v", err)
+			return results
 		}
-		results = append(results, &document)
-	}
-	if err := cur.Err(); err != nil {
-		log.Printf("Error iterating over documents: %v", err)
-		return nil
-	}
-	return results
+		defer cur.Close(ctx)
+		for cur.Next(ctx) {
+			var document Entity
+			err := cur.Decode(&document)
+			if err != nil {
+				log.Printf("Error decoding document: %v", err)
+			}
+			results = append(results, &document)
+		}
+		if err := cur.Err(); err != nil {
+			log.Printf("Error iterating over documents: %v", err)
+			return nil
+		}
+		return results
+	}, []*Entity{})
 }
 
 func (repo *MongoRepository[Entity]) FindBySelector(ctx context.Context, selector json.RawMessage, offset int, limit int, sort json.RawMessage) []*Entity {
-	results := []*Entity{}
-	cur, err := repo.Collection.Find(ctx, bson.M{})
-	if err != nil {
-		log.Printf("Error listing documents: %v", err)
-		return results
-	}
-	defer cur.Close(ctx)
-	for cur.Next(ctx) {
-		var document Entity
-		err := cur.Decode(&document)
+	return handleRead(ctx, func(rc service.RequestContext) []*Entity {
+		results := []*Entity{}
+		cur, err := repo.Collection.Find(ctx, bson.M{})
 		if err != nil {
-			log.Printf("Error decoding document: %v", err)
+			log.Printf("Error listing documents: %v", err)
+			return results
 		}
-		results = append(results, &document)
-	}
-	if err := cur.Err(); err != nil {
-		log.Printf("Error iterating over documents: %v", err)
-		return nil
-	}
-	return results
+		defer cur.Close(ctx)
+		for cur.Next(ctx) {
+			var document Entity
+			err := cur.Decode(&document)
+			if err != nil {
+				log.Printf("Error decoding document: %v", err)
+			}
+			results = append(results, &document)
+		}
+		if err := cur.Err(); err != nil {
+			log.Printf("Error iterating over documents: %v", err)
+			return nil
+		}
+		return results
+	}, []*Entity{})
 }
 
 func (repo *MongoRepository[Entity]) Count(ctx context.Context, param service.RequestParam) int64 {
-	return 0
+	return handleRead(ctx, func(rc service.RequestContext) int64 {
+		count, err := repo.Collection.CountDocuments(ctx, bson.M{})
+		if err != nil {
+			log.Printf("Error listing documents: %v", err)
+			return 0
+		}
+		return count
+	}, 0)
 }
 
 func (repo *MongoRepository[Entity]) CountBySelector(ctx context.Context, selector json.RawMessage, offset int, limit int, sort json.RawMessage) int64 {
-	return 0
+	return handleRead(ctx, func(rc service.RequestContext) int64 {
+		count, err := repo.Collection.CountDocuments(ctx, bson.M{})
+		if err != nil {
+			log.Printf("Error listing documents: %v", err)
+			return 0
+		}
+		return count
+	}, 0)
 }
 
 func (repo *MongoRepository[Entity]) Aggregate(ctx context.Context) []*Entity {
@@ -448,9 +499,19 @@ func (repo *MongoRepository[Entity]) FindBySelectorPublic(ctx context.Context, s
 }
 
 func (repo *MongoRepository[Entity]) CountPublic(ctx context.Context, param service.RequestParam) int64 {
-	return 0
+	count, err := repo.Collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		log.Printf("Error listing documents: %v", err)
+		return 0
+	}
+	return count
 }
 
 func (repo *MongoRepository[Entity]) CountBySelectorPublic(ctx context.Context, selector json.RawMessage, offset int, limit int, sort json.RawMessage) int64 {
-	return 0
+	count, err := repo.Collection.CountDocuments(ctx, bson.M{})
+	if err != nil {
+		log.Printf("Error listing documents: %v", err)
+		return 0
+	}
+	return count
 }
