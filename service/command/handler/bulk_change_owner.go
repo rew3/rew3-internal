@@ -19,7 +19,7 @@ import (
  * This handler can be used to bulk change owner of record for any entity/model type.
  */
 type BulkChangeOwnerCommandHandler[T common.Model] struct {
-	entityName string
+	EntityName string
 	Repository repository.Repository[T]
 }
 
@@ -37,7 +37,7 @@ func (ch *BulkChangeOwnerCommandHandler[T]) Handle(ctx context.Context,
 				IsSuccessful: false,
 				Status:       bResponseConstant.INTERNAL_SERVER_ERROR,
 				Message:      err.Error(),
-				Action:       "BulkChange" + ch.entityName + "Owner",
+				Action:       "BulkChange" + ch.EntityName + "Owner",
 			},
 		}
 	}
@@ -45,8 +45,8 @@ func (ch *BulkChangeOwnerCommandHandler[T]) Handle(ctx context.Context,
 		Response: bResponse.ExecutionResult[interface{}]{
 			IsSuccessful: true,
 			Status:       bResponseConstant.CREATED,
-			Message:      ch.entityName + " successfully bulk owner changed",
-			Action:       "BulkChange" + ch.entityName + "Owner",
+			Message:      ch.EntityName + " successfully bulk owner changed",
+			Action:       "BulkChange" + ch.EntityName + "Owner",
 			Id:           "",
 		},
 	}

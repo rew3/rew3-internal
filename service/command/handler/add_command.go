@@ -20,7 +20,7 @@ import (
  * This handler can be used to add record for any entity/model type.
  */
 type AddCommandHandler[T common.Model] struct {
-	entityName string
+	EntityName string
 	Repository repository.Repository[T]
 }
 
@@ -32,15 +32,15 @@ func (ch *AddCommandHandler[T]) Handle(ctx context.Context,
 	cmdToModel func(command.Command) (T, error),
 	transformModel func(T) (T, error)) command.CommandResult {
 	model, err := cmdToModel(cmd)
-	if ok, cmdResult := HandleError(err, "Add"+ch.entityName); !ok {
+	if ok, cmdResult := HandleError(err, "Add"+ch.EntityName); !ok {
 		return cmdResult
 	}
 	transformedModel, err := transformModel(model)
-	if ok, transformResult := HandleError(err, "Add"+ch.entityName); !ok {
+	if ok, transformResult := HandleError(err, "Add"+ch.EntityName); !ok {
 		return transformResult
 	}
 	response, err := ch.add(ctx, transformedModel)
-	return GenerateCmdResult[T](*response, err, "Add"+ch.entityName)
+	return GenerateCmdResult[T](*response, err, "Add"+ch.EntityName)
 }
 
 /**

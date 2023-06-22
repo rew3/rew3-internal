@@ -17,7 +17,7 @@ import (
  * This handler can be used to clone record for any entity/model type.
  */
 type CloneCommandHandler[T common.Model] struct {
-	entityName string
+	EntityName string
 	Repository repository.Repository[T]
 }
 
@@ -26,7 +26,7 @@ type CloneCommandHandler[T common.Model] struct {
  */
 func (ch *CloneCommandHandler[T]) Handle(ctx context.Context, idToClone string) command.CommandResult {
 	response, err := ch.clone(ctx, idToClone)
-	return GenerateCmdResult[T](*response, err, "Clone"+ch.entityName)
+	return GenerateCmdResult[T](*response, err, "Clone"+ch.EntityName)
 }
 
 /**
@@ -45,6 +45,6 @@ func (ch *CloneCommandHandler[T]) clone(ctx context.Context, id string) (*T, err
 		data.SetReference(nil)
 		return ch.Repository.Insert(ctx, &data)
 	} else {
-		return nil, errors.New(ch.entityName + " not found for given id")
+		return nil, errors.New(ch.EntityName + " not found for given id")
 	}
 }

@@ -22,7 +22,7 @@ import (
  * This handler can be used to bulk add record for any entity/model type.
  */
 type BulkAddCommandHandler[T common.Model] struct {
-	entityName string
+	EntityName string
 	Repository repository.Repository[T]
 }
 
@@ -34,14 +34,14 @@ func (ch *BulkAddCommandHandler[T]) Handle(ctx context.Context,
 	cmdToModel func(command.Command) ([]T, error),
 	transformModel func(T) (T, error)) command.CommandResult {
 	models, err := cmdToModel(cmd)
-	if ok, cmdResult := HandleError(err, "BulkAdd"+ch.entityName); !ok {
+	if ok, cmdResult := HandleError(err, "BulkAdd"+ch.EntityName); !ok {
 		return cmdResult
 	}
 	var transformedModels []T
 	for _, model := range models {
 		transformed, err := transformModel(model)
 		if err != nil {
-			if ok, transformResult := HandleError(err, "BulkAdd"+ch.entityName); !ok {
+			if ok, transformResult := HandleError(err, "BulkAdd"+ch.EntityName); !ok {
 				return transformResult
 			} else {
 				transformedModels = append(transformedModels, transformed)
@@ -55,7 +55,7 @@ func (ch *BulkAddCommandHandler[T]) Handle(ctx context.Context,
 				IsSuccessful: false,
 				Status:       bResponseConstant.INTERNAL_SERVER_ERROR,
 				Message:      err.Error(),
-				Action:       "BulkAdd" + ch.entityName,
+				Action:       "BulkAdd" + ch.EntityName,
 			},
 		}
 	}
@@ -63,8 +63,8 @@ func (ch *BulkAddCommandHandler[T]) Handle(ctx context.Context,
 		Response: bResponse.ExecutionResult[interface{}]{
 			IsSuccessful: true,
 			Status:       bResponseConstant.CREATED,
-			Message:      ch.entityName + " successfully bulk added",
-			Action:       "BulkAdd" + ch.entityName,
+			Message:      ch.EntityName + " successfully bulk added",
+			Action:       "BulkAdd" + ch.EntityName,
 			Id:           "",
 		},
 	}

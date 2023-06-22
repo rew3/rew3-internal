@@ -16,7 +16,7 @@ import (
  * This handler can be used to update record for any entity/model type.
  */
 type UpdateCommandHandler[T common.Model] struct {
-	entityName string
+	EntityName string
 	Repository repository.Repository[T]
 }
 
@@ -28,15 +28,15 @@ func (ch *UpdateCommandHandler[T]) Handle(ctx context.Context,
 	cmdToModel func(command.Command) (T, error),
 	transformModel func(T) (T, error)) command.CommandResult {
 	model, err := cmdToModel(cmd)
-	if ok, cmdResult := HandleError(err, "Update"+ch.entityName); !ok {
+	if ok, cmdResult := HandleError(err, "Update"+ch.EntityName); !ok {
 		return cmdResult
 	}
 	transformedModel, err := transformModel(model)
-	if ok, transformResult := HandleError(err, "Update"+ch.entityName); !ok {
+	if ok, transformResult := HandleError(err, "Update"+ch.EntityName); !ok {
 		return transformResult
 	}
 	response, err := ch.update(ctx, transformedModel)
-	return GenerateCmdResult[T](*response, err, "Update"+ch.entityName)
+	return GenerateCmdResult[T](*response, err, "Update"+ch.EntityName)
 }
 
 /**
@@ -52,6 +52,6 @@ func (ch *UpdateCommandHandler[T]) update(ctx context.Context, data T) (*T, erro
 		data.SetMeta((*record).GetMeta())
 		return ch.Repository.Update(ctx, id, &data)
 	} else {
-		return nil, errors.New(ch.entityName + " not found for given id")
+		return nil, errors.New(ch.EntityName + " not found for given id")
 	}
 }
