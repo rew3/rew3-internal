@@ -19,7 +19,7 @@ import (
  * Add command handler.
  * This handler can be used to add record for any entity/model type.
  */
-type AddCommandHandler[T common.Model] struct {
+type AddCommandHandler[T common.Model, C command.Command] struct {
 	EntityName string
 	Repository repository.Repository[T]
 }
@@ -27,9 +27,9 @@ type AddCommandHandler[T common.Model] struct {
 /**
  * Handle Command.
  */
-func (ch *AddCommandHandler[T]) Handle(ctx context.Context,
-	cmd command.Command,
-	cmdToModel func(command.Command) (T, error),
+func (ch *AddCommandHandler[T,C]) Handle(ctx context.Context,
+	cmd C,
+	cmdToModel func(C) (T, error),
 	transformModel func(T) (T, error)) command.CommandResult {
 	model, err := cmdToModel(cmd)
 	if ok, cmdResult := HandleError(err, "Add"+ch.EntityName); !ok {
@@ -46,7 +46,7 @@ func (ch *AddCommandHandler[T]) Handle(ctx context.Context,
 /**
  * Add Record.
  */
-func (ch *AddCommandHandler[T]) add(ctx context.Context, data T) (*T, error) {
+func (ch *AddCommandHandler[T,C]) add(ctx context.Context, data T) (*T, error) {
 	requestContext, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return nil, errors.New("request context is not available")

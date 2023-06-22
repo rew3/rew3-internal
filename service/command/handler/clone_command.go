@@ -16,7 +16,7 @@ import (
  * Clone command handler.
  * This handler can be used to clone record for any entity/model type.
  */
-type CloneCommandHandler[T common.Model] struct {
+type CloneCommandHandler[T common.Model, C command.Command] struct {
 	EntityName string
 	Repository repository.Repository[T]
 }
@@ -24,7 +24,7 @@ type CloneCommandHandler[T common.Model] struct {
 /**
  * Handle Command.
  */
-func (ch *CloneCommandHandler[T]) Handle(ctx context.Context, idToClone string) command.CommandResult {
+func (ch *CloneCommandHandler[T, C]) Handle(ctx context.Context, idToClone string) command.CommandResult {
 	response, err := ch.clone(ctx, idToClone)
 	return GenerateCmdResult[T](*response, err, "Clone"+ch.EntityName)
 }
@@ -32,7 +32,7 @@ func (ch *CloneCommandHandler[T]) Handle(ctx context.Context, idToClone string) 
 /**
  * Clone Record.
  */
-func (ch *CloneCommandHandler[T]) clone(ctx context.Context, id string) (*T, error) {
+func (ch *CloneCommandHandler[T, C]) clone(ctx context.Context, id string) (*T, error) {
 	requestContext, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return nil, errors.New("request context is not available")

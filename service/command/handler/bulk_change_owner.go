@@ -18,7 +18,7 @@ import (
  * BulkChange owner command handler.
  * This handler can be used to bulk change owner of record for any entity/model type.
  */
-type BulkChangeOwnerCommandHandler[T common.Model] struct {
+type BulkChangeOwnerCommandHandler[T common.Model, C command.Command] struct {
 	EntityName string
 	Repository repository.Repository[T]
 }
@@ -26,9 +26,9 @@ type BulkChangeOwnerCommandHandler[T common.Model] struct {
 /**
  * Handle Command.
  */
-func (ch *BulkChangeOwnerCommandHandler[T]) Handle(ctx context.Context,
-	cmd command.Command,
-	cmdToOwner func(command.Command) map[string]account.MiniUser) command.CommandResult {
+func (ch *BulkChangeOwnerCommandHandler[T, C]) Handle(ctx context.Context,
+	cmd C,
+	cmdToOwner func(C) map[string]account.MiniUser) command.CommandResult {
 	owners := cmdToOwner(cmd)
 	_, err := ch.bulkChangeOwner(ctx, owners)
 	if err != nil {
@@ -55,7 +55,7 @@ func (ch *BulkChangeOwnerCommandHandler[T]) Handle(ctx context.Context,
 /**
  * Bulk Change owner of Record.
  */
-func (ch *BulkChangeOwnerCommandHandler[T]) bulkChangeOwner(ctx context.Context, data map[string]account.MiniUser) (bool, error) {
+func (ch *BulkChangeOwnerCommandHandler[T, C]) bulkChangeOwner(ctx context.Context, data map[string]account.MiniUser) (bool, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return false, errors.New("request context is not available")

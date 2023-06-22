@@ -15,7 +15,7 @@ import (
  * Update command handler.
  * This handler can be used to update record for any entity/model type.
  */
-type UpdateCommandHandler[T common.Model] struct {
+type UpdateCommandHandler[T common.Model, C command.Command] struct {
 	EntityName string
 	Repository repository.Repository[T]
 }
@@ -23,9 +23,9 @@ type UpdateCommandHandler[T common.Model] struct {
 /**
  * Handle Command.
  */
-func (ch *UpdateCommandHandler[T]) Handle(ctx context.Context,
-	cmd command.Command,
-	cmdToModel func(command.Command) (T, error),
+func (ch *UpdateCommandHandler[T, C]) Handle(ctx context.Context,
+	cmd C,
+	cmdToModel func(C) (T, error),
 	transformModel func(T) (T, error)) command.CommandResult {
 	model, err := cmdToModel(cmd)
 	if ok, cmdResult := HandleError(err, "Update"+ch.EntityName); !ok {
@@ -42,7 +42,7 @@ func (ch *UpdateCommandHandler[T]) Handle(ctx context.Context,
 /**
  * Update Record.
  */
-func (ch *UpdateCommandHandler[T]) update(ctx context.Context, data T) (*T, error) {
+func (ch *UpdateCommandHandler[T, C]) update(ctx context.Context, data T) (*T, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return nil, errors.New("request context is not available")

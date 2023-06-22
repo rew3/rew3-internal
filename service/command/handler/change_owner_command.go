@@ -16,7 +16,7 @@ import (
  * Change owner command handler.
  * This handler can be used to change owner of record for any entity/model type.
  */
-type ChangeOwnerCommandHandler[T common.Model] struct {
+type ChangeOwnerCommandHandler[T common.Model, C command.Command] struct {
 	EntityName string
 	Repository repository.Repository[T]
 }
@@ -24,7 +24,7 @@ type ChangeOwnerCommandHandler[T common.Model] struct {
 /**
  * Handle Command.
  */
-func (ch *ChangeOwnerCommandHandler[T]) Handle(ctx context.Context,
+func (ch *ChangeOwnerCommandHandler[T, C]) Handle(ctx context.Context,
 	cmd command.Command,
 	idResolver func(command.Command) string,
 	cmdToOwner func(command.Command) account.MiniUser) command.CommandResult {
@@ -37,7 +37,7 @@ func (ch *ChangeOwnerCommandHandler[T]) Handle(ctx context.Context,
 /**
  * Change owner of Record.
  */
-func (ch *ChangeOwnerCommandHandler[T]) changeOwner(ctx context.Context, id string, owner account.MiniUser) (*T, error) {
+func (ch *ChangeOwnerCommandHandler[T, C]) changeOwner(ctx context.Context, id string, owner account.MiniUser) (*T, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return nil, errors.New("request context is not available")
