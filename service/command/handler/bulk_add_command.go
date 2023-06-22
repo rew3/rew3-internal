@@ -21,7 +21,7 @@ import (
  * Bulk Add command handler.
  * This handler can be used to bulk add record for any entity/model type.
  */
-type BulkAddCommandHandler[T common.Model] struct {
+type BulkAddCommandHandler[T common.Model, C command.Command] struct {
 	EntityName string
 	Repository repository.Repository[T]
 }
@@ -29,9 +29,9 @@ type BulkAddCommandHandler[T common.Model] struct {
 /**
  * Handle Command.
  */
-func (ch *BulkAddCommandHandler[T]) Handle(ctx context.Context,
-	cmd command.Command,
-	cmdToModel func(command.Command) ([]T, error),
+func (ch *BulkAddCommandHandler[T, C]) Handle(ctx context.Context,
+	cmd C,
+	cmdToModel func(C) ([]T, error),
 	transformModel func(T) (T, error)) command.CommandResult {
 	models, err := cmdToModel(cmd)
 	if ok, cmdResult := HandleError(err, "BulkAdd"+ch.EntityName); !ok {
@@ -73,7 +73,7 @@ func (ch *BulkAddCommandHandler[T]) Handle(ctx context.Context,
 /**
  * Bulk Add Record.
  */
-func (ch *BulkAddCommandHandler[T]) bulkAdd(ctx context.Context, data []T) (bool, error) {
+func (ch *BulkAddCommandHandler[T, C]) bulkAdd(ctx context.Context, data []T) (bool, error) {
 	requestContext, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return false, errors.New("request context is not available")

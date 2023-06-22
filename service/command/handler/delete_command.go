@@ -15,7 +15,7 @@ import (
  * Delete command handler.
  * This handler can be used to delete record for any entity/model type.
  */
-type DeleteCommandHandler[T common.Model] struct {
+type DeleteCommandHandler[T common.Model, C command.Command] struct {
 	EntityName string
 	Repository repository.Repository[T]
 }
@@ -23,7 +23,7 @@ type DeleteCommandHandler[T common.Model] struct {
 /**
  * Handle Command.
  */
-func (ch *DeleteCommandHandler[T]) Handle(ctx context.Context, id string) command.CommandResult {
+func (ch *DeleteCommandHandler[T, C]) Handle(ctx context.Context, id string) command.CommandResult {
 	response, err := ch.delete(ctx, id)
 	return GenerateCmdResult[T](*response, err, "Delete"+ch.EntityName)
 }
@@ -31,7 +31,7 @@ func (ch *DeleteCommandHandler[T]) Handle(ctx context.Context, id string) comman
 /**
  * Delete Record.
  */
-func (ch *DeleteCommandHandler[T]) delete(ctx context.Context, id string) (*T, error) {
+func (ch *DeleteCommandHandler[T, C]) delete(ctx context.Context, id string) (*T, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return nil, errors.New("request context is not available")
