@@ -5,16 +5,15 @@ import (
 	"encoding/json"
 
 	req "github.com/rew3/rew3-internal/service/common/request"
-	"go.mongodb.org/mongo-driver/bson"
 )
 
 type Repository[Entity any] interface {
 	/* Writes */
 	Insert(ctx context.Context, data *Entity) (*Entity, error)
 	Update(ctx context.Context, id string, data *Entity) (*Entity, error)
-	UpdateDataOnly(ctx context.Context, id string, data *Entity) (*Entity, error)
+	UpdateDataOnly(ctx context.Context, id string, data *Entity) (bool, error)
 	FindAndUpdate(ctx context.Context, selector json.RawMessage, data *Entity) (bool, error)
-	UpdateWithRawData(ctx context.Context, selector json.RawMessage, update bson.D) (bool, error)
+	UpdateWithRawData(ctx context.Context, selector json.RawMessage, data json.RawMessage) (bool, error)
 	UnsetFields(ctx context.Context, selector json.RawMessage, fields []string, multipleDoc bool) (bool, error)
 	Archive(ctx context.Context, id string) (bool, error)
 	UnArchive(ctx context.Context, id string) (bool, error)

@@ -18,7 +18,7 @@ import (
  * This handler can be used to bulk update record for any entity/model type.
  */
 type BulkUpdateCommandHandler[T common.Model] struct {
-	entityName string
+	EntityName string
 	Repository repository.Repository[T]
 }
 
@@ -30,14 +30,14 @@ func (ch *BulkUpdateCommandHandler[T]) Handle(ctx context.Context,
 	cmdToModels func(command.Command) (map[string]T, error),
 	transformModel func(T) (T, error)) command.CommandResult {
 	models, err := cmdToModels(cmd)
-	if ok, cmdResult := HandleError(err, "BulkUpdate"+ch.entityName); !ok {
+	if ok, cmdResult := HandleError(err, "BulkUpdate"+ch.EntityName); !ok {
 		return cmdResult
 	}
 	transformedModels := make(map[string]*T)
 	for key, model := range models {
 		transformed, err := transformModel(model)
 		if err != nil {
-			if ok, transformResult := HandleError(err, "BulkUpdate"+ch.entityName); !ok {
+			if ok, transformResult := HandleError(err, "BulkUpdate"+ch.EntityName); !ok {
 				return transformResult
 			} else {
 				transformedModels[key] = &transformed
@@ -51,7 +51,7 @@ func (ch *BulkUpdateCommandHandler[T]) Handle(ctx context.Context,
 				IsSuccessful: false,
 				Status:       bResponseConstant.INTERNAL_SERVER_ERROR,
 				Message:      err.Error(),
-				Action:       "BulkUpdate" + ch.entityName,
+				Action:       "BulkUpdate" + ch.EntityName,
 			},
 		}
 	}
@@ -59,8 +59,8 @@ func (ch *BulkUpdateCommandHandler[T]) Handle(ctx context.Context,
 		Response: bResponse.ExecutionResult[interface{}]{
 			IsSuccessful: true,
 			Status:       bResponseConstant.CREATED,
-			Message:      ch.entityName + " successfully bulk updated",
-			Action:       "BulkUpdate" + ch.entityName,
+			Message:      ch.EntityName + " successfully bulk updated",
+			Action:       "BulkUpdate" + ch.EntityName,
 			Id:           "",
 		},
 	}

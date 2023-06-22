@@ -16,7 +16,7 @@ import (
  * This handler can be used to delete record for any entity/model type.
  */
 type DeleteCommandHandler[T common.Model] struct {
-	entityName string
+	EntityName string
 	Repository repository.Repository[T]
 }
 
@@ -25,7 +25,7 @@ type DeleteCommandHandler[T common.Model] struct {
  */
 func (ch *DeleteCommandHandler[T]) Handle(ctx context.Context, id string) command.CommandResult {
 	response, err := ch.delete(ctx, id)
-	return GenerateCmdResult[T](*response, err, "Delete"+ch.entityName)
+	return GenerateCmdResult[T](*response, err, "Delete"+ch.EntityName)
 }
 
 /**
@@ -43,6 +43,6 @@ func (ch *DeleteCommandHandler[T]) delete(ctx context.Context, id string) (*T, e
 			return record, nil
 		}
 	} else {
-		return nil, errors.New(ch.entityName + " not found for given id")
+		return nil, errors.New(ch.EntityName + " not found for given id")
 	}
 }

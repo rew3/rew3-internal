@@ -17,7 +17,7 @@ import (
  * This handler can be used to change owner of record for any entity/model type.
  */
 type ChangeOwnerCommandHandler[T common.Model] struct {
-	entityName string
+	EntityName string
 	Repository repository.Repository[T]
 }
 
@@ -31,7 +31,7 @@ func (ch *ChangeOwnerCommandHandler[T]) Handle(ctx context.Context,
 	id := idResolver(cmd)
 	owner := cmdToOwner(cmd)
 	response, err := ch.changeOwner(ctx, id, owner)
-	return GenerateCmdResult[T](*response, err, "Change"+ch.entityName+"Owner")
+	return GenerateCmdResult[T](*response, err, "Change"+ch.EntityName+"Owner")
 }
 
 /**
@@ -47,6 +47,6 @@ func (ch *ChangeOwnerCommandHandler[T]) changeOwner(ctx context.Context, id stri
 		data.SetOwner(owner)
 		return ch.Repository.Update(ctx, id, &data)
 	} else {
-		return nil, errors.New(ch.entityName + " not found for given id")
+		return nil, errors.New(ch.EntityName + " not found for given id")
 	}
 }
