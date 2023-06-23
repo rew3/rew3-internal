@@ -15,15 +15,16 @@ import (
  * Update command handler.
  * This handler can be used to update record for any entity/model type.
  */
-type UpdateCommandHandler[T common.Model, C command.Command] struct {
-	EntityName string
-	Repository repository.Repository[T]
+type UpdateCommandHandler[W common.ModelWrapper, T common.Model, C command.Command] struct {
+	EntityName      string
+	Repository      repository.Repository[T]
+	WrapperProvider func(*T) W
 }
 
 /**
  * Handle Command.
  */
-func (ch *UpdateCommandHandler[T, C]) Handle(ctx context.Context,
+func (ch *UpdateCommandHandler[W, T, C]) Handle(ctx context.Context,
 	cmd C,
 	cmdToModel func(C) (T, error),
 	transformModel func(T) (T, error)) command.CommandResult {
@@ -35,23 +36,25 @@ func (ch *UpdateCommandHandler[T, C]) Handle(ctx context.Context,
 	if ok, transformResult := HandleError(err, "Update"+ch.EntityName); !ok {
 		return transformResult
 	}
-	response, err := ch.update(ctx, transformedModel)
-	return GenerateCmdResult[T](*response, err, "Update"+ch.EntityName)
+	id, response, err := ch.update(ctx, transformedModel)
+	return GenerateCmdResult[T](id, *response, err, "Update"+ch.EntityName)
 }
 
 /**
  * Update Record.
  */
-func (ch *UpdateCommandHandler[T, C]) update(ctx context.Context, data T) (*T, error) {
+func (ch *UpdateCommandHandler[W, T, C]) update(ctx context.Context, model T) (string, *T, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
-		return nil, errors.New("request context is not available")
+		return "", nil, errors.New("request context is not available")
 	}
+	update := &model
+	data := ch.WrapperProvider(update)
 	id := data.GetId()
 	if record := ch.Repository.FindById(ctx, id); record != nil {
-		data.SetMeta((*record).GetMeta())
-		return ch.Repository.Update(ctx, id, &data)
+		res, err := ch.Repository.Update(ctx, id, update)
+		return id, res, err
 	} else {
-		return nil, errors.New(ch.EntityName + " not found for given id")
+		return "", nil, errors.New(ch.EntityName + " not found for given id")
 	}
 }

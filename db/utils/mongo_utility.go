@@ -76,7 +76,7 @@ func EntityToBsonM[Entity any](entity *Entity, convertToObjectId bool, removeEmp
 			return nil, err
 		}
 	}
-	if(removeEmptyFields) {
+	if removeEmptyFields {
 		doc = RemoveEmptyBsonMFields(doc)
 	}
 	return doc, nil
@@ -100,7 +100,7 @@ func EntityToBsonD[Entity any](entity *Entity, convertToObjectId bool, removeEmp
 			return nil, err
 		}
 	}
-	if(removeEmptyFields) {
+	if removeEmptyFields {
 		doc = RemoveEmptyBsonDFields(doc)
 	}
 	return doc, nil
@@ -327,28 +327,6 @@ func GetBsonDFieldValue[T any](doc bson.D, field string) (T, error) {
 }
 
 /*
- * Set given value to the provided bson.M document field.
- * Note: You can provide field name in dot notation format.
- */
-func SetBsonMFieldValue(doc bson.M, field string, value interface{}) error {
-	keys := strings.Split(field, ".")
-	length := len(keys)
-	if length == 0 {
-		return errors.New("invalid field key provided")
-	} else if length == 1 {
-		doc[keys[0]] = value
-		return nil
-	} else {
-		key := keys[0]
-		if data, ok := doc[key].(bson.M); ok {
-			return SetBsonMFieldValue(data, strings.Join(keys[1:], "."), value)
-		} else {
-			return fmt.Errorf("field `%s` is not nested type", key)
-		}
-	}
-}
-
-/*
  * Set given value to the provided bson.D document field.
  * Note: You can provide field name in dot notation format.
  */
@@ -379,7 +357,6 @@ func SetBsonDFieldValue(doc bson.D, field string, value interface{}) error {
 		return fmt.Errorf("field `%s` not found", key)
 	}
 }
-
 
 /*
  * Add New field value for given bson.D docuemnt.
@@ -414,9 +391,9 @@ func RemoveFieldFromBsonD(doc bson.D, field string) bson.D {
 /*
  * Write new object ID field to given bson.D document.
  */
-func WriteObjectID(doc bson.D) bson.D {
+func WriteObjectID(doc bson.D) (primitive.ObjectID, bson.D) {
 	id := primitive.NewObjectID()
 	prepended := bson.D{bson.E{Key: "_id", Value: id}}
 	prepended = append(prepended, doc...)
-	return prepended
+	return id, prepended
 }

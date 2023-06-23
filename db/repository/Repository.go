@@ -2,9 +2,9 @@ package repository
 
 import (
 	"context"
-	"encoding/json"
 
 	req "github.com/rew3/rew3-internal/service/common/request"
+	"go.mongodb.org/mongo-driver/bson"
 )
 
 type Repository[Entity any] interface {
@@ -12,29 +12,30 @@ type Repository[Entity any] interface {
 	Insert(ctx context.Context, data *Entity) (*Entity, error)
 	Update(ctx context.Context, id string, data *Entity) (*Entity, error)
 	UpdateDataOnly(ctx context.Context, id string, data *Entity) (bool, error)
-	FindAndUpdate(ctx context.Context, selector json.RawMessage, data *Entity) (bool, error)
-	UpdateWithRawData(ctx context.Context, selector json.RawMessage, data json.RawMessage) (bool, error)
-	UnsetFields(ctx context.Context, selector json.RawMessage, fields []string, multipleDoc bool) (bool, error)
+	FindAndUpdate(ctx context.Context, selector bson.D, data *Entity) (bool, error)
+	UpdateWithRawData(ctx context.Context, selector bson.D, data bson.D) (bool, error)
+	UnsetFields(ctx context.Context, selector bson.D, fields []string, multipleDoc bool) (bool, error)
 	Archive(ctx context.Context, id string) (bool, error)
 	UnArchive(ctx context.Context, id string) (bool, error)
 	Delete(ctx context.Context, id string) (bool, error)
-	FindAndDelete(ctx context.Context, selector json.RawMessage) (bool, error)
+	FindAndDelete(ctx context.Context, selector bson.D) (bool, error)
 	BulkInsert(ctx context.Context, data []*Entity) (bool, error)
 	BulkUpdate(ctx context.Context, data map[string]*Entity) (bool, error)
+	BulkDelete(ctx context.Context, ids []string) (bool, error)
 
 	/* Reads */
 	FindById(ctx context.Context, id string) *Entity
 	Find(ctx context.Context, param req.RequestParam) []*Entity
-	FindBySelector(ctx context.Context, selector json.RawMessage, offset int, limit int, sort json.RawMessage) []*Entity
+	FindBySelector(ctx context.Context, selector bson.D, offset int, limit int, sort bson.D) []*Entity
 	Count(ctx context.Context, param req.RequestParam) int64
-	CountBySelector(ctx context.Context, selector json.RawMessage, offset int, limit int, sort json.RawMessage) int64
+	CountBySelector(ctx context.Context, selector bson.D, offset int, limit int, sort bson.D) int64
 	Aggregate(ctx context.Context) []*Entity
 	AggregateWithLookupJoin(ctx context.Context) []*Entity
 
 	/*Public Reads*/
 	FindByIdPublic(ctx context.Context, id string) *Entity
 	FindPublic(ctx context.Context, param req.RequestParam) []*Entity
-	FindBySelectorPublic(ctx context.Context, selector json.RawMessage, offset int, limit int, sort json.RawMessage) []*Entity
+	FindBySelectorPublic(ctx context.Context, selector bson.D, offset int, limit int, sort bson.D) []*Entity
 	CountPublic(ctx context.Context, param req.RequestParam) int64
-	CountBySelectorPublic(ctx context.Context, selector json.RawMessage, offset int, limit int, sort json.RawMessage) int64
+	CountBySelectorPublic(ctx context.Context, selector bson.D, offset int, limit int, sort bson.D) int64
 }

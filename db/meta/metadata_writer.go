@@ -11,7 +11,7 @@ import (
 
 type MetaDataWriter struct{}
 
-func (writer *MetaDataWriter) WriteNewMeta(doc bson.D, context *s.RequestContext) bson.D {
+func (writer *MetaDataWriter) WriteNewMeta(docId string, doc bson.D, context *s.RequestContext) bson.D {
 	mc := MetaContext{
 		ContextUser: context.User,
 		MemberId:    context.Member,
@@ -20,17 +20,30 @@ func (writer *MetaDataWriter) WriteNewMeta(doc bson.D, context *s.RequestContext
 		AccountType: context.AccountType,
 	}
 	meta := writer.newMeta(mc)
+	meta = mUtil.AddBsonDNewFieldValue(meta, "_sid", docId)
 	doc = mUtil.AddBsonDNewFieldValue(doc, "meta", meta)
 	return doc
 }
 
-func (writer *MetaDataWriter) WriteUpdateMeta(doc bson.D, context *s.RequestContext) bson.D {
+func (writer *MetaDataWriter) WriteUpdateMeta(doc bson.D, context *s.RequestContext) (bson.D, bson.M) {
 	cUser := context.User
-	originalVersion := mUtil.GetBsonDFieldValueWithDefault[int64](doc, "meta._version", 1)
-	mUtil.SetBsonDFieldValue(doc, "meta._version", originalVersion+1)
-	mUtil.SetBsonDFieldValue(doc, "meta._last_modified", time.Now())
-	mUtil.SetBsonDFieldValue(doc, "meta._modified_by", bson.M{"_id": cUser.Id, "first_name": cUser.FirstName, "last_name": cUser.LastName})
-	return doc
+	meta := bson.D{
+		{Key: "meta", Value: bson.M{
+			"_last_modified": time.Now(),
+			"_modified_by": bson.M{
+				"_id":         cUser.Id,
+				"first_name": cUser.FirstName,
+				"last_name":  cUser.LastName,
+			},
+		}},
+	}
+	version := bson.M{
+		"$inc": bson.M{
+			"meta._version": 1,
+		},
+	}
+	doc = append(doc, meta...)
+	return doc, version
 }
 
 func (writer *MetaDataWriter) WriteSoftDeleteMeta(doc bson.D, context *s.RequestContext) bson.D {
