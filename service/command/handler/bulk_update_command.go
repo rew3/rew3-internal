@@ -17,23 +17,24 @@ import (
  * Bulk Update command handler.
  * This handler can be used to bulk update record for any entity/model type.
  */
-type BulkUpdateCommandHandler[T common.Model, C command.Command] struct {
+type BulkUpdateCommandHandler[W common.ModelWrapper, M common.Model, C command.Command] struct {
 	EntityName string
-	Repository repository.Repository[T]
+	Repository repository.Repository[M]
+	WrapperProvider func(*M) W
 }
 
 /**
  * Handle Command.
  */
-func (ch *BulkUpdateCommandHandler[T, C]) Handle(ctx context.Context,
+func (ch *BulkUpdateCommandHandler[W, M, C]) Handle(ctx context.Context,
 	cmd C,
-	cmdToModels func(C) (map[string]T, error),
-	transformModel func(T) (T, error)) command.CommandResult {
+	cmdToModels func(C) (map[string]M, error),
+	transformModel func(M) (M, error)) command.CommandResult {
 	models, err := cmdToModels(cmd)
 	if ok, cmdResult := HandleError(err, "BulkUpdate"+ch.EntityName); !ok {
 		return cmdResult
 	}
-	transformedModels := make(map[string]*T)
+	transformedModels := make(map[string]*M)
 	for key, model := range models {
 		transformed, err := transformModel(model)
 		if err != nil {
@@ -69,7 +70,7 @@ func (ch *BulkUpdateCommandHandler[T, C]) Handle(ctx context.Context,
 /**
  * Bulk Update Record.
  */
-func (ch *BulkUpdateCommandHandler[T, C]) bulkUpdate(ctx context.Context, data map[string]*T) (bool, error) {
+func (ch *BulkUpdateCommandHandler[W, M, C]) bulkUpdate(ctx context.Context, data map[string]*M) (bool, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return false, errors.New("request context is not available")

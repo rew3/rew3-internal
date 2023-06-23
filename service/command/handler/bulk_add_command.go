@@ -21,23 +21,24 @@ import (
  * Bulk Add command handler.
  * This handler can be used to bulk add record for any entity/model type.
  */
-type BulkAddCommandHandler[T common.Model, C command.Command] struct {
-	EntityName string
-	Repository repository.Repository[T]
+type BulkAddCommandHandler[W common.ModelWrapper, M common.Model, C command.Command] struct {
+	EntityName      string
+	Repository      repository.Repository[M]
+	WrapperProvider func(*M) W
 }
 
 /**
  * Handle Command.
  */
-func (ch *BulkAddCommandHandler[T, C]) Handle(ctx context.Context,
+func (ch *BulkAddCommandHandler[W, M, C]) Handle(ctx context.Context,
 	cmd C,
-	cmdToModel func(C) ([]T, error),
-	transformModel func(T) (T, error)) command.CommandResult {
+	cmdToModel func(C) ([]M, error),
+	transformModel func(M) (M, error)) command.CommandResult {
 	models, err := cmdToModel(cmd)
 	if ok, cmdResult := HandleError(err, "BulkAdd"+ch.EntityName); !ok {
 		return cmdResult
 	}
-	var transformedModels []T
+	var transformedModels []M
 	for _, model := range models {
 		transformed, err := transformModel(model)
 		if err != nil {
@@ -73,24 +74,26 @@ func (ch *BulkAddCommandHandler[T, C]) Handle(ctx context.Context,
 /**
  * Bulk Add Record.
  */
-func (ch *BulkAddCommandHandler[T, C]) bulkAdd(ctx context.Context, data []T) (bool, error) {
+func (ch *BulkAddCommandHandler[W, M, C]) bulkAdd(ctx context.Context, data []M) (bool, error) {
 	requestContext, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return false, errors.New("request context is not available")
 	}
-	var models []*T
+	var models []*M
 	for _, model := range data {
-		model.SetId(primitive.NewObjectID().Hex())
-		if model.GetOwner().Id == "" {
-			model.SetOwner(requestContext.User)
+		pModel := &model
+		wrapper := ch.WrapperProvider(pModel)
+		wrapper.SetId(primitive.NewObjectID().Hex())
+		if wrapper.GetOwner().Id == "" {
+			wrapper.SetOwner(requestContext.User)
 		}
-		model.SetMeta(appCommon.MetaInfo{})
-		if model.GetVisibility().VisibilityType == "" {
+		wrapper.SetMeta(appCommon.MetaInfo{})
+		if wrapper.GetVisibility().VisibilityType == "" {
 			visibility := account.RecordVisibility{}
 			visibility.VisibilityType = constants.PRIVATE
-			model.SetVisibility(visibility)
+			wrapper.SetVisibility(visibility)
 		}
-		models = append(models, &model)
+		models = append(models, pModel)
 	}
 	return ch.Repository.BulkInsert(ctx, models)
 }
