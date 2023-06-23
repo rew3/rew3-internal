@@ -9,15 +9,15 @@ type Model interface{}
 
 type ModelWrapper interface {
 	GetId() string
-	SetId(id string) Model
+	SetId(id string)
 	GetMeta() common.MetaInfo
-	SetMeta(meta common.MetaInfo) Model
+	SetMeta(meta common.MetaInfo)
 	GetOwner() account.MiniUser
-	SetOwner(owner account.MiniUser) Model
+	SetOwner(owner account.MiniUser)
 	GetVisibility() account.RecordVisibility
-	SetVisibility(visibility account.RecordVisibility) Model
+	SetVisibility(visibility account.RecordVisibility)
 	GetReference() []common.Reference
-	SetReference(reference []common.Reference) Model
+	SetReference(reference []common.Reference)
 	IsFavorite() bool
-	SetFavorite(status bool) Model
+	SetFavorite(status bool)
 }
