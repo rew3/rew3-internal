@@ -182,9 +182,13 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.QueryDSL) (bson.D,
 					for _, i := range v.Value {
 						items = append(items, dsl.ResolveScalarValue(i))
 					}
-					doc = append(doc, comparisonQuery(IN, q.Field, items))
+					if q.Field.IsNegation {
+						doc = append(doc, builder.mongoBuilder.Comparison(NIN, q.Field.Name, items))
+					} else {
+						doc = append(doc, builder.mongoBuilder.Comparison(IN, q.Field.Name, items))
+					}
 				default:
-					err := fmt.Errorf("Query Error: DSL operator `IN` require list value type for field: %d", q.Field.Name)
+					err := fmt.Errorf("Query Error: DSL operator `IN` require list value type for field: %s", q.Field.Name)
 					return nil, err
 				}
 			case dsl.RANGE:
@@ -194,7 +198,7 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.QueryDSL) (bson.D,
 					lt := comparisonQuery(LTE, q.Field, dsl.ResolveScalarValue(v.End))
 					doc = append(doc, bson.E{Key: string(AND), Value: bson.A{gt, lt}})
 				default:
-					err := fmt.Errorf("Query Error: DSL operator `RANGE` require start and end value for field: %d", q.Field.Name)
+					err := fmt.Errorf("Query Error: DSL operator `RANGE` require start and end value for field: %s", q.Field.Name)
 					return nil, err
 				}
 			}
