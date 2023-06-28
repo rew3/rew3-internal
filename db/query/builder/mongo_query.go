@@ -73,19 +73,29 @@ func (qb *MongoQueryBuilder) ElementExists(key string, value bool) bson.E {
 /**
  * Create query for Evaluation operator Regex.
  */
-func (qb *MongoQueryBuilder) EvaluationRegex(key string, pattern string, caseInSensitive bool) bson.E {
+func (qb *MongoQueryBuilder) EvaluationRegex(key string, pattern string, caseInSensitive bool, isNegation bool) bson.E {
 	if caseInSensitive {
-		return bson.E{
+		query := bson.E{
 			Key: key,
 			Value: bson.M{
 				string(REGEX): pattern,
 				"$options":    "i",
 			},
 		}
+		if isNegation {
+			return bson.E{Key: "$not", Value: query}
+		} else {
+			return query
+		}
 	} else {
-		return bson.E{
+		query := bson.E{
 			Key:   key,
 			Value: bson.E{Key: string(REGEX), Value: pattern},
+		}
+		if isNegation {
+			return bson.E{Key: "$not", Value: query}
+		} else {
+			return query
 		}
 	}
 }
