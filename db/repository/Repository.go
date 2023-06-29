@@ -3,7 +3,6 @@ package repository
 import (
 	"context"
 
-	req "github.com/rew3/rew3-internal/service/common/request"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
@@ -25,17 +24,13 @@ type Repository[Entity any] interface {
 
 	/* Reads */
 	FindById(ctx context.Context, id string) *Entity
-	Find(ctx context.Context, param req.RequestParam) []*Entity
-	FindBySelector(ctx context.Context, selector bson.D, offset int, limit int, sort bson.D) []*Entity
-	Count(ctx context.Context, param req.RequestParam) int64
-	CountBySelector(ctx context.Context, selector bson.D, offset int, limit int, sort bson.D) int64
+	Find(ctx context.Context, filters bson.D, offset int64, limit int64, sort bson.D) []*Entity
+	Count(ctx context.Context, filters bson.D) int64
 	Aggregate(ctx context.Context) []*Entity
 	AggregateWithLookupJoin(ctx context.Context) []*Entity
 
 	/*Public Reads*/
 	FindByIdPublic(ctx context.Context, id string) *Entity
-	FindPublic(ctx context.Context, param req.RequestParam) []*Entity
-	FindBySelectorPublic(ctx context.Context, selector bson.D, offset int, limit int, sort bson.D) []*Entity
-	CountPublic(ctx context.Context, param req.RequestParam) int64
-	CountBySelectorPublic(ctx context.Context, selector bson.D, offset int, limit int, sort bson.D) int64
+	FindPublic(ctx context.Context, filters bson.D, offset int64, limit int64, sort bson.D) []*Entity
+	CountPublic(ctx context.Context, filters bson.D) int64
 }

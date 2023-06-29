@@ -354,10 +354,19 @@ func (repo *MongoRepository[Entity]) FindById(ctx context.Context, id string) *E
 	}, nil)
 }
 
-func (repo *MongoRepository[Entity]) Find(ctx context.Context, param service.RequestParam) []*Entity {
+func (repo *MongoRepository[Entity]) Find(ctx context.Context, filters bson.D, offset int64, limit int64, sort bson.D) []*Entity {
 	return handleRead(ctx, func(rc service.RequestContext) []*Entity {
 		results := []*Entity{}
-		cur, err := repo.Collection.Find(ctx, bson.M{})
+		if sort == nil {
+			sort = bson.D{{Key: "meta._created", Value: "-1"}}
+		}
+		options := &options.FindOptions{
+			Skip:  &offset,
+			Limit: &limit,
+			Sort:  sort,
+		}
+		// TODO re-generate filter using seucrity check.
+		cur, err := repo.Collection.Find(ctx, filters, options)
 		if err != nil {
 			log.Printf("Error listing documents: %v", err)
 			return results
@@ -379,45 +388,9 @@ func (repo *MongoRepository[Entity]) Find(ctx context.Context, param service.Req
 	}, []*Entity{})
 }
 
-func (repo *MongoRepository[Entity]) FindBySelector(ctx context.Context, selector bson.D, offset int, limit int, sort bson.D) []*Entity {
-	return handleRead(ctx, func(rc service.RequestContext) []*Entity {
-		results := []*Entity{}
-		cur, err := repo.Collection.Find(ctx, bson.M{})
-		if err != nil {
-			log.Printf("Error listing documents: %v", err)
-			return results
-		}
-		defer cur.Close(ctx)
-		for cur.Next(ctx) {
-			var document Entity
-			err := cur.Decode(&document)
-			if err != nil {
-				log.Printf("Error decoding document: %v", err)
-			}
-			results = append(results, &document)
-		}
-		if err := cur.Err(); err != nil {
-			log.Printf("Error iterating over documents: %v", err)
-			return nil
-		}
-		return results
-	}, []*Entity{})
-}
-
-func (repo *MongoRepository[Entity]) Count(ctx context.Context, param service.RequestParam) int64 {
+func (repo *MongoRepository[Entity]) Count(ctx context.Context, filters bson.D) int64 {
 	return handleRead(ctx, func(rc service.RequestContext) int64 {
-		count, err := repo.Collection.CountDocuments(ctx, bson.M{})
-		if err != nil {
-			log.Printf("Error listing documents: %v", err)
-			return 0
-		}
-		return count
-	}, 0)
-}
-
-func (repo *MongoRepository[Entity]) CountBySelector(ctx context.Context, selector bson.D, offset int, limit int, sort bson.D) int64 {
-	return handleRead(ctx, func(rc service.RequestContext) int64 {
-		count, err := repo.Collection.CountDocuments(ctx, bson.M{})
+		count, err := repo.Collection.CountDocuments(ctx, filters)
 		if err != nil {
 			log.Printf("Error listing documents: %v", err)
 			return 0
@@ -454,9 +427,18 @@ func (repo *MongoRepository[Entity]) FindByIdPublic(ctx context.Context, id stri
 	return &document
 }
 
-func (repo *MongoRepository[Entity]) FindPublic(ctx context.Context, param service.RequestParam) []*Entity {
+func (repo *MongoRepository[Entity]) FindPublic(ctx context.Context, filters bson.D, offset int64, limit int64, sort bson.D) []*Entity {
 	results := []*Entity{}
-	cur, err := repo.Collection.Find(ctx, bson.M{})
+	if sort == nil {
+		sort = bson.D{{Key: "meta._created", Value: "-1"}}
+	}
+	options := &options.FindOptions{
+		Skip:  &offset,
+		Limit: &limit,
+		Sort:  sort,
+	}
+	// TODO re-generate filter using seucrity check.
+	cur, err := repo.Collection.Find(ctx, filters, options)
 	if err != nil {
 		log.Printf("Error listing documents: %v", err)
 		return results
@@ -477,39 +459,7 @@ func (repo *MongoRepository[Entity]) FindPublic(ctx context.Context, param servi
 	return results
 }
 
-func (repo *MongoRepository[Entity]) FindBySelectorPublic(ctx context.Context, selector bson.D, offset int, limit int, sort bson.D) []*Entity {
-	results := []*Entity{}
-	cur, err := repo.Collection.Find(ctx, bson.M{})
-	if err != nil {
-		log.Printf("Error listing documents: %v", err)
-		return results
-	}
-	defer cur.Close(ctx)
-	for cur.Next(ctx) {
-		var document Entity
-		err := cur.Decode(&document)
-		if err != nil {
-			log.Printf("Error decoding document: %v", err)
-		}
-		results = append(results, &document)
-	}
-	if err := cur.Err(); err != nil {
-		log.Printf("Error iterating over documents: %v", err)
-		return nil
-	}
-	return results
-}
-
-func (repo *MongoRepository[Entity]) CountPublic(ctx context.Context, param service.RequestParam) int64 {
-	count, err := repo.Collection.CountDocuments(ctx, bson.M{})
-	if err != nil {
-		log.Printf("Error listing documents: %v", err)
-		return 0
-	}
-	return count
-}
-
-func (repo *MongoRepository[Entity]) CountBySelectorPublic(ctx context.Context, selector bson.D, offset int, limit int, sort bson.D) int64 {
+func (repo *MongoRepository[Entity]) CountPublic(ctx context.Context, filters bson.D) int64 {
 	count, err := repo.Collection.CountDocuments(ctx, bson.M{})
 	if err != nil {
 		log.Printf("Error listing documents: %v", err)
