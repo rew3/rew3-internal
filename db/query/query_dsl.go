@@ -52,33 +52,36 @@ const (
 )
 
 /**
- * Root DSL for Query Definition.
- */
-type RootDSL struct {
-	Queries []QueryDSL
-}
-
-/**
  * Interface for QUERY DSL.
  * This is the base DSL type for all queries.
  */
-type QueryDSL interface{}
+type BaseDSL interface{}
+type NonAssocDSL interface{}
 
-/*
- * DSL for defining criteria for particular field.
+/**
+ * Root DSL for Query Definition.
  */
-type CriteriaDSL struct {
-	QueryDSL
-	Field    FieldDSL
-	Value    ValueType
-	Operator QueryOperator
+type QueryDSL struct {
+	Queries []BaseDSL
+}
+
+/**
+ * Associative Query DSL.
+ * It represent a query in associative array.
+ * e.g. {"first_name": "value", "last_name": "value"}
+ */
+type AssocDSL struct {
+	BaseDSL
+	Queries []NonAssocDSL
 }
 
 /*
  * DSL for defining logical operators.
+ * Current supported Logical operator are AND, OR, NOT.
  */
 type LogicalDSL struct {
-	QueryDSL
+	BaseDSL
+	NonAssocDSL
 }
 
 /*
@@ -86,7 +89,7 @@ type LogicalDSL struct {
  */
 type ANDLogicalDSL struct {
 	LogicalDSL
-	Queries []QueryDSL
+	Queries []BaseDSL
 }
 
 /*
@@ -94,7 +97,7 @@ type ANDLogicalDSL struct {
  */
 type ORLogicalDSL struct {
 	LogicalDSL
-	Queries []QueryDSL
+	Queries []BaseDSL
 }
 
 /*
@@ -103,6 +106,17 @@ type ORLogicalDSL struct {
 type NOTLogicalDSL struct {
 	LogicalDSL
 	Query LogicalDSL
+}
+
+/*
+ * DSL for defining criteria for particular field.
+ */
+type CriteriaDSL struct {
+	BaseDSL
+	NonAssocDSL
+	Field    FieldDSL
+	Value    ValueType
+	Operator QueryOperator
 }
 
 /*
@@ -146,21 +160,31 @@ func (field FieldDSL) DateType() DateTimeFieldDSL   { return DateTimeFieldDSL{Fi
 /**
  * Root DSL for query definition.
  */
-func Query(dsl ...QueryDSL) RootDSL {
-	return RootDSL{Queries: dsl}
+func Query(dsl ...BaseDSL) QueryDSL {
+	return QueryDSL{Queries: dsl}
+}
+
+/**
+ * DSL for associative representation query definition.
+ * This query DSL is used to define multiple query dsl into single dsl.
+ * e.g. you can consider a json object: {key1: value1, key2: value2} where multiple key values
+ * are defined in single object notation. This works the same way. 
+ */
+func Assoc(dsl ...NonAssocDSL) AssocDSL {
+	return AssocDSL{Queries: dsl}
 }
 
 /**
  * Logical AND query definition.
  */
-func AND(dsl ...QueryDSL) ANDLogicalDSL {
+func AND(dsl ...BaseDSL) ANDLogicalDSL {
 	return ANDLogicalDSL{Queries: dsl}
 }
 
 /**
  * Logical OR query definition.
  */
-func OR(dsl ...QueryDSL) ORLogicalDSL {
+func OR(dsl ...BaseDSL) ORLogicalDSL {
 	return ORLogicalDSL{Queries: dsl}
 }
 

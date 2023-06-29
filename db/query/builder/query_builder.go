@@ -11,7 +11,7 @@ import (
  * Query Builder.
  */
 type QueryBuilder struct {
-	queryDSL     dsl.RootDSL
+	queryDSL     dsl.QueryDSL
 	mongoBuilder *MongoQueryBuilder
 }
 
@@ -22,7 +22,7 @@ func NewQueryBuilder() *QueryBuilder {
 /**
  * Set the Query DSL for generating query.
  */
-func (builder *QueryBuilder) ForQuery(query dsl.RootDSL) {
+func (builder *QueryBuilder) ForQuery(query dsl.QueryDSL) {
 	builder.queryDSL = query
 }
 
@@ -37,7 +37,7 @@ func (builder *QueryBuilder) Mongo() (bson.D, error) {
 /**
  * Generate query for MongoDB.
  */
-func (builder *QueryBuilder) generateMongoQuery(queries []dsl.QueryDSL) (bson.D, error) {
+func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, error) {
 	// Generate a comparison query for given criteria.
 	comparisonQuery := func(op ComparisonOperator, field dsl.FieldDSL, value dsl.ValueType) bson.E {
 		if field.IsNegation {
@@ -56,51 +56,59 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.QueryDSL) (bson.D,
 				return builder.mongoBuilder.EvaluationRegex(field.Name, regex(v.Value), true, false), nil
 			}
 		default:
-			err := fmt.Errorf("Query Error: DSL operator `%s` require string value type for field: %s", opName, field.Name)
+			err := fmt.Errorf("query error: DSL operator `%s` require string value type for field: %s", opName, field.Name)
 			return bson.E{}, err
 		}
 	}
 	doc := bson.D{}
 	for _, query := range queries {
 		switch q := query.(type) {
+		case dsl.AssocDSL:
+			for _, i := range q.Queries {
+				switch i.(type) {
+				case dsl.LogicalDSL:
+					res, err := builder.generateMongoQuery([]dsl.BaseDSL{i})
+					if(err != nil) {
+						return nil, err
+					}
+					doc = append(doc, res...)
+				case dsl.CriteriaDSL:
+					res, err := builder.generateMongoQuery([]dsl.BaseDSL{i})
+					if(err != nil) {
+						return nil, err
+					}
+					doc = append(doc, res...)
+				}
+			}
 		case dsl.ANDLogicalDSL:
 			criteriaForAND := []bson.D{}
 			for _, i := range q.Queries {
-				res, err := builder.generateMongoQuery([]dsl.QueryDSL{i})
+				res, err := builder.generateMongoQuery([]dsl.BaseDSL{i})
 				if err != nil {
 					return nil, err
-				} else {
-					criteriaForAND = append(criteriaForAND, res)
 				}
+				criteriaForAND = append(criteriaForAND, res)
 			}
-			return bson.D{{
-				Key:   string(AND),
-				Value: bson.A{criteriaForAND},
-			}}, nil
+			f := bson.D{{Key: string(AND), Value: bson.A{criteriaForAND}}}
+			doc = append(doc, f...)
 		case dsl.ORLogicalDSL:
 			criteriaForOR := []bson.D{}
 			for _, i := range q.Queries {
-				res, err := builder.generateMongoQuery([]dsl.QueryDSL{i})
+				res, err := builder.generateMongoQuery([]dsl.BaseDSL{i})
 				if err != nil {
 					return nil, err
-				} else {
-					criteriaForOR = append(criteriaForOR, res)
 				}
+				criteriaForOR = append(criteriaForOR, res)
 			}
-			return bson.D{{
-				Key:   string(OR),
-				Value: bson.A{criteriaForOR},
-			}}, nil
+			f := bson.D{{Key: string(OR), Value: bson.A{criteriaForOR}}}
+			doc = append(doc, f...)
 		case dsl.NOTLogicalDSL:
-			res, err := builder.generateMongoQuery([]dsl.QueryDSL{q.Query})
+			res, err := builder.generateMongoQuery([]dsl.BaseDSL{q.Query})
 			if err != nil {
 				return nil, err
-			} else {
-				return bson.D{{
-					Key:   string(NOT),
-					Value: res,
-				}}, nil
 			}
+			f := bson.D{{Key: string(OR), Value: res}}
+			doc = append(doc, f...)
 		case dsl.CriteriaDSL:
 			// Check for scalar value end execute callback if value is scalar.
 			checkScalarValueAndThen := func(callback func()) error {
@@ -108,7 +116,7 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.QueryDSL) (bson.D,
 					callback()
 					return nil
 				} else {
-					return fmt.Errorf("Query Error: DSL operator `%s` require scalar value (string, bool, number, datetime) type for field: %s", string(q.Operator), q.Field.Name)
+					return fmt.Errorf("query error: DSL operator `%s` require scalar value (string, bool, number, datetime) type for field: %s", string(q.Operator), q.Field.Name)
 				}
 			}
 			switch q.Operator {
@@ -199,7 +207,7 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.QueryDSL) (bson.D,
 						doc = append(doc, builder.mongoBuilder.Comparison(IN, q.Field.Name, items))
 					}
 				default:
-					err := fmt.Errorf("Query Error: DSL operator `IN` require list value type for field: %s", q.Field.Name)
+					err := fmt.Errorf("query error: DSL operator `IN` require list value type for field: %s", q.Field.Name)
 					return nil, err
 				}
 			case dsl.RANGE:
@@ -209,12 +217,11 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.QueryDSL) (bson.D,
 					lt := comparisonQuery(LTE, q.Field, dsl.ResolveScalarValue(v.End))
 					doc = append(doc, bson.E{Key: string(AND), Value: bson.A{gt, lt}})
 				default:
-					err := fmt.Errorf("Query Error: DSL operator `RANGE` require start and end value for field: %s", q.Field.Name)
+					err := fmt.Errorf("query error: DSL operator `RANGE` require start and end value for field: %s", q.Field.Name)
 					return nil, err
 				}
 			}
 		}
-		return doc, nil
 	}
 	return doc, nil
 }

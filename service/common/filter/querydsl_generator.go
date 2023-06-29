@@ -7,19 +7,19 @@ import (
 /**
  * Generate Query from given filters.
  */
-func GenerateQueryDSL(filters []Filter) dsl.RootDSL {
-	queries := []dsl.QueryDSL{}
+func GenerateQueryDSL(filters []Filter) dsl.QueryDSL {
+	queries := []dsl.BaseDSL{}
 	for _, filter := range filters {
 		query := resolveQuery(filter)
 		queries = append(queries, query)
 	}
-	return dsl.RootDSL{Queries: queries}
+	return dsl.QueryDSL{Queries: queries}
 }
 
 /**
  * Resolve Query for given filter.
  */
-func resolveQuery(filter Filter) dsl.QueryDSL {
+func resolveQuery(filter Filter) dsl.BaseDSL {
 	switch filter.Operator {
 	case EQ:
 		return dsl.Criteria(dsl.FieldDSL{Name: filter.Field, IsNegation: false}, filter.Value, dsl.EQUAL)
