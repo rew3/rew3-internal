@@ -9,7 +9,7 @@ import (
 
 /**
  * Query DSL to define Query.
- * 
+ *
  * Usage Example:
  * 	Query(
  *		Field("first_name").Eq("ranjit"),
@@ -31,6 +31,8 @@ import (
 type QueryOperator string
 
 const (
+	UNKNOWN = "unknown"
+
 	// For All Data Types.
 	EQUAL QueryOperator = "equal"
 	EMPTY QueryOperator = "empty"
@@ -188,7 +190,7 @@ func (field FieldDSL) NOT() FieldDSL {
 /*
  * Build instance of Criteria DSL.
  */
-func criteria(field FieldDSL, value interface{}, operator QueryOperator) CriteriaDSL {
+func Criteria(field FieldDSL, value interface{}, operator QueryOperator) CriteriaDSL {
 	return CriteriaDSL{Field: field, Value: ToScalarValue(value), Operator: operator}
 }
 
@@ -211,24 +213,39 @@ func criteriaForRange(field FieldDSL, start interface{}, end interface{}) Criter
 }
 
 // List of Generic Operators (Not Type Safe.)
-func (field FieldDSL) Eq(value interface{}) CriteriaDSL      { return criteria(field, value, EQUAL) }
-func (field FieldDSL) Empty() CriteriaDSL                    { return criteria(field, nil, EMPTY) }
-func (field FieldDSL) Matches(value interface{}) CriteriaDSL { return criteria(field, value, MATCHES) }
+func (field FieldDSL) IS(value interface{}) CriteriaDSL {
+	return Criteria(field, value, UNKNOWN)
+}
+func (field FieldDSL) Eq(value interface{}) CriteriaDSL {
+	return Criteria(field, value, EQUAL)
+}
+func (field FieldDSL) Empty() CriteriaDSL {
+	return Criteria(field, nil, EMPTY)
+}
+func (field FieldDSL) Matches(value interface{}) CriteriaDSL {
+	return Criteria(field, value, MATCHES)
+}
 func (field FieldDSL) StartsWith(value interface{}) CriteriaDSL {
-	return criteria(field, value, STARTS_WITH)
+	return Criteria(field, value, STARTS_WITH)
 }
 func (field FieldDSL) EndsWith(value interface{}) CriteriaDSL {
-	return criteria(field, value, ENDS_WITH)
+	return Criteria(field, value, ENDS_WITH)
 }
-func (field FieldDSL) Lt(value interface{}) CriteriaDSL { return criteria(field, value, LESS_THAN) }
+func (field FieldDSL) Lt(value interface{}) CriteriaDSL {
+	return Criteria(field, value, LESS_THAN)
+}
 func (field FieldDSL) Lte(value interface{}) CriteriaDSL {
-	return criteria(field, value, LESS_THAN_EQUAL)
+	return Criteria(field, value, LESS_THAN_EQUAL)
 }
-func (field FieldDSL) Gt(value interface{}) CriteriaDSL { return criteria(field, value, GREATER_THAN) }
+func (field FieldDSL) Gt(value interface{}) CriteriaDSL {
+	return Criteria(field, value, GREATER_THAN)
+}
 func (field FieldDSL) Gte(value interface{}) CriteriaDSL {
-	return criteria(field, value, GREATER_THAN_EQUAL)
+	return Criteria(field, value, GREATER_THAN_EQUAL)
 }
-func (field FieldDSL) In(value ...interface{}) CriteriaDSL { return criteriaForIn(field, value) }
+func (field FieldDSL) In(value ...interface{}) CriteriaDSL {
+	return criteriaForIn(field, value)
+}
 func (field FieldDSL) Range(start interface{}, end interface{}) CriteriaDSL {
 	return criteriaForRange(field, start, end)
 }
@@ -236,28 +253,35 @@ func (field FieldDSL) Range(start interface{}, end interface{}) CriteriaDSL {
 // Type Safe Query Operators.
 
 // Applies to Strings.
-func (field StringFieldDSL) Eq(value string) CriteriaDSL { return criteria(field.Field, value, EQUAL) }
-func (field StringFieldDSL) Empty() CriteriaDSL          { return criteria(field.Field, nil, EMPTY) }
+func (field StringFieldDSL) IS(value string) CriteriaDSL {
+	return Criteria(field.Field, value, UNKNOWN)
+}
+func (field StringFieldDSL) Eq(value string) CriteriaDSL {
+	return Criteria(field.Field, value, EQUAL)
+}
+func (field StringFieldDSL) Empty() CriteriaDSL {
+	return Criteria(field.Field, nil, EMPTY)
+}
 func (field StringFieldDSL) Matches(value string) CriteriaDSL {
-	return criteria(field.Field, value, MATCHES)
+	return Criteria(field.Field, value, MATCHES)
 }
 func (field StringFieldDSL) StartsWith(value string) CriteriaDSL {
-	return criteria(field.Field, value, STARTS_WITH)
+	return Criteria(field.Field, value, STARTS_WITH)
 }
 func (field StringFieldDSL) EndsWith(value string) CriteriaDSL {
-	return criteria(field.Field, value, ENDS_WITH)
+	return Criteria(field.Field, value, ENDS_WITH)
 }
 func (field StringFieldDSL) Lt(value string) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN)
+	return Criteria(field.Field, value, LESS_THAN)
 }
 func (field StringFieldDSL) Lte(value string) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN_EQUAL)
+	return Criteria(field.Field, value, LESS_THAN_EQUAL)
 }
 func (field StringFieldDSL) Gt(value string) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN)
+	return Criteria(field.Field, value, GREATER_THAN)
 }
 func (field StringFieldDSL) Gte(value string) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN_EQUAL)
+	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field StringFieldDSL) In(value ...string) CriteriaDSL {
 	return criteriaForIn(field.Field, make([]interface{}, len(value)))
@@ -267,19 +291,37 @@ func (field StringFieldDSL) Range(start string, end string) CriteriaDSL {
 }
 
 // Applies to Boolean
-func (field BooleanFieldDSL) Eq(value bool) CriteriaDSL { return criteria(field.Field, value, EQUAL) }
-func (field BooleanFieldDSL) Empty() CriteriaDSL        { return criteria(field.Field, nil, EMPTY) }
+func (field BooleanFieldDSL) IS(value string) CriteriaDSL {
+	return Criteria(field.Field, value, UNKNOWN)
+}
+func (field BooleanFieldDSL) Eq(value bool) CriteriaDSL {
+	return Criteria(field.Field, value, EQUAL)
+}
+func (field BooleanFieldDSL) Empty() CriteriaDSL {
+	return Criteria(field.Field, nil, EMPTY)
+}
 
 // Applies to Int
-func (field IntFieldDSL) Eq(value int) CriteriaDSL { return criteria(field.Field, value, EQUAL) }
-func (field IntFieldDSL) Empty() CriteriaDSL       { return criteria(field.Field, nil, EMPTY) }
-func (field IntFieldDSL) Lt(value int) CriteriaDSL { return criteria(field.Field, value, LESS_THAN) }
-func (field IntFieldDSL) Lte(value int) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN_EQUAL)
+func (field IntFieldDSL) IS(value int) CriteriaDSL {
+	return Criteria(field.Field, value, UNKNOWN)
 }
-func (field IntFieldDSL) Gt(value int) CriteriaDSL { return criteria(field.Field, value, GREATER_THAN) }
+func (field IntFieldDSL) Eq(value int) CriteriaDSL {
+	return Criteria(field.Field, value, EQUAL)
+}
+func (field IntFieldDSL) Empty() CriteriaDSL {
+	return Criteria(field.Field, nil, EMPTY)
+}
+func (field IntFieldDSL) Lt(value int) CriteriaDSL {
+	return Criteria(field.Field, value, LESS_THAN)
+}
+func (field IntFieldDSL) Lte(value int) CriteriaDSL {
+	return Criteria(field.Field, value, LESS_THAN_EQUAL)
+}
+func (field IntFieldDSL) Gt(value int) CriteriaDSL {
+	return Criteria(field.Field, value, GREATER_THAN)
+}
 func (field IntFieldDSL) Gte(value int) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN_EQUAL)
+	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field IntFieldDSL) In(value ...int) CriteriaDSL {
 	return criteriaForIn(field.Field, make([]interface{}, len(value)))
@@ -289,19 +331,26 @@ func (field IntFieldDSL) Range(start int, end int) CriteriaDSL {
 }
 
 // Applies to Int32
-func (field Int32FieldDSL) Eq(value int32) CriteriaDSL { return criteria(field.Field, value, EQUAL) }
-func (field Int32FieldDSL) Empty() CriteriaDSL         { return criteria(field.Field, nil, EMPTY) }
+func (field Int32FieldDSL) IS(value int32) CriteriaDSL {
+	return Criteria(field.Field, value, UNKNOWN)
+}
+func (field Int32FieldDSL) Eq(value int32) CriteriaDSL {
+	return Criteria(field.Field, value, EQUAL)
+}
+func (field Int32FieldDSL) Empty() CriteriaDSL {
+	return Criteria(field.Field, nil, EMPTY)
+}
 func (field Int32FieldDSL) Lt(value int32) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN)
+	return Criteria(field.Field, value, LESS_THAN)
 }
 func (field Int32FieldDSL) Lte(value int32) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN_EQUAL)
+	return Criteria(field.Field, value, LESS_THAN_EQUAL)
 }
 func (field Int32FieldDSL) Gt(value int32) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN)
+	return Criteria(field.Field, value, GREATER_THAN)
 }
 func (field Int32FieldDSL) Gte(value int32) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN_EQUAL)
+	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field Int32FieldDSL) In(value ...int32) CriteriaDSL {
 	return criteriaForIn(field.Field, make([]interface{}, len(value)))
@@ -311,19 +360,26 @@ func (field Int32FieldDSL) Range(start int32, end int32) CriteriaDSL {
 }
 
 // Applies to Int64
-func (field Int64FieldDSL) Eq(value int64) CriteriaDSL { return criteria(field.Field, value, EQUAL) }
-func (field Int64FieldDSL) Empty() CriteriaDSL         { return criteria(field.Field, nil, EMPTY) }
+func (field Int64FieldDSL) IS(value int64) CriteriaDSL {
+	return Criteria(field.Field, value, UNKNOWN)
+}
+func (field Int64FieldDSL) Eq(value int64) CriteriaDSL {
+	return Criteria(field.Field, value, EQUAL)
+}
+func (field Int64FieldDSL) Empty() CriteriaDSL {
+	return Criteria(field.Field, nil, EMPTY)
+}
 func (field Int64FieldDSL) Lt(value int64) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN)
+	return Criteria(field.Field, value, LESS_THAN)
 }
 func (field Int64FieldDSL) Lte(value int64) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN_EQUAL)
+	return Criteria(field.Field, value, LESS_THAN_EQUAL)
 }
 func (field Int64FieldDSL) Gt(value int64) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN)
+	return Criteria(field.Field, value, GREATER_THAN)
 }
 func (field Int64FieldDSL) Gte(value int64) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN_EQUAL)
+	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field Int64FieldDSL) In(value ...int64) CriteriaDSL {
 	return criteriaForIn(field.Field, make([]interface{}, len(value)))
@@ -333,21 +389,26 @@ func (field Int64FieldDSL) Range(start int64, end int64) CriteriaDSL {
 }
 
 // Applies to float32
-func (field Float32FieldDSL) Eq(value float32) CriteriaDSL {
-	return criteria(field.Field, value, EQUAL)
+func (field Float32FieldDSL) IS(value float32) CriteriaDSL {
+	return Criteria(field.Field, value, UNKNOWN)
 }
-func (field Float32FieldDSL) Empty() CriteriaDSL { return criteria(field.Field, nil, EMPTY) }
+func (field Float32FieldDSL) Eq(value float32) CriteriaDSL {
+	return Criteria(field.Field, value, EQUAL)
+}
+func (field Float32FieldDSL) Empty() CriteriaDSL {
+	return Criteria(field.Field, nil, EMPTY)
+}
 func (field Float32FieldDSL) Lt(value float32) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN)
+	return Criteria(field.Field, value, LESS_THAN)
 }
 func (field Float32FieldDSL) Lte(value float32) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN_EQUAL)
+	return Criteria(field.Field, value, LESS_THAN_EQUAL)
 }
 func (field Float32FieldDSL) Gt(value float32) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN)
+	return Criteria(field.Field, value, GREATER_THAN)
 }
 func (field Float32FieldDSL) Gte(value float32) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN_EQUAL)
+	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field Float32FieldDSL) In(value ...float32) CriteriaDSL {
 	return criteriaForIn(field.Field, make([]interface{}, len(value)))
@@ -357,21 +418,26 @@ func (field Float32FieldDSL) Range(start float32, end float32) CriteriaDSL {
 }
 
 // Applies to float64
-func (field Float64FieldDSL) Eq(value float64) CriteriaDSL {
-	return criteria(field.Field, value, EQUAL)
+func (field Float64FieldDSL) IS(value float64) CriteriaDSL {
+	return Criteria(field.Field, value, UNKNOWN)
 }
-func (field Float64FieldDSL) Empty() CriteriaDSL { return criteria(field.Field, nil, EMPTY) }
+func (field Float64FieldDSL) Eq(value float64) CriteriaDSL {
+	return Criteria(field.Field, value, EQUAL)
+}
+func (field Float64FieldDSL) Empty() CriteriaDSL {
+	return Criteria(field.Field, nil, EMPTY)
+}
 func (field Float64FieldDSL) Lt(value float64) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN)
+	return Criteria(field.Field, value, LESS_THAN)
 }
 func (field Float64FieldDSL) Lte(value float64) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN_EQUAL)
+	return Criteria(field.Field, value, LESS_THAN_EQUAL)
 }
 func (field Float64FieldDSL) Gt(value float64) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN)
+	return Criteria(field.Field, value, GREATER_THAN)
 }
 func (field Float64FieldDSL) Gte(value float64) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN_EQUAL)
+	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field Float64FieldDSL) In(value ...float64) CriteriaDSL {
 	return criteriaForIn(field.Field, make([]interface{}, len(value)))
@@ -381,19 +447,26 @@ func (field Float64FieldDSL) Range(start float64, end float64) CriteriaDSL {
 }
 
 // Applies to big.Int
-func (field BigIntFieldDSL) Eq(value big.Int) CriteriaDSL { return criteria(field.Field, value, EQUAL) }
-func (field BigIntFieldDSL) Empty() CriteriaDSL           { return criteria(field.Field, nil, EMPTY) }
+func (field BigIntFieldDSL) IS(value big.Int) CriteriaDSL {
+	return Criteria(field.Field, value, UNKNOWN)
+}
+func (field BigIntFieldDSL) Eq(value big.Int) CriteriaDSL {
+	return Criteria(field.Field, value, EQUAL)
+}
+func (field BigIntFieldDSL) Empty() CriteriaDSL {
+	return Criteria(field.Field, nil, EMPTY)
+}
 func (field BigIntFieldDSL) Lt(value big.Int) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN)
+	return Criteria(field.Field, value, LESS_THAN)
 }
 func (field BigIntFieldDSL) Lte(value big.Int) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN_EQUAL)
+	return Criteria(field.Field, value, LESS_THAN_EQUAL)
 }
 func (field BigIntFieldDSL) Gt(value big.Int) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN)
+	return Criteria(field.Field, value, GREATER_THAN)
 }
 func (field BigIntFieldDSL) Gte(value big.Int) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN_EQUAL)
+	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field BigIntFieldDSL) In(value ...big.Int) CriteriaDSL {
 	return criteriaForIn(field.Field, make([]interface{}, len(value)))
@@ -403,21 +476,24 @@ func (field BigIntFieldDSL) Range(start big.Int, end big.Int) CriteriaDSL {
 }
 
 // Applies to DateTime
-func (field DateTimeFieldDSL) Eq(value time.Time) CriteriaDSL {
-	return criteria(field.Field, value, EQUAL)
+func (field DateTimeFieldDSL) IS(value time.Time) CriteriaDSL {
+	return Criteria(field.Field, value, UNKNOWN)
 }
-func (field DateTimeFieldDSL) Empty() CriteriaDSL { return criteria(field.Field, nil, EMPTY) }
+func (field DateTimeFieldDSL) Eq(value time.Time) CriteriaDSL {
+	return Criteria(field.Field, value, EQUAL)
+}
+func (field DateTimeFieldDSL) Empty() CriteriaDSL { return Criteria(field.Field, nil, EMPTY) }
 func (field DateTimeFieldDSL) Lt(value time.Time) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN)
+	return Criteria(field.Field, value, LESS_THAN)
 }
 func (field DateTimeFieldDSL) Lte(value time.Time) CriteriaDSL {
-	return criteria(field.Field, value, LESS_THAN_EQUAL)
+	return Criteria(field.Field, value, LESS_THAN_EQUAL)
 }
 func (field DateTimeFieldDSL) Gt(value time.Time) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN)
+	return Criteria(field.Field, value, GREATER_THAN)
 }
 func (field DateTimeFieldDSL) Gte(value time.Time) CriteriaDSL {
-	return criteria(field.Field, value, GREATER_THAN_EQUAL)
+	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field DateTimeFieldDSL) In(value ...time.Time) CriteriaDSL {
 	return criteriaForIn(field.Field, make([]interface{}, len(value)))

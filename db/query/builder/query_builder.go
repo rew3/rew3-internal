@@ -112,6 +112,17 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.QueryDSL) (bson.D,
 				}
 			}
 			switch q.Operator {
+			case dsl.UNKNOWN:
+				err := checkScalarValueAndThen(func() {
+					if q.Field.IsNegation {
+						doc = append(doc, builder.mongoBuilder.RegularNot(q.Field.Name, dsl.ResolveScalarValue(q.Value)))
+					} else {
+						doc = append(doc, builder.mongoBuilder.Regular(q.Field.Name, dsl.ResolveScalarValue(q.Value)))
+					}
+				})
+				if err != nil {
+					return nil, err
+				}
 			case dsl.EQUAL:
 				err := checkScalarValueAndThen(func() {
 					if q.Field.IsNegation {

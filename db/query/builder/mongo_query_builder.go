@@ -39,10 +39,28 @@ func NewMongoQueryBuilder() *MongoQueryBuilder {
 }
 
 /**
+ * Create regular query.
+ * {first_name: value}
+ */
+func (qb *MongoQueryBuilder) Regular(key string, value interface{}) bson.E {
+	query := bson.E{Key: key, Value: value}
+	return query
+}
+
+/**
+ * Create regular query.
+ * {$not: {first_name: value}}
+ */
+func (qb *MongoQueryBuilder) RegularNot(key string, value interface{}) bson.E {
+	query := bson.E{Key: key, Value: value}
+	return bson.E{Key: "$not", Value: query}
+}
+
+/**
  * Create query for Comparison operator.
  */
 func (qb *MongoQueryBuilder) Comparison(op ComparisonOperator, key string, value interface{}) bson.E {
-	query := bson.E{Key: string(op), Value: value}
+	query := bson.E{Key: key, Value: bson.E{Key: string(op), Value: value}}
 	return query
 }
 
@@ -50,7 +68,7 @@ func (qb *MongoQueryBuilder) Comparison(op ComparisonOperator, key string, value
  * Create query for Comparison operator with Negation i.e. $not.
  */
 func (qb *MongoQueryBuilder) ComparisonNot(op ComparisonOperator, key string, value interface{}) bson.E {
-	query := bson.E{Key: string(op), Value: value}
+	query := bson.E{Key: key, Value: bson.E{Key: string(op), Value: value}}
 	return bson.E{Key: "$not", Value: query}
 }
 
@@ -66,7 +84,7 @@ func (qb *MongoQueryBuilder) Logical(op LogicalOperator, queries ...bson.E) bson
  * Create query for Element operator $exists.
  */
 func (qb *MongoQueryBuilder) ElementExists(key string, value bool) bson.E {
-	query := bson.E{Key: string(EXISTS), Value: value}
+	query := bson.E{Key: key, Value: bson.E{Key: string(EXISTS), Value: value}}
 	return query
 }
 
