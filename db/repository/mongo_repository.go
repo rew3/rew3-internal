@@ -358,7 +358,7 @@ func (repo *MongoRepository[Entity]) Find(ctx context.Context, filters bson.D, o
 	return handleRead(ctx, func(rc service.RequestContext) []*Entity {
 		results := []*Entity{}
 		if sort == nil {
-			sort = bson.D{{Key: "meta._created", Value: "-1"}}
+			sort = bson.D{{Key: "meta._created", Value: -1}}
 		}
 		options := &options.FindOptions{
 			Skip:  &offset,
@@ -430,7 +430,7 @@ func (repo *MongoRepository[Entity]) FindByIdPublic(ctx context.Context, id stri
 func (repo *MongoRepository[Entity]) FindPublic(ctx context.Context, filters bson.D, offset int64, limit int64, sort bson.D) []*Entity {
 	results := []*Entity{}
 	if sort == nil {
-		sort = bson.D{{Key: "meta._created", Value: "-1"}}
+		sort = bson.D{{Key: "meta._created", Value: -1}}
 	}
 	options := &options.FindOptions{
 		Skip:  &offset,
