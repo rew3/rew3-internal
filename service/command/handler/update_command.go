@@ -37,7 +37,7 @@ func (ch *UpdateCommandHandler[W, T, C]) Handle(ctx context.Context,
 		return transformResult
 	}
 	id, response, err := ch.update(ctx, transformedModel)
-	return GenerateCmdResult[T](id, *response, err, "Update"+ch.EntityName)
+	return GenerateCmdResult[T](id, response, err, "Update"+ch.EntityName)
 }
 
 /**

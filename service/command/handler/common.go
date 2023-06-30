@@ -8,7 +8,7 @@ import (
 	bResponseConstant "github.com/rew3/rew3-internal/service/common/response/constants"
 )
 
-func GenerateCmdResult[T common.Model](id string, data T, err error, action string) command.CommandResult {
+func GenerateCmdResult[T common.Model](id string, data *T, err error, action string) command.CommandResult {
 	if err != nil {
 		return command.CommandResult{
 			Response: bResponse.ExecutionResult[interface{}]{
@@ -26,7 +26,7 @@ func GenerateCmdResult[T common.Model](id string, data T, err error, action stri
 			Message:      " successfully completed :" + action,
 			Action:       action,
 			Id:           id,
-			Data:         data,
+			Data:         *data,
 		},
 	}
 }

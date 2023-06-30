@@ -43,7 +43,7 @@ func (ch *AddCommandHandler[W, M, C]) Handle(ctx context.Context,
 	data := &transformedModel
 	wrapper := ch.WrapperProvider(data)
 	response, err := ch.add(ctx, wrapper, &model)
-	return GenerateCmdResult[M](wrapper.GetId(), *response, err, "Add"+ch.EntityName)
+	return GenerateCmdResult[M](wrapper.GetId(), response, err, "Add"+ch.EntityName)
 }
 
 /**

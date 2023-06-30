@@ -29,7 +29,7 @@ type CloneCommandHandler[W common.ModelWrapper, T common.Model, C command.Comman
  */
 func (ch *CloneCommandHandler[W, T, C]) Handle(ctx context.Context, idToClone string) command.CommandResult {
 	response, err := ch.clone(ctx, idToClone)
-	return GenerateCmdResult[T](idToClone, *response, err, "Clone"+ch.EntityName)
+	return GenerateCmdResult[T](idToClone, response, err, "Clone"+ch.EntityName)
 }
 
 /**

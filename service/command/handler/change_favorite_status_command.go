@@ -27,7 +27,7 @@ type ChangeFavoriteStatusCommandHandler[W common.ModelWrapper, T common.Model, C
 func (ch *ChangeFavoriteStatusCommandHandler[W, T, C]) Handle(ctx context.Context, cmd C, resolveData func(C) (string, bool)) command.CommandResult {
 	id, status := resolveData(cmd)
 	response, err := ch.changeStatus(ctx, id, status)
-	return GenerateCmdResult[T](id, *response, err, "Change"+ch.EntityName+"FavoriteStatus")
+	return GenerateCmdResult[T](id, response, err, "Change"+ch.EntityName+"FavoriteStatus")
 }
 
 /**

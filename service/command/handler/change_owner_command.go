@@ -32,7 +32,7 @@ func (ch *ChangeOwnerCommandHandler[W, T, C]) Handle(ctx context.Context,
 	id := idResolver(cmd)
 	owner := cmdToOwner(cmd)
 	response, err := ch.changeOwner(ctx, id, owner)
-	return GenerateCmdResult[T](id, *response, err, "Change"+ch.EntityName+"Owner")
+	return GenerateCmdResult[T](id, response, err, "Change"+ch.EntityName+"Owner")
 }
 
 /**

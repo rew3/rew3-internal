@@ -25,7 +25,7 @@ type DeleteCommandHandler[T common.Model, C command.Command] struct {
  */
 func (ch *DeleteCommandHandler[T, C]) Handle(ctx context.Context, id string) command.CommandResult {
 	response, err := ch.delete(ctx, id)
-	return GenerateCmdResult[T](id, *response, err, "Delete"+ch.EntityName)
+	return GenerateCmdResult[T](id, response, err, "Delete"+ch.EntityName)
 }
 
 /**
