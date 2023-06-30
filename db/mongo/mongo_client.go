@@ -20,8 +20,7 @@ type MongoClient struct {
 * Create new instance of MongoClient.
 * It is advices to use single instance of MongoClient per application.
  */
-func NewMongoClient(mongoURL string, mongoDatabase string) *MongoClient {
-	clientOptions := options.Client().ApplyURI(mongoURL)
+func NewMongoClient(mongoDatabase string, clientOptions *options.ClientOptions) *MongoClient {
 	client := MongoClient{dbName: mongoDatabase, clientOptions: clientOptions}
 	client.connect()
 	return &client
