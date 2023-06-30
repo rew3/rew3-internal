@@ -25,6 +25,7 @@ type UpdateCommandHandler[W common.ModelWrapper, T common.Model, C command.Comma
  * Handle Command.
  */
 func (ch *UpdateCommandHandler[W, T, C]) Handle(ctx context.Context,
+	id string,
 	cmd C,
 	cmdToModel func(C) (T, error),
 	transformModel func(T) (T, error)) command.CommandResult {
@@ -36,21 +37,19 @@ func (ch *UpdateCommandHandler[W, T, C]) Handle(ctx context.Context,
 	if ok, transformResult := HandleError(err, "Update"+ch.EntityName); !ok {
 		return transformResult
 	}
-	id, response, err := ch.update(ctx, transformedModel)
+	id, response, err := ch.update(ctx, id, transformedModel)
 	return GenerateCmdResult[T](id, response, err, "Update"+ch.EntityName)
 }
 
 /**
  * Update Record.
  */
-func (ch *UpdateCommandHandler[W, T, C]) update(ctx context.Context, model T) (string, *T, error) {
+func (ch *UpdateCommandHandler[W, T, C]) update(ctx context.Context, id string, model T) (string, *T, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return "", nil, errors.New("request context is not available")
 	}
 	update := &model
-	data := ch.WrapperProvider(update)
-	id := data.GetId()
 	if record := ch.Repository.FindById(ctx, id); record != nil {
 		res, err := ch.Repository.Update(ctx, id, update)
 		return id, res, err

@@ -36,7 +36,6 @@ func (executor *QueryExecutor) Execute(ctx context.Context, query q.Query) q.Que
 		controller.Dispatch(ctx, query, resultChannel)
 		select {
 		case result := <-resultChannel.Result:
-			fmt.Println("Command result received by Query Executor.")
 			return result
 		case <-time.After(30 * time.Second):
 			fmt.Println("Timeout reached while receiving data by Query Executor.")

@@ -11,7 +11,7 @@ import (
 )
 
 /**
- * Filter parameter Parser utility. 
+ * Filter parameter Parser utility.
  */
 
 type FilterOperator string
@@ -55,7 +55,7 @@ type Filter struct {
 }
 
 /**
- * Parse filter parameter.  
+ * Parse filter parameter.
  */
 func ParseFilterParams(param request.RequestParam) ([]Filter, error) {
 	filters := param.Filters
@@ -63,7 +63,7 @@ func ParseFilterParams(param request.RequestParam) ([]Filter, error) {
 	result := []Filter{}
 	for _, f := range splits {
 		filter, err := parseFilter(f)
-		if(err != nil) {
+		if err != nil {
 			return nil, err
 		}
 		result = append(result, filter)
@@ -72,7 +72,7 @@ func ParseFilterParams(param request.RequestParam) ([]Filter, error) {
 }
 
 /**
- * Parse Filter for given raw filter string. 
+ * Parse Filter for given raw filter string.
  */
 func parseFilter(filter string) (Filter, error) {
 	splits := strings.Split(filter, "=")
@@ -83,17 +83,17 @@ func parseFilter(filter string) (Filter, error) {
 		if op == RANGE || op == NOT_IN_RANGE {
 			parsedValue, err := parseRangeValue(value)
 			if err != nil {
-				return Filter{}, fmt.Errorf("Request Parameter Error. invalid range value `%s` is provided for parameter `%s`", value, key)
+				return Filter{}, fmt.Errorf("request parameter error. invalid range value `%s` is provided for parameter `%s`", value, key)
 			}
 			return Filter{
 				Field:    fieldName,
 				Value:    parsedValue,
 				Operator: op,
 			}, nil
-		} else if (op == IN || op == NOT_IN) {
+		} else if op == IN || op == NOT_IN {
 			parsedValue, err := parseListValue(value)
 			if err != nil {
-				return Filter{}, fmt.Errorf("Request Parameter Error. invalid list value `%s` is provided for parameter `%s`", value, key)
+				return Filter{}, fmt.Errorf("request parameter error. invalid list value `%s` is provided for parameter `%s`", value, key)
 			}
 			return Filter{
 				Field:    fieldName,
@@ -110,20 +110,20 @@ func parseFilter(filter string) (Filter, error) {
 	} else {
 		key := splits[0]
 		fieldName, op := parseFieldAndOperator(key)
-		if(op == EMPTY || op == NOT_EMPTY) {
+		if op == EMPTY || op == NOT_EMPTY {
 			return Filter{
 				Field:    fieldName,
 				Value:    nil,
 				Operator: op,
 			}, nil
 		} else {
-			return Filter{}, fmt.Errorf("Request Parameter Error. invalid/empty value is provided for parameter `%s`", key)
+			return Filter{}, fmt.Errorf("request parameter error. invalid/empty value is provided for parameter `%s`", key)
 		}
 	}
 }
 
 /**
- * Parse Field and Operator. 
+ * Parse Field and Operator.
  */
 func parseFieldAndOperator(key string) (string, FilterOperator) {
 	index := strings.Index(key, "-")
@@ -132,7 +132,7 @@ func parseFieldAndOperator(key string) (string, FilterOperator) {
 	if index < 0 {
 		// No filter operator type applied.
 		return key, NONE
-	} else if(firstPart == "") {
+	} else if firstPart == "" {
 		return key, NONE
 	}
 	fieldName := firstPart
@@ -141,47 +141,47 @@ func parseFieldAndOperator(key string) (string, FilterOperator) {
 	case string(EQ):
 		return fieldName, EQ
 	case string(NOT_EQ):
-		return fieldName, EQ
+		return fieldName, NOT_EQ
 	case string(EMPTY):
-		return fieldName, EQ
+		return fieldName, EMPTY
 	case string(NOT_EMPTY):
-		return fieldName, EQ
+		return fieldName, NOT_EMPTY
 	case string(CONTAINS):
-		return fieldName, EQ
+		return fieldName, CONTAINS
 	case string(NOT_CONTAINS):
-		return fieldName, EQ
+		return fieldName, NOT_CONTAINS
 	case string(STARTS_WITH):
-		return fieldName, EQ
+		return fieldName, STARTS_WITH
 	case string(NOT_STARTS_WITH):
-		return fieldName, EQ
+		return fieldName, NOT_STARTS_WITH
 	case string(ENDS_WITH):
-		return fieldName, EQ
+		return fieldName, ENDS_WITH
 	case string(NOT_ENDS_WITH):
-		return fieldName, EQ
+		return fieldName, NOT_ENDS_WITH
 	case string(LESS_THAN):
-		return fieldName, EQ
+		return fieldName, LESS_THAN
 	case string(NOT_LESS_THAN):
-		return fieldName, EQ
+		return fieldName, NOT_LESS_THAN
 	case string(LESS_THAN_EQUAL):
-		return fieldName, EQ
+		return fieldName, LESS_THAN_EQUAL
 	case string(NOT_LESS_THAN_EQUAL):
-		return fieldName, EQ
+		return fieldName, NOT_LESS_THAN_EQUAL
 	case string(GREATER_THAN):
-		return fieldName, EQ
+		return fieldName, GREATER_THAN
 	case string(NOT_GREATER_THAN):
-		return fieldName, EQ
+		return fieldName, NOT_GREATER_THAN
 	case string(GREATER_THAN_EQUAL):
-		return fieldName, EQ
+		return fieldName, GREATER_THAN_EQUAL
 	case string(NOT_GREATER_THAN_EQUAL):
-		return fieldName, EQ
+		return fieldName, NOT_GREATER_THAN_EQUAL
 	case string(IN):
-		return fieldName, EQ
+		return fieldName, IN
 	case string(NOT_IN):
-		return fieldName, EQ
+		return fieldName, NOT_IN
 	case string(RANGE):
-		return fieldName, EQ
+		return fieldName, RANGE
 	case string(NOT_IN_RANGE):
-		return fieldName, EQ
+		return fieldName, NOT_IN_RANGE
 	default:
 		return fieldName, NONE
 	}
@@ -199,7 +199,7 @@ func parseValue(value string) interface{} {
 }
 
 /**
- * Parse range value. 
+ * Parse range value.
  */
 func parseRangeValue(tupleStr string) ([2]interface{}, error) {
 	tupleStr = strings.Trim(tupleStr, "[]")
@@ -216,7 +216,7 @@ func parseRangeValue(tupleStr string) ([2]interface{}, error) {
 }
 
 /**
- * Parse list value. 
+ * Parse list value.
  */
 func parseListValue(listStr string) ([]interface{}, error) {
 	listStr = strings.Trim(listStr, "[]")
@@ -230,7 +230,7 @@ func parseListValue(listStr string) ([]interface{}, error) {
 }
 
 /**
- * Parse datetime value. 
+ * Parse datetime value.
  */
 func parseDateTimeValue(dateStr string) (time.Time, error) {
 	parsedTime, err := time.Parse(time.RFC3339, dateStr)
@@ -241,7 +241,7 @@ func parseDateTimeValue(dateStr string) (time.Time, error) {
 }
 
 /**
- * Parse primitive value. 
+ * Parse primitive value.
  */
 func parsePrimitiveValue(value string) interface{} {
 	// Try parsing as bool
