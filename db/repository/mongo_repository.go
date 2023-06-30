@@ -71,8 +71,8 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 			return nil, err
 		}
 		doc = removeInternalFields(doc)
-		doc, versionMeta := repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
-		update := bson.M{"$set": doc, "$inc": versionMeta}
+		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
+		update := bson.M{"$set": doc, "$inc": bson.M{"meta._version": 1}}
 		var record Entity
 		filter := bson.M{"_id": objectID}
 		// TODO apply security.
@@ -130,8 +130,8 @@ func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector
 			return false, err
 		}
 		doc = removeInternalFields(doc)
-		doc, versionMeta := repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
-		update := bson.M{"$set": doc, "$inc": versionMeta}
+		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
+		update := bson.M{"$set": doc, "$inc": bson.M{"meta._version": 1}}
 		// TODO apply security.
 		_, err = repo.Collection.UpdateOne(ctx, selector, update)
 		if err != nil {
@@ -149,8 +149,8 @@ func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector
 func (repo *MongoRepository[Entity]) UpdateWithRawData(ctx context.Context, selector bson.D, data bson.D) (bool, error) {
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		doc := removeInternalFields(data)
-		doc, versionMeta := repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
-		update := bson.M{"$set": doc, "$inc": versionMeta}
+		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
+		update := bson.M{"$set": doc, "$inc": bson.M{"meta._version": 1}}
 		// TODO apply security.
 		_, err := repo.Collection.UpdateOne(ctx, selector, update)
 		if err != nil {
@@ -292,8 +292,8 @@ func (repo *MongoRepository[Entity]) BulkUpdate(ctx context.Context, data map[st
 				return false, fmt.Errorf("invalid entity data : %v", doc)
 			}
 			doc = removeInternalFields(doc)
-			doc, versionMeta := repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
-			update := bson.M{"$set": doc, "$inc": versionMeta}
+			doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
+			update := bson.M{"$set": doc, "$inc": bson.M{"meta._version": 1}}
 			updateModel := mongo.NewUpdateOneModel().SetFilter(filter).SetUpdate(update)
 			writes = append(writes, updateModel)
 		}

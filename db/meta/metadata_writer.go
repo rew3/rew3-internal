@@ -25,25 +25,26 @@ func (writer *MetaDataWriter) WriteNewMeta(docId string, doc bson.D, context *s.
 	return doc
 }
 
-func (writer *MetaDataWriter) WriteUpdateMeta(doc bson.D, context *s.RequestContext) (bson.D, bson.M) {
+func (writer *MetaDataWriter) WriteUpdateMeta(doc bson.D, context *s.RequestContext) bson.D {
 	cUser := context.User
-	meta := bson.D{
+	/*meta := bson.D{
 		{Key: "meta", Value: bson.M{
 			"_last_modified": time.Now(),
 			"_modified_by": bson.M{
-				"_id":         cUser.Id,
+				"_id":        cUser.Id,
 				"first_name": cUser.FirstName,
 				"last_name":  cUser.LastName,
 			},
 		}},
-	}
-	version := bson.M{
-		"$inc": bson.M{
-			"meta._version": 1,
-		},
+	}*/
+	meta := bson.D{
+		{Key: "meta._last_modified", Value: time.Now()},
+		{Key: "meta._modified_by._id", Value: cUser.Id},
+		{Key: "meta._modified_by.first_name", Value: cUser.FirstName},
+		{Key: "meta._modified_by.last_name", Value: cUser.LastName},
 	}
 	doc = append(doc, meta...)
-	return doc, version
+	return doc
 }
 
 func (writer *MetaDataWriter) WriteSoftDeleteMeta(doc bson.D, context *s.RequestContext) bson.D {
