@@ -58,6 +58,9 @@ type Filter struct {
  * Parse filter parameter.
  */
 func ParseFilterParams(param request.RequestParam) ([]Filter, error) {
+	if(param.Filters == "") {
+		return []Filter{}, nil
+	}
 	filters := param.Filters
 	splits := strings.Split(filters, "&")
 	result := []Filter{}
@@ -127,16 +130,14 @@ func parseFilter(filter string) (Filter, error) {
  */
 func parseFieldAndOperator(key string) (string, FilterOperator) {
 	index := strings.Index(key, "-")
-	firstPart := key[:index]
-	secondPart := key[index:]
 	if index < 0 {
 		// No filter operator type applied.
 		return key, NONE
-	} else if firstPart == "" {
+	} else if key[:index] == "" {
 		return key, NONE
 	}
-	fieldName := firstPart
-	operator := secondPart
+	fieldName := key[:index]
+	operator := key[index:]
 	switch operator {
 	case string(EQ):
 		return fieldName, EQ
