@@ -29,7 +29,6 @@ func NewQueryResultChannel() *QueryResultChannel {
 func (cs *QueryResultChannel) Send(data QueryResult) {
 	select {
 	case cs.Result <- data:
-		fmt.Println("Data sent to Query Result Channel.")
 	case <-time.After(time.Second):
 		fmt.Println("Timeout reached while sending data to Query Result Channel.")
 	}
