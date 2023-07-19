@@ -22,15 +22,15 @@ type ChangeOwnerCommandHandler[M common.Model, C command.Command] struct {
 }
 
 type ChangeOwnerCommandHandlerContext[M common.Model, C command.Command] struct {
-	IDResolver func(command.Command) string
-	CmdToOwner func(command.Command) account.MiniUser
+	IDResolver func(C) string
+	CmdToOwner func(C) account.MiniUser
 	SetOwner   func(*M, account.MiniUser)
 }
 
 /**
  * Handle Command.
  */
-func (ch *ChangeOwnerCommandHandler[M, C]) Handle(ctx context.Context, cmd command.Command, hContext ChangeOwnerCommandHandlerContext[M, C]) command.CommandResult {
+func (ch *ChangeOwnerCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext ChangeOwnerCommandHandlerContext[M, C]) command.CommandResult {
 	id := hContext.IDResolver(cmd)
 	owner := hContext.CmdToOwner(cmd)
 	response, err := ch.changeOwner(ctx, id, owner, hContext)
