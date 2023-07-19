@@ -17,35 +17,24 @@ import (
  * Bulk Update command handler.
  * This handler can be used to bulk update record for any entity/model type.
  */
-type BulkUpdateCommandHandler[W common.ModelWrapper, M common.Model, C command.Command] struct {
+type BulkUpdateCommandHandler[M common.Model, C command.Command] struct {
 	EntityName string
 	Repository repository.Repository[M]
-	WrapperProvider func(*M) W
+}
+
+type BulkUpdateCommandHandlerContext[M common.Model, C command.Command] struct {
+	CmdToModels func(C) (map[string]*M, error)
 }
 
 /**
  * Handle Command.
  */
-func (ch *BulkUpdateCommandHandler[W, M, C]) Handle(ctx context.Context,
-	cmd C,
-	cmdToModels func(C) (map[string]M, error),
-	transformModel func(M) (M, error)) command.CommandResult {
-	models, err := cmdToModels(cmd)
+func (ch *BulkUpdateCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext BulkUpdateCommandHandlerContext[M, C]) command.CommandResult {
+	models, err := hContext.CmdToModels(cmd)
 	if ok, cmdResult := HandleError(err, "BulkUpdate"+ch.EntityName); !ok {
 		return cmdResult
 	}
-	transformedModels := make(map[string]*M)
-	for key, model := range models {
-		transformed, err := transformModel(model)
-		if err != nil {
-			if ok, transformResult := HandleError(err, "BulkUpdate"+ch.EntityName); !ok {
-				return transformResult
-			} else {
-				transformedModels[key] = &transformed
-			}
-		}
-	}
-	_, errs := ch.bulkUpdate(ctx, transformedModels)
+	_, errs := ch.bulkUpdate(ctx, models)
 	if errs != nil {
 		return command.CommandResult{
 			Response: bResponse.ExecutionResult[interface{}]{
@@ -70,7 +59,7 @@ func (ch *BulkUpdateCommandHandler[W, M, C]) Handle(ctx context.Context,
 /**
  * Bulk Update Record.
  */
-func (ch *BulkUpdateCommandHandler[W, M, C]) bulkUpdate(ctx context.Context, data map[string]*M) (bool, error) {
+func (ch *BulkUpdateCommandHandler[M, C]) bulkUpdate(ctx context.Context, data map[string]*M) (bool, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return false, errors.New("request context is not available")

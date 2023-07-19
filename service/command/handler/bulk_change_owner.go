@@ -18,20 +18,22 @@ import (
  * BulkChange owner command handler.
  * This handler can be used to bulk change owner of record for any entity/model type.
  */
-type BulkChangeOwnerCommandHandler[W common.ModelWrapper, M common.Model, C command.Command] struct {
+type BulkChangeOwnerCommandHandler[M common.Model, C command.Command] struct {
 	EntityName string
 	Repository repository.Repository[M]
-	WrapperProvider func(*M) W
+}
+
+type BulkChangeOwnerCommandHandlerContext[M common.Model, C command.Command] struct {
+	CmdToOwners func(C) map[string]account.MiniUser
+	SetOwner    func(*M, account.MiniUser)
 }
 
 /**
  * Handle Command.
  */
-func (ch *BulkChangeOwnerCommandHandler[W, M, C]) Handle(ctx context.Context,
-	cmd C,
-	cmdToOwner func(C) map[string]account.MiniUser) command.CommandResult {
-	owners := cmdToOwner(cmd)
-	_, err := ch.bulkChangeOwner(ctx, owners)
+func (ch *BulkChangeOwnerCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext BulkChangeOwnerCommandHandlerContext[M, C]) command.CommandResult {
+	owners := hContext.CmdToOwners(cmd)
+	_, err := ch.bulkChangeOwner(ctx, owners, hContext)
 	if err != nil {
 		return command.CommandResult{
 			Response: bResponse.ExecutionResult[interface{}]{
@@ -56,15 +58,17 @@ func (ch *BulkChangeOwnerCommandHandler[W, M, C]) Handle(ctx context.Context,
 /**
  * Bulk Change owner of Record.
  */
-func (ch *BulkChangeOwnerCommandHandler[W, M, C]) bulkChangeOwner(ctx context.Context, data map[string]account.MiniUser) (bool, error) {
+func (ch *BulkChangeOwnerCommandHandler[M, C]) bulkChangeOwner(
+	ctx context.Context,
+	data map[string]account.MiniUser,
+	hContext BulkChangeOwnerCommandHandlerContext[M, C]) (bool, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return false, errors.New("request context is not available")
 	}
 	for id, owner := range data {
 		if record := ch.Repository.FindById(ctx, id); record != nil {
-			data := ch.WrapperProvider(record)
-			data.SetOwner(owner)
+			hContext.SetOwner(record, owner)
 			ch.Repository.Update(ctx, id, record)
 		}
 	}

@@ -9,9 +9,7 @@ import (
 	"github.com/rew3/rew3-internal/db/repository"
 	"github.com/rew3/rew3-internal/service/command"
 	"github.com/rew3/rew3-internal/service/common"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 
-	appCommon "github.com/rew3/rew3-internal/app/common"
 	rcUtil "github.com/rew3/rew3-internal/pkg/context"
 )
 
@@ -19,50 +17,46 @@ import (
  * Add command handler.
  * This handler can be used to add record for any entity/model type.
  */
-type AddCommandHandler[W common.ModelWrapper, M common.Model, C command.Command] struct {
-	EntityName      string
-	Repository      repository.Repository[M]
-	WrapperProvider func(*M) W
+type AddCommandHandler[M common.Model, C command.Command] struct {
+	EntityName string
+	Repository repository.Repository[M]
+}
+
+type AddCommandHandlerContext[M common.Model, C command.Command] struct {
+	CmdToModel    func(C) (M, error)
+	GetOwner      func(*M) account.MiniUser
+	SetOwner      func(*M, account.MiniUser)
+	GetVisibility func(*M) account.RecordVisibility
+	SetVisibility func(*M, account.RecordVisibility)
 }
 
 /**
  * Handle Command.
  */
-func (ch *AddCommandHandler[W, M, C]) Handle(ctx context.Context,
-	cmd C,
-	cmdToModel func(C) (M, error),
-	transformModel func(M) (M, error)) command.CommandResult {
-	model, err := cmdToModel(cmd)
+func (ch *AddCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext AddCommandHandlerContext[M, C]) command.CommandResult {
+	model, err := hContext.CmdToModel(cmd)
 	if ok, cmdResult := HandleError(err, "Add"+ch.EntityName); !ok {
 		return cmdResult
 	}
-	transformedModel, err := transformModel(model)
-	if ok, transformResult := HandleError(err, "Add"+ch.EntityName); !ok {
-		return transformResult
-	}
-	data := &transformedModel
-	wrapper := ch.WrapperProvider(data)
-	response, err := ch.add(ctx, wrapper, &model)
-	return GenerateCmdResult[M](wrapper.GetId(), response, err, "Add"+ch.EntityName)
+	response, err := ch.add(ctx, &model, hContext)
+	return GenerateCmdResult[M]("-", response, err, "Add"+ch.EntityName)
 }
 
 /**
  * Add Record.
  */
-func (ch *AddCommandHandler[W, M, C]) add(ctx context.Context, wrapper W, model *M) (*M, error) {
+func (ch *AddCommandHandler[M, C]) add(ctx context.Context, model *M, hContext AddCommandHandlerContext[M, C]) (*M, error) {
 	requestContext, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return nil, errors.New("request context is not available")
 	}
-	wrapper.SetId(primitive.NewObjectID().Hex())
-	if wrapper.GetOwner().Id == "" {
-		wrapper.SetOwner(requestContext.User)
+	if hContext.GetOwner(model).Id == "" {
+		hContext.SetOwner(model, requestContext.User)
 	}
-	wrapper.SetMeta(appCommon.MetaInfo{})
-	if wrapper.GetVisibility().VisibilityType == "" {
+	if hContext.GetVisibility(model).VisibilityType == "" {
 		visibility := account.RecordVisibility{}
 		visibility.VisibilityType = constants.PRIVATE
-		wrapper.SetVisibility(visibility)
+		hContext.SetVisibility(model, visibility)
 	}
 	return ch.Repository.Insert(ctx, model)
 }

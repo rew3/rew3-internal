@@ -15,32 +15,35 @@ import (
  * Delete command handler.
  * This handler can be used to delete record for any entity/model type.
  */
-type ChangeFavoriteStatusCommandHandler[W common.ModelWrapper, T common.Model, C command.Command] struct {
+type ChangeFavoriteStatusCommandHandler[T common.Model, C command.Command] struct {
 	EntityName string
 	Repository repository.Repository[T]
-	WrapperProvider func(*T) W
+}
+
+type ChangeFavoriteStatusCommandHandlerContext[M common.Model, C command.Command] struct {
+	CmdToData   func(C) (string, bool)
+	SetFavorite func(*M, bool)
 }
 
 /**
  * Handle Command.
  */
-func (ch *ChangeFavoriteStatusCommandHandler[W, T, C]) Handle(ctx context.Context, cmd C, resolveData func(C) (string, bool)) command.CommandResult {
-	id, status := resolveData(cmd)
-	response, err := ch.changeStatus(ctx, id, status)
-	return GenerateCmdResult[T](id, response, err, "Change"+ch.EntityName+"FavoriteStatus")
+func (ch *ChangeFavoriteStatusCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext ChangeFavoriteStatusCommandHandlerContext[M, C]) command.CommandResult {
+	id, status := hContext.CmdToData(cmd)
+	response, err := ch.changeStatus(ctx, id, status, hContext)
+	return GenerateCmdResult[M](id, response, err, "Change"+ch.EntityName+"FavoriteStatus")
 }
 
 /**
  * Delete Record.
  */
-func (ch *ChangeFavoriteStatusCommandHandler[W, T, C]) changeStatus(ctx context.Context, id string, status bool) (*T, error) {
+func (ch *ChangeFavoriteStatusCommandHandler[M, C]) changeStatus(ctx context.Context, id string, status bool, hContext ChangeFavoriteStatusCommandHandlerContext[M, C]) (*M, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return nil, errors.New("request context is not available")
 	}
 	if record := ch.Repository.FindById(ctx, id); record != nil {
-		data := ch.WrapperProvider(record)
-		data.SetFavorite(status)
+		hContext.SetFavorite(record, status)
 		if _, err := ch.Repository.Update(ctx, id, record); err != nil {
 			return nil, err
 		} else {
