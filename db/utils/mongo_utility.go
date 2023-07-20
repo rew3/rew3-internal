@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -408,4 +409,33 @@ func PrintJson(document bson.D) {
 	// Convert JSON bytes to string
 	jsonString := string(jsonBytes)
 	fmt.Println(jsonString)
+}
+
+// FlattenBSON recursively flattens a BSON document with nested fields using dot notation.
+func FlattenBsonD(doc bson.D, prefixToAdd string) bson.D {
+	flattened := bson.D{}
+	flattenHelper(&flattened, "", doc, prefixToAdd)
+	return flattened
+}
+
+func flattenHelper(flattened *bson.D, prefix string, doc bson.D, prefixToAdd string) {
+	tmpFlattened := *flattened
+	for _, elem := range doc {
+		key := elem.Key
+		if prefix != "" {
+			key = fmt.Sprintf("%s.%s", prefix, key)
+		}
+		if prefixToAdd != "" {
+			key = fmt.Sprintf("%s%s", prefixToAdd, key)
+		}
+		if reflect.TypeOf(elem.Value) == reflect.TypeOf(bson.D{}) {
+			subdoc, ok := elem.Value.(bson.D)
+			if ok {
+				flattenHelper(&tmpFlattened, key, subdoc, prefixToAdd)
+			}
+		} else {
+			tmpFlattened = append(tmpFlattened, bson.E{Key: key, Value: elem.Value})
+		}
+	}
+	*flattened = tmpFlattened
 }

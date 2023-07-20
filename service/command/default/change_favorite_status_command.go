@@ -56,17 +56,19 @@ func (ch *ChangeFavoriteStatusCommandHandler[M, C]) changeStatus(ctx context.Con
 		return nil, c.UNAUTHORIZED, errors.New("request context is not available")
 	}
 	if record := ch.Repository.FindById(ctx, id); record != nil {
-		contextUserId := rc.User.Id
 		data := bson.D{
 			{Key: "is_favourite", Value: true},
-			{Key: "user._id", Value: rc.User.Id},
-			{Key: "user.first_name", Value: rc.User.FirstName},
-			{Key: "user.last_name", Value: rc.User.LastName},
+			{Key: "user", Value: bson.D{
+				{Key: "_id", Value: rc.User.Id},
+				{Key: "first_name", Value: rc.User.FirstName},
+				{Key: "last_name", Value: rc.User.LastName},
+			}},
 		}
-		if _, err := ch.Repository.AppendToArrayField(ctx, id, hContext.FavoriteFieldName(), "user._id", contextUserId, data); err != nil {
-			return nil, c.OK, err
+		if _, err := ch.Repository.AppendToArrayField(ctx, id, hContext.FavoriteFieldName(), "favorites", rc.User.Id, data); err != nil {
+			return nil, c.INTERNAL_SERVER_ERROR, err
 		} else {
-			return record, c.OK, nil
+			updatedRecord := ch.Repository.FindById(ctx, id)
+			return updatedRecord, c.OK, nil
 		}
 	} else {
 		return nil, c.BAD_REQUEST, errors.New(ch.EntityName + " not found for given id")

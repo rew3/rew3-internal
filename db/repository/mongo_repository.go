@@ -332,6 +332,7 @@ func (repo *MongoRepository[Entity]) BulkDelete(ctx context.Context, ids []strin
 	})
 }
 
+// elementUpdateValue must be in nested non flatten structure.
 func (repo *MongoRepository[Entity]) AppendToArrayField(
 	ctx context.Context,
 	docId string,
@@ -349,17 +350,10 @@ func (repo *MongoRepository[Entity]) AppendToArrayField(
 			{Key: "_id", Value: objectID},
 			{Key: arrFieldPath + "." + elementSelectorName, Value: elementSelectorValue},
 		}
-		bsonValue, err := bson.Marshal(elementUpdateValue)
-		if err != nil {
-			log.Printf("Invalid update value providved:", err)
-			return false, err
-		}
-		addToSetElementUpdate := bson.M{arrFieldPath: bsonValue}
 		meta := repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(bson.D{}, &rc)
 		update := bson.M{
-			"$set":      meta,
-			"$addToSet": addToSetElementUpdate,
-			"$inc":      bson.M{"meta._version": 1},
+			"$set": append(mongoUtility.FlattenBsonD(elementUpdateValue, arrFieldPath+".$."), meta...),
+			"$inc": bson.M{"meta._version": 1},
 		}
 		// TODO apply security.
 		_, err = repo.Collection.UpdateOne(ctx, selector, update)
@@ -371,6 +365,10 @@ func (repo *MongoRepository[Entity]) AppendToArrayField(
 			log.Printf("Failed to append element to array field: %v\n", err)
 			return false, err
 		}
+		// Now again perform addToSet. in case entry already not exists.
+		selectorForAts := bson.D{{Key: "_id", Value: objectID}}
+		updateForAts := bson.M{"$addToSet": elementUpdateValue}
+		repo.Collection.UpdateOne(ctx, selectorForAts, updateForAts)
 		return true, nil
 	})
 }
