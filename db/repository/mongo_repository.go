@@ -332,6 +332,86 @@ func (repo *MongoRepository[Entity]) BulkDelete(ctx context.Context, ids []strin
 	})
 }
 
+func (repo *MongoRepository[Entity]) AppendToArrayField(
+	ctx context.Context,
+	docId string,
+	arrFieldPath string,
+	elementSelectorName string,
+	elementSelectorValue string,
+	elementUpdateValues map[string]interface{}) (bool, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
+		objectID, err := primitive.ObjectIDFromHex(docId)
+		if err != nil {
+			log.Printf("Invalid Record ID: %v\n", err)
+			return false, err
+		}
+		selector := bson.D{
+			{Key: "_id", Value: objectID},
+			{Key: arrFieldPath + "." + elementSelectorName, Value: elementSelectorValue},
+		}
+		elementUpdate := bson.D{}
+		for key, value := range elementUpdateValues {
+			elementUpdate = append(elementUpdate, bson.E{Key: arrFieldPath + ".$." + key, Value: value})
+		}
+		addToSetElementUpdate := bson.D{}
+		for key, value := range elementUpdateValues {
+			addToSetElementUpdate = append(addToSetElementUpdate, bson.E{Key: key, Value: value})
+		}
+		meta := repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(bson.D{}, &rc)
+		update := bson.M{
+			"$set":      append(elementUpdate, meta...),
+			"$addToSet": bson.M{arrFieldPath: addToSetElementUpdate},
+			"$inc":      bson.M{"meta._version": 1},
+		}
+		// TODO apply security.
+		_, err = repo.Collection.UpdateOne(ctx, selector, update)
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				log.Printf("Record not found with provided selector")
+				return false, errors.New("record not found with provided selector")
+			}
+			log.Printf("Failed to append element to array field: %v\n", err)
+			return false, err
+		}
+		return true, nil
+	})
+}
+
+func (repo *MongoRepository[Entity]) RemoveFromArrayField(
+	ctx context.Context,
+	docId string,
+	arrFieldPath string,
+	elementSelectorName string,
+	elementSelectorValue string) (bool, error) {
+	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
+		objectID, err := primitive.ObjectIDFromHex(docId)
+		if err != nil {
+			log.Printf("Invalid Record ID: %v\n", err)
+			return false, err
+		}
+		selector := bson.D{
+			{Key: "_id", Value: objectID},
+		}
+		meta := repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(bson.D{}, &rc)
+		update := bson.M{
+			"$set":  meta,
+			"$pull": bson.M{arrFieldPath: bson.M{elementSelectorName: elementSelectorValue}},
+			"$inc":  bson.M{"meta._version": 1},
+		}
+		// TODO apply security.
+		_, err = repo.Collection.UpdateOne(ctx, selector, update)
+		if err != nil {
+			if err == mongo.ErrNoDocuments {
+				log.Printf("Record not found with provided selector")
+				return false, errors.New("record not found with provided selector")
+			}
+			log.Printf("Failed to remove element from array field: %v\n", err)
+			return false, err
+		}
+		return true, nil
+	})
+}
+
 func (repo *MongoRepository[Entity]) FindById(ctx context.Context, id string) *Entity {
 	return handleRead(ctx, func(rc service.RequestContext) *Entity {
 		objectID, err := primitive.ObjectIDFromHex(id)

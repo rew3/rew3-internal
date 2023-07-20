@@ -22,8 +22,7 @@ type ChangeOwnerCommandHandler[M common.Model, C command.Command] struct {
 }
 
 type ChangeOwnerCommandHandlerContext[M common.Model, C command.Command] struct {
-	IDResolver func(C) string
-	CmdToOwner func(C) account.MiniUser
+	ConvertCmd func(*C) (string, account.MiniUser)
 	SetOwner   func(*M, account.MiniUser)
 }
 
@@ -31,8 +30,7 @@ type ChangeOwnerCommandHandlerContext[M common.Model, C command.Command] struct 
  * Handle Command.
  */
 func (ch *ChangeOwnerCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext ChangeOwnerCommandHandlerContext[M, C]) command.CommandResult {
-	id := hContext.IDResolver(cmd)
-	owner := hContext.CmdToOwner(cmd)
+	id, owner := hContext.ConvertCmd(&cmd)
 	response, err := ch.changeOwner(ctx, id, owner, hContext)
 	return GenerateCmdResult[M](id, response, err, "Change"+ch.EntityName+"Owner")
 }

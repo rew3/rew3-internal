@@ -25,7 +25,7 @@ type BulkAddCommandHandler[M common.Model, C command.Command] struct {
 }
 
 type BulkAddCommandHandlerContext[M common.Model, C command.Command] struct {
-	CmdToModel    func(C) ([]M, error)
+	CmdToModel    func(*C) ([]M, error)
 	GetOwner      func(*M) account.MiniUser
 	SetOwner      func(*M, account.MiniUser)
 	GetVisibility func(*M) account.RecordVisibility
@@ -36,7 +36,7 @@ type BulkAddCommandHandlerContext[M common.Model, C command.Command] struct {
  * Handle Command.
  */
 func (ch *BulkAddCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext BulkAddCommandHandlerContext[M, C]) command.CommandResult {
-	models, err := hContext.CmdToModel(cmd)
+	models, err := hContext.CmdToModel(&cmd)
 	if ok, cmdResult := HandleError(err, "BulkAdd"+ch.EntityName); !ok {
 		return cmdResult
 	}

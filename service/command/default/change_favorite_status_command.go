@@ -21,8 +21,8 @@ type ChangeFavoriteStatusCommandHandler[T common.Model, C command.Command] struc
 }
 
 type ChangeFavoriteStatusCommandHandlerContext[M common.Model, C command.Command] struct {
-	CmdToData   func(C) (string, bool)
-	SetFavorite func(*M, bool)
+	CmdToData         func(C) (string, bool)
+	FavoriteFieldName func() string
 }
 
 /**
@@ -38,13 +38,15 @@ func (ch *ChangeFavoriteStatusCommandHandler[M, C]) Handle(ctx context.Context, 
  * Delete Record.
  */
 func (ch *ChangeFavoriteStatusCommandHandler[M, C]) changeStatus(ctx context.Context, id string, status bool, hContext ChangeFavoriteStatusCommandHandlerContext[M, C]) (*M, error) {
-	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
+	rc, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
 		return nil, errors.New("request context is not available")
 	}
 	if record := ch.Repository.FindById(ctx, id); record != nil {
-		hContext.SetFavorite(record, status)
-		if _, err := ch.Repository.Update(ctx, id, record); err != nil {
+		contextUserId := rc.User.Id
+		data := make(map[string]interface{})
+		data["is_favourite"] = status
+		if _, err := ch.Repository.AppendToArrayField(ctx, id, hContext.FavoriteFieldName(), "user._id", contextUserId, data); err != nil {
 			return nil, err
 		} else {
 			return record, nil

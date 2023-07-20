@@ -24,7 +24,7 @@ type BulkChangeOwnerCommandHandler[M common.Model, C command.Command] struct {
 }
 
 type BulkChangeOwnerCommandHandlerContext[M common.Model, C command.Command] struct {
-	CmdToOwners func(C) map[string]account.MiniUser
+	CmdToOwners func(*C) map[string]account.MiniUser
 	SetOwner    func(*M, account.MiniUser)
 }
 
@@ -32,7 +32,7 @@ type BulkChangeOwnerCommandHandlerContext[M common.Model, C command.Command] str
  * Handle Command.
  */
 func (ch *BulkChangeOwnerCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext BulkChangeOwnerCommandHandlerContext[M, C]) command.CommandResult {
-	owners := hContext.CmdToOwners(cmd)
+	owners := hContext.CmdToOwners(&cmd)
 	_, err := ch.bulkChangeOwner(ctx, owners, hContext)
 	if err != nil {
 		return command.CommandResult{

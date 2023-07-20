@@ -21,14 +21,14 @@ type UpdateCommandHandler[M common.Model, C command.Command] struct {
 }
 
 type UpdateCommandHandlerContext[M common.Model, C command.Command] struct {
-	CmdToModel func(C) (M, error)
+	CmdToModel func(*C) (M, error)
 }
 
 /**
  * Handle Command.
  */
 func (ch *UpdateCommandHandler[M, C]) Handle(ctx context.Context, id string, cmd C, hContext UpdateCommandHandlerContext[M, C]) command.CommandResult {
-	model, err := hContext.CmdToModel(cmd)
+	model, err := hContext.CmdToModel(&cmd)
 	if ok, cmdResult := HandleError(err, "Update"+ch.EntityName); !ok {
 		return cmdResult
 	}

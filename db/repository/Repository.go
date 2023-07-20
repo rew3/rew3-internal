@@ -21,6 +21,8 @@ type Repository[Entity any] interface {
 	BulkInsert(ctx context.Context, data []*Entity) (bool, error)
 	BulkUpdate(ctx context.Context, data map[string]*Entity) (bool, error)
 	BulkDelete(ctx context.Context, ids []string) (bool, error)
+	AppendToArrayField(ctx context.Context, docId string, arrFieldPath string, elementSelectorName string, elementSelectorValue string, elementUpdateValues map[string]interface{}) (bool, error)
+	RemoveFromArrayField(ctx context.Context, docId string, arrFieldPath string, elementSelectorName string, elementSelectorValue string) (bool, error)
 
 	/* Reads */
 	FindById(ctx context.Context, id string) *Entity
