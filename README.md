@@ -1,5 +1,8 @@
 ### Core libraries used in rew3 projects
 
+### Utlities
+Reference: https://github.com/solo-io/go-utils
+
 #### Folder Structure
 Reference: https://github.com/SKF/go-utility
 Reference: https://github.com/eiicon-company/go-core
