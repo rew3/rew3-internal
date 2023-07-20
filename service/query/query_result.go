@@ -14,7 +14,7 @@ type QueryResult[T any] struct {
 	Response s.ExecutionResult[T]
 }
 
-func (cr *QueryResult[T]) Generify() QueryResult[interface{}] {
+func (cr QueryResult[T]) Generify() QueryResult[interface{}] {
 	return QueryResult[interface{}]{
 		Response: cr.Response.Generify(),
 	}

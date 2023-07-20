@@ -14,7 +14,7 @@ type CommandResult[T any] struct {
 	Response s.ExecutionResult[T]
 }
 
-func (cr *CommandResult[T]) Generify() CommandResult[interface{}] {
+func (cr CommandResult[T]) Generify() CommandResult[interface{}] {
 	return CommandResult[interface{}]{
 		Response: cr.Response.Generify(),
 	}
