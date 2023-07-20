@@ -9,6 +9,8 @@ import (
 	"github.com/rew3/rew3-internal/db/repository"
 	"github.com/rew3/rew3-internal/service/command"
 	"github.com/rew3/rew3-internal/service/common"
+	r "github.com/rew3/rew3-internal/service/common/response"
+	c "github.com/rew3/rew3-internal/service/common/response/constants"
 
 	rcUtil "github.com/rew3/rew3-internal/pkg/context"
 )
@@ -24,6 +26,7 @@ type AddCommandHandler[M common.Model, C command.Command] struct {
 
 type AddCommandHandlerContext[M common.Model, C command.Command] struct {
 	CmdToModel    func(*C) (M, error)
+	GetId         func(*M) string
 	GetOwner      func(*M) account.MiniUser
 	SetOwner      func(*M, account.MiniUser)
 	GetVisibility func(*M) account.RecordVisibility
@@ -33,22 +36,29 @@ type AddCommandHandlerContext[M common.Model, C command.Command] struct {
 /**
  * Handle Command.
  */
-func (ch *AddCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext AddCommandHandlerContext[M, C]) command.CommandResult {
+func (ch *AddCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext AddCommandHandlerContext[M, C]) command.CommandResult[M] {
 	model, err := hContext.CmdToModel(&cmd)
-	if ok, cmdResult := HandleError(err, "Add"+ch.EntityName); !ok {
+	if ok, cmdResult := HandleError[M](err, "Add"+ch.EntityName); !ok {
 		return cmdResult
 	}
-	response, err := ch.add(ctx, &model, hContext)
-	return GenerateCmdResult[M]("-", response, err, "Add"+ch.EntityName)
+	response, status, err := ch.add(ctx, &model, hContext)
+	if err != nil {
+		return command.CommandResult[M]{
+			Response: r.ErrorExecutionResult[M]("-", "Add"+ch.EntityName, err.Error(), status),
+		}
+	}
+	return command.CommandResult[M]{
+		Response: r.SuccessExecutionResult[M](hContext.GetId(response), "Add"+ch.EntityName, "Successfully record added.", c.CREATED, *response),
+	}
 }
 
 /**
  * Add Record.
  */
-func (ch *AddCommandHandler[M, C]) add(ctx context.Context, model *M, hContext AddCommandHandlerContext[M, C]) (*M, error) {
+func (ch *AddCommandHandler[M, C]) add(ctx context.Context, model *M, hContext AddCommandHandlerContext[M, C]) (*M, c.StatusType, error) {
 	requestContext, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
-		return nil, errors.New("request context is not available")
+		return nil, c.FORBIDDEN, errors.New("request context is not available")
 	}
 	if hContext.GetOwner(model).Id == "" {
 		hContext.SetOwner(model, requestContext.User)
@@ -58,5 +68,9 @@ func (ch *AddCommandHandler[M, C]) add(ctx context.Context, model *M, hContext A
 		visibility.VisibilityType = constants.PRIVATE
 		hContext.SetVisibility(model, visibility)
 	}
-	return ch.Repository.Insert(ctx, model)
+	res, err := ch.Repository.Insert(ctx, model)
+	if err != nil {
+		return nil, c.INTERNAL_SERVER_ERROR, err
+	}
+	return res, c.CREATED, nil
 }

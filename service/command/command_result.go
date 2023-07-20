@@ -10,23 +10,29 @@ import (
 /**
  * Command Result.
  */
-type CommandResult struct {
-	Response s.ExecutionResult[interface{}]
+type CommandResult[T any] struct {
+	Response s.ExecutionResult[T]
+}
+
+func (cr *CommandResult[T]) Generify() CommandResult[interface{}] {
+	return CommandResult[interface{}]{
+		Response: cr.Response.Generify(),
+	}
 }
 
 /**
  * Command result channel.
  */
 type CommandResultChannel struct {
-	Result chan CommandResult
+	Result chan CommandResult[interface{}]
 }
 
 func NewCommandResultChannel() *CommandResultChannel {
 	return &CommandResultChannel{
-		Result: make(chan CommandResult, 1),
+		Result: make(chan CommandResult[interface{}], 1),
 	}
 }
-func (cs *CommandResultChannel) Send(data CommandResult) {
+func (cs *CommandResultChannel) Send(data CommandResult[interface{}]) {
 	select {
 	case cs.Result <- data:
 		fmt.Println("Data sent to Command Result Channel.")
@@ -40,7 +46,7 @@ func (cs *CommandResultChannel) Send(data CommandResult) {
  * Parse the command result for given result type.
  * Provide default value in case of failure of parsing command result.
  */
-func ParseCommandResult[T any](result CommandResult, defaultValue T) *s.ExecutionResult[T] {
+func ParseCommandResult[T any](result *CommandResult[interface{}], defaultValue T) *s.ExecutionResult[T] {
 	if !result.Response.IsSuccessful {
 		return &s.ExecutionResult[T]{
 			IsSuccessful: result.Response.IsSuccessful,

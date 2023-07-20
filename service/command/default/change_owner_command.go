@@ -8,6 +8,8 @@ import (
 	"github.com/rew3/rew3-internal/db/repository"
 	"github.com/rew3/rew3-internal/service/command"
 	"github.com/rew3/rew3-internal/service/common"
+	r "github.com/rew3/rew3-internal/service/common/response"
+	c "github.com/rew3/rew3-internal/service/common/response/constants"
 
 	rcUtil "github.com/rew3/rew3-internal/pkg/context"
 )
@@ -29,24 +31,36 @@ type ChangeOwnerCommandHandlerContext[M common.Model, C command.Command] struct 
 /**
  * Handle Command.
  */
-func (ch *ChangeOwnerCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext ChangeOwnerCommandHandlerContext[M, C]) command.CommandResult {
+func (ch *ChangeOwnerCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext ChangeOwnerCommandHandlerContext[M, C]) command.CommandResult[M] {
 	id, owner := hContext.ConvertCmd(&cmd)
-	response, err := ch.changeOwner(ctx, id, owner, hContext)
-	return GenerateCmdResult[M](id, response, err, "Change"+ch.EntityName+"Owner")
+	response, status, err := ch.changeOwner(ctx, id, owner, hContext)
+	if err != nil {
+		return command.CommandResult[M]{
+			Response: r.ErrorExecutionResult[M](id, "Change"+ch.EntityName+"Owner", err.Error(), status),
+		}
+	}
+	return command.CommandResult[M]{
+		Response: r.SuccessExecutionResult[M](id, "Change"+ch.EntityName+"Owner", "Successfully record deleted.", c.OK, *response),
+	}
+
 }
 
 /**
  * Change owner of Record.
  */
-func (ch *ChangeOwnerCommandHandler[M, C]) changeOwner(ctx context.Context, id string, owner account.MiniUser, hContext ChangeOwnerCommandHandlerContext[M, C]) (*M, error) {
+func (ch *ChangeOwnerCommandHandler[M, C]) changeOwner(ctx context.Context, id string, owner account.MiniUser, hContext ChangeOwnerCommandHandlerContext[M, C]) (*M, c.StatusType, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
-		return nil, errors.New("request context is not available")
+		return nil, c.FORBIDDEN, errors.New("request context is not available")
 	}
 	if record := ch.Repository.FindById(ctx, id); record != nil {
 		hContext.SetOwner(record, owner)
-		return ch.Repository.Update(ctx, id, record)
+		res, err := ch.Repository.Update(ctx, id, record)
+		if err != nil {
+			return nil, c.INTERNAL_SERVER_ERROR, err
+		}
+		return res, c.OK, nil
 	} else {
-		return nil, errors.New(ch.EntityName + " not found for given id")
+		return nil, c.BAD_REQUEST, errors.New(ch.EntityName + " not found for given id")
 	}
 }

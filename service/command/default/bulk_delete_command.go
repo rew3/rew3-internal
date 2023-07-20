@@ -7,8 +7,8 @@ import (
 	"github.com/rew3/rew3-internal/db/repository"
 	"github.com/rew3/rew3-internal/service/command"
 	"github.com/rew3/rew3-internal/service/common"
-	bResponse "github.com/rew3/rew3-internal/service/common/response"
-	bResponseConstant "github.com/rew3/rew3-internal/service/common/response/constants"
+	r "github.com/rew3/rew3-internal/service/common/response"
+	c "github.com/rew3/rew3-internal/service/common/response/constants"
 
 	rcUtil "github.com/rew3/rew3-internal/pkg/context"
 )
@@ -25,36 +25,29 @@ type BulkDeleteCommandHandler[M common.Model, C command.Command] struct {
 /**
  * Handle Command.
  */
-func (ch *BulkDeleteCommandHandler[M, C]) Handle(ctx context.Context, idsToDelete []string) command.CommandResult {
-	_, errs := ch.bulkDelete(ctx, idsToDelete)
+func (ch *BulkDeleteCommandHandler[M, C]) Handle(ctx context.Context, idsToDelete []string) command.CommandResult[interface{}] {
+	_, status, errs := ch.bulkDelete(ctx, idsToDelete)
 	if errs != nil {
-		return command.CommandResult{
-			Response: bResponse.ExecutionResult[interface{}]{
-				IsSuccessful: false,
-				Status:       bResponseConstant.INTERNAL_SERVER_ERROR,
-				Message:      errs.Error(),
-				Action:       "BulkDelete" + ch.EntityName,
-			},
+		return command.CommandResult[interface{}]{
+			Response: r.ErrorExecutionResult[interface{}]("-", "BulkDelete"+ch.EntityName, errs.Error(), status),
 		}
 	}
-	return command.CommandResult{
-		Response: bResponse.ExecutionResult[interface{}]{
-			IsSuccessful: true,
-			Status:       bResponseConstant.CREATED,
-			Message:      ch.EntityName + " successfully bulk deleted",
-			Action:       "BulkDelete" + ch.EntityName,
-			Id:           "",
-		},
+	return command.CommandResult[interface{}]{
+		Response: r.SuccessExecutionResult[interface{}]("-", "BulkDelete"+ch.EntityName, "Successfully bulk deleted records", c.OK, nil),
 	}
 }
 
 /**
  * Bulk delete Record.
  */
-func (ch *BulkDeleteCommandHandler[M, C]) bulkDelete(ctx context.Context, idsToDelete []string) (bool, error) {
+func (ch *BulkDeleteCommandHandler[M, C]) bulkDelete(ctx context.Context, idsToDelete []string) (bool, c.StatusType, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
-		return false, errors.New("request context is not available")
+		return false, c.FORBIDDEN, errors.New("request context is not available")
 	}
-	return ch.Repository.BulkDelete(ctx, idsToDelete)
+	_, err := ch.Repository.BulkDelete(ctx, idsToDelete)
+	if err != nil {
+		return false, c.INTERNAL_SERVER_ERROR, err
+	}
+	return true, c.OK, nil
 }

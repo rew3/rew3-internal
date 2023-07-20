@@ -2,10 +2,12 @@ package executor
 
 import (
 	"context"
-	"fmt"
+	"log"
 	"time"
 
 	c "github.com/rew3/rew3-internal/service/command"
+	"github.com/rew3/rew3-internal/service/common/response"
+	"github.com/rew3/rew3-internal/service/common/response/constants"
 )
 
 type CommandExecutor struct {
@@ -21,12 +23,13 @@ func NewCommandExecutor(registry *ServiceRegistry) *CommandExecutor {
 /**
  * Execute Command.
  */
-func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command) c.CommandResult {
+func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command) c.CommandResult[interface{}] {
 	commandName := c.CommandName(command)
 	controller, err := executor.serviceRegistry.GetCommandController(commandName)
 	if err != nil {
-		fmt.Printf("No handler/controller registered for command type: %s\n", commandName)
-		return c.CommandResult{}
+		message := "No handler/controller registered for command type: " + commandName
+		log.Println(message)
+		return c.CommandResult[interface{}]{Response: response.ErrorExecutionResult[interface{}]("-", commandName, message, constants.SERVICE_UNAVAILABLE)}
 	} else {
 		resultChannel := c.NewCommandResultChannel()
 		controller.Dispatch(ctx, command, resultChannel)
@@ -34,8 +37,9 @@ func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command)
 		case result := <-resultChannel.Result:
 			return result
 		case <-time.After(30 * time.Second):
-			fmt.Println("Timeout reached while receiving data by Command Executor.")
-			return c.CommandResult{}
+			message := "Timeout reached while receiving data by Command Executor."
+			log.Println(message)
+			return c.CommandResult[interface{}]{Response: response.ErrorExecutionResult[interface{}]("-", commandName, message, constants.SERVICE_UNAVAILABLE)}
 		}
 	}
 }

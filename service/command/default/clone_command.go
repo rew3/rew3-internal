@@ -7,6 +7,8 @@ import (
 	"github.com/rew3/rew3-internal/db/repository"
 	"github.com/rew3/rew3-internal/service/command"
 	"github.com/rew3/rew3-internal/service/common"
+	r "github.com/rew3/rew3-internal/service/common/response"
+	c "github.com/rew3/rew3-internal/service/common/response/constants"
 
 	"github.com/rew3/rew3-internal/app/account"
 	"github.com/rew3/rew3-internal/app/account/constants"
@@ -23,6 +25,7 @@ type CloneCommandHandler[M common.Model, C command.Command] struct {
 }
 
 type CloneCommandHandlerContext[M common.Model, C command.Command] struct {
+	GetId          func(*M) string
 	SetOwner       func(*M, account.MiniUser)
 	SetVisibility  func(*M, account.RecordVisibility)
 	EmptyReference func(*M)
@@ -32,18 +35,25 @@ type CloneCommandHandlerContext[M common.Model, C command.Command] struct {
 /**
  * Handle Command.
  */
-func (ch *CloneCommandHandler[M, C]) Handle(ctx context.Context, idToClone string, hContext CloneCommandHandlerContext[M, C]) command.CommandResult {
-	response, err := ch.clone(ctx, idToClone, hContext)
-	return GenerateCmdResult[M](idToClone, response, err, "Clone"+ch.EntityName)
+func (ch *CloneCommandHandler[M, C]) Handle(ctx context.Context, idToClone string, hContext CloneCommandHandlerContext[M, C]) command.CommandResult[M] {
+	response, status, err := ch.clone(ctx, idToClone, hContext)
+	if err != nil {
+		return command.CommandResult[M]{
+			Response: r.ErrorExecutionResult[M](idToClone, "Delete"+ch.EntityName, err.Error(), status),
+		}
+	}
+	return command.CommandResult[M]{
+		Response: r.SuccessExecutionResult[M](hContext.GetId(response), "Delete"+ch.EntityName, "Successfully record deleted.", c.OK, *response),
+	}
 }
 
 /**
  * Clone Record.
  */
-func (ch *CloneCommandHandler[M, C]) clone(ctx context.Context, id string, hContext CloneCommandHandlerContext[M, C]) (*M, error) {
+func (ch *CloneCommandHandler[M, C]) clone(ctx context.Context, id string, hContext CloneCommandHandlerContext[M, C]) (*M, c.StatusType, error) {
 	requestContext, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
-		return nil, errors.New("request context is not available")
+		return nil, c.FORBIDDEN, errors.New("request context is not available")
 	}
 	if record := ch.Repository.FindById(ctx, id); record != nil {
 		hContext.SetOwner(record, requestContext.User)
@@ -52,8 +62,12 @@ func (ch *CloneCommandHandler[M, C]) clone(ctx context.Context, id string, hCont
 		visibility := account.RecordVisibility{}
 		visibility.VisibilityType = constants.PRIVATE
 		hContext.SetVisibility(record, visibility)
-		return ch.Repository.Insert(ctx, record)
+		res, err := ch.Repository.Insert(ctx, record)
+		if err != nil {
+			return nil, c.INTERNAL_SERVER_ERROR, err
+		}
+		return res, c.CREATED, nil
 	} else {
-		return nil, errors.New(ch.EntityName + " not found for given id")
+		return nil, c.BAD_REQUEST, errors.New(ch.EntityName + " not found for given id")
 	}
 }

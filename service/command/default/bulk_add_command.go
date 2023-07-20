@@ -9,8 +9,8 @@ import (
 	"github.com/rew3/rew3-internal/db/repository"
 	"github.com/rew3/rew3-internal/service/command"
 	"github.com/rew3/rew3-internal/service/common"
-	bResponse "github.com/rew3/rew3-internal/service/common/response"
-	bResponseConstant "github.com/rew3/rew3-internal/service/common/response/constants"
+	r "github.com/rew3/rew3-internal/service/common/response"
+	c "github.com/rew3/rew3-internal/service/common/response/constants"
 
 	rcUtil "github.com/rew3/rew3-internal/pkg/context"
 )
@@ -35,40 +35,29 @@ type BulkAddCommandHandlerContext[M common.Model, C command.Command] struct {
 /**
  * Handle Command.
  */
-func (ch *BulkAddCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext BulkAddCommandHandlerContext[M, C]) command.CommandResult {
+func (ch *BulkAddCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext BulkAddCommandHandlerContext[M, C]) command.CommandResult[interface{}] {
 	models, err := hContext.CmdToModel(&cmd)
-	if ok, cmdResult := HandleError(err, "BulkAdd"+ch.EntityName); !ok {
+	if ok, cmdResult := HandleError[interface{}](err, "BulkAdd"+ch.EntityName); !ok {
 		return cmdResult
 	}
-	_, errs := ch.bulkAdd(ctx, models, hContext)
+	_, status, errs := ch.bulkAdd(ctx, models, hContext)
 	if errs != nil {
-		return command.CommandResult{
-			Response: bResponse.ExecutionResult[interface{}]{
-				IsSuccessful: false,
-				Status:       bResponseConstant.INTERNAL_SERVER_ERROR,
-				Message:      err.Error(),
-				Action:       "BulkAdd" + ch.EntityName,
-			},
+		return command.CommandResult[interface{}]{
+			Response: r.ErrorExecutionResult[interface{}]("-", "BulkAdd"+ch.EntityName, errs.Error(), status),
 		}
 	}
-	return command.CommandResult{
-		Response: bResponse.ExecutionResult[interface{}]{
-			IsSuccessful: true,
-			Status:       bResponseConstant.CREATED,
-			Message:      ch.EntityName + " successfully bulk added",
-			Action:       "BulkAdd" + ch.EntityName,
-			Id:           "",
-		},
+	return command.CommandResult[interface{}]{
+		Response: r.SuccessExecutionResult[interface{}]("-", "BulkAdd"+ch.EntityName, "Successfully bulk added records", c.OK, nil),
 	}
 }
 
 /**
  * Bulk Add Record.
  */
-func (ch *BulkAddCommandHandler[M, C]) bulkAdd(ctx context.Context, data []M, hContext BulkAddCommandHandlerContext[M, C]) (bool, error) {
+func (ch *BulkAddCommandHandler[M, C]) bulkAdd(ctx context.Context, data []M, hContext BulkAddCommandHandlerContext[M, C]) (bool, c.StatusType, error) {
 	requestContext, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
-		return false, errors.New("request context is not available")
+		return false, c.FORBIDDEN, errors.New("request context is not available")
 	}
 	var models []*M
 	for _, model := range data {
@@ -82,5 +71,9 @@ func (ch *BulkAddCommandHandler[M, C]) bulkAdd(ctx context.Context, data []M, hC
 		}
 		models = append(models, &model)
 	}
-	return ch.Repository.BulkInsert(ctx, models)
+	_, err := ch.Repository.BulkInsert(ctx, models)
+	if err != nil {
+		return false, c.INTERNAL_SERVER_ERROR, err
+	}
+	return true, c.OK, nil
 }

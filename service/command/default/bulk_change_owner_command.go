@@ -8,8 +8,8 @@ import (
 	"github.com/rew3/rew3-internal/db/repository"
 	"github.com/rew3/rew3-internal/service/command"
 	"github.com/rew3/rew3-internal/service/common"
-	bResponse "github.com/rew3/rew3-internal/service/common/response"
-	bResponseConstant "github.com/rew3/rew3-internal/service/common/response/constants"
+	r "github.com/rew3/rew3-internal/service/common/response"
+	c "github.com/rew3/rew3-internal/service/common/response/constants"
 
 	rcUtil "github.com/rew3/rew3-internal/pkg/context"
 )
@@ -31,27 +31,16 @@ type BulkChangeOwnerCommandHandlerContext[M common.Model, C command.Command] str
 /**
  * Handle Command.
  */
-func (ch *BulkChangeOwnerCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext BulkChangeOwnerCommandHandlerContext[M, C]) command.CommandResult {
+func (ch *BulkChangeOwnerCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext BulkChangeOwnerCommandHandlerContext[M, C]) command.CommandResult[interface{}] {
 	owners := hContext.CmdToOwners(&cmd)
-	_, err := ch.bulkChangeOwner(ctx, owners, hContext)
+	_, status, err := ch.bulkChangeOwner(ctx, owners, hContext)
 	if err != nil {
-		return command.CommandResult{
-			Response: bResponse.ExecutionResult[interface{}]{
-				IsSuccessful: false,
-				Status:       bResponseConstant.INTERNAL_SERVER_ERROR,
-				Message:      err.Error(),
-				Action:       "BulkChange" + ch.EntityName + "Owner",
-			},
+		return command.CommandResult[interface{}]{
+			Response: r.ErrorExecutionResult[interface{}]("-", "BulkChange"+ch.EntityName+"Owner", err.Error(), status),
 		}
 	}
-	return command.CommandResult{
-		Response: bResponse.ExecutionResult[interface{}]{
-			IsSuccessful: true,
-			Status:       bResponseConstant.CREATED,
-			Message:      ch.EntityName + " successfully bulk owner changed",
-			Action:       "BulkChange" + ch.EntityName + "Owner",
-			Id:           "",
-		},
+	return command.CommandResult[interface{}]{
+		Response: r.SuccessExecutionResult[interface{}]("-", "BulkChange"+ch.EntityName+"Owner", "Successfully bulk changed record owners", c.OK, nil),
 	}
 }
 
@@ -61,10 +50,10 @@ func (ch *BulkChangeOwnerCommandHandler[M, C]) Handle(ctx context.Context, cmd C
 func (ch *BulkChangeOwnerCommandHandler[M, C]) bulkChangeOwner(
 	ctx context.Context,
 	data map[string]account.MiniUser,
-	hContext BulkChangeOwnerCommandHandlerContext[M, C]) (bool, error) {
+	hContext BulkChangeOwnerCommandHandlerContext[M, C]) (bool, c.StatusType, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
-		return false, errors.New("request context is not available")
+		return false, c.FORBIDDEN, errors.New("request context is not available")
 	}
 	for id, owner := range data {
 		if record := ch.Repository.FindById(ctx, id); record != nil {
@@ -72,5 +61,5 @@ func (ch *BulkChangeOwnerCommandHandler[M, C]) bulkChangeOwner(
 			ch.Repository.Update(ctx, id, record)
 		}
 	}
-	return true, nil
+	return true, c.OK, nil
 }

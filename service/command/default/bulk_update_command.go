@@ -7,8 +7,8 @@ import (
 	"github.com/rew3/rew3-internal/db/repository"
 	"github.com/rew3/rew3-internal/service/command"
 	"github.com/rew3/rew3-internal/service/common"
-	bResponse "github.com/rew3/rew3-internal/service/common/response"
-	bResponseConstant "github.com/rew3/rew3-internal/service/common/response/constants"
+	r "github.com/rew3/rew3-internal/service/common/response"
+	c "github.com/rew3/rew3-internal/service/common/response/constants"
 
 	rcUtil "github.com/rew3/rew3-internal/pkg/context"
 )
@@ -29,40 +29,33 @@ type BulkUpdateCommandHandlerContext[M common.Model, C command.Command] struct {
 /**
  * Handle Command.
  */
-func (ch *BulkUpdateCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext BulkUpdateCommandHandlerContext[M, C]) command.CommandResult {
+func (ch *BulkUpdateCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext BulkUpdateCommandHandlerContext[M, C]) command.CommandResult[interface{}] {
 	models, err := hContext.CmdToModels(&cmd)
-	if ok, cmdResult := HandleError(err, "BulkUpdate"+ch.EntityName); !ok {
+	if ok, cmdResult := HandleError[interface{}](err, "BulkUpdate"+ch.EntityName); !ok {
 		return cmdResult
 	}
-	_, errs := ch.bulkUpdate(ctx, models)
+	_, status, errs := ch.bulkUpdate(ctx, models)
 	if errs != nil {
-		return command.CommandResult{
-			Response: bResponse.ExecutionResult[interface{}]{
-				IsSuccessful: false,
-				Status:       bResponseConstant.INTERNAL_SERVER_ERROR,
-				Message:      err.Error(),
-				Action:       "BulkUpdate" + ch.EntityName,
-			},
+		return command.CommandResult[interface{}]{
+			Response: r.ErrorExecutionResult[interface{}]("-", "BulkUpdate"+ch.EntityName, err.Error(), status),
 		}
 	}
-	return command.CommandResult{
-		Response: bResponse.ExecutionResult[interface{}]{
-			IsSuccessful: true,
-			Status:       bResponseConstant.CREATED,
-			Message:      ch.EntityName + " successfully bulk updated",
-			Action:       "BulkUpdate" + ch.EntityName,
-			Id:           "",
-		},
+	return command.CommandResult[interface{}]{
+		Response: r.SuccessExecutionResult[interface{}]("-", "BulkUpdate"+ch.EntityName, "Successfully bulk updated records", c.OK, nil),
 	}
 }
 
 /**
  * Bulk Update Record.
  */
-func (ch *BulkUpdateCommandHandler[M, C]) bulkUpdate(ctx context.Context, data map[string]*M) (bool, error) {
+func (ch *BulkUpdateCommandHandler[M, C]) bulkUpdate(ctx context.Context, data map[string]*M) (bool, c.StatusType, error) {
 	_, isEcAvailable := rcUtil.GetRequestContext(ctx)
 	if !isEcAvailable {
-		return false, errors.New("request context is not available")
+		return false, c.FORBIDDEN, errors.New("request context is not available")
 	}
-	return ch.Repository.BulkUpdate(ctx, data)
+	_, err := ch.Repository.BulkUpdate(ctx, data)
+	if err != nil {
+		return false, c.INTERNAL_SERVER_ERROR, err
+	}
+	return true, c.OK, nil
 }

@@ -13,8 +13,19 @@ type ExecutionResult[T any] struct {
 	Data         T
 }
 
-func ErrorExecutionResult[T any](id string, action string, message string, status constants.StatusType) *ExecutionResult[T] {
-	return &ExecutionResult[T]{
+func (e *ExecutionResult[T]) Generify() ExecutionResult[interface{}] {
+	return ExecutionResult[interface{}]{
+		IsSuccessful: e.IsSuccessful,
+		Status:       e.Status,
+		Message:      e.Message,
+		Id:           e.Id,
+		Action:       e.Action,
+		Data:         e.Data,
+	}
+}
+
+func ErrorExecutionResult[T any](id string, action string, message string, status constants.StatusType) ExecutionResult[T] {
+	return ExecutionResult[T]{
 		IsSuccessful: false,
 		Status:       status,
 		Message:      message,
@@ -23,45 +34,13 @@ func ErrorExecutionResult[T any](id string, action string, message string, statu
 	}
 }
 
-func SuccessExecutionResult[T any](id string, action string, message string, status constants.StatusType, data T) *ExecutionResult[T] {
-	return &ExecutionResult[T]{
+func SuccessExecutionResult[T any](id string, action string, message string, status constants.StatusType, data T) ExecutionResult[T] {
+	return ExecutionResult[T]{
 		IsSuccessful: true,
 		Status:       status,
 		Message:      message,
 		Id:           id,
 		Action:       action,
 		Data:         data,
-	}
-}
-
-func CreateExecutionResult[T any](id string, action string, message string, data T) *ExecutionResult[T] {
-	return &ExecutionResult[T]{
-		IsSuccessful: true,
-		Status:       constants.CREATED,
-		Message:      message,
-		Id:           id,
-		Action:       action,
-		Data:         data,
-	}
-}
-
-func UpdateExecutionResult[T any](id string, action string, message string, data T) *ExecutionResult[T] {
-	return &ExecutionResult[T]{
-		IsSuccessful: true,
-		Status:       constants.OK,
-		Message:      message,
-		Id:           id,
-		Action:       action,
-		Data:         data,
-	}
-}
-
-func DeleteExecutionResult[T any](id string, action string, message string) *ExecutionResult[T] {
-	return &ExecutionResult[T]{
-		IsSuccessful: true,
-		Status:       constants.DELETED,
-		Message:      message,
-		Id:           id,
-		Action:       action,
 	}
 }
