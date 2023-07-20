@@ -397,3 +397,15 @@ func WriteObjectID(doc bson.D) (primitive.ObjectID, bson.D) {
 	prepended = append(prepended, doc...)
 	return id, prepended
 }
+
+func PrintJson(document bson.D) {
+	// Convert bson.D to JSON bytes
+	jsonBytes, err := bson.MarshalExtJSON(document, true, false)
+	if err != nil {
+		fmt.Println("Error marshaling BSON to JSON:", err)
+		return
+	}
+	// Convert JSON bytes to string
+	jsonString := string(jsonBytes)
+	fmt.Println(jsonString)
+}

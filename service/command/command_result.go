@@ -35,7 +35,7 @@ func NewCommandResultChannel() *CommandResultChannel {
 func (cs *CommandResultChannel) Send(data CommandResult[interface{}]) {
 	select {
 	case cs.Result <- data:
-		fmt.Println("Data sent to Command Result Channel.")
+		//fmt.Println("Data sent to Command Result Channel.")
 	case <-time.After(time.Second):
 		fmt.Println("Timeout reached while sending data to Command Result Channel.")
 	}

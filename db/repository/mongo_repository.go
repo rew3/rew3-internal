@@ -338,7 +338,7 @@ func (repo *MongoRepository[Entity]) AppendToArrayField(
 	arrFieldPath string,
 	elementSelectorName string,
 	elementSelectorValue string,
-	elementUpdateValues map[string]interface{}) (bool, error) {
+	elementUpdateValue bson.D) (bool, error) {
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		objectID, err := primitive.ObjectIDFromHex(docId)
 		if err != nil {
@@ -349,18 +349,16 @@ func (repo *MongoRepository[Entity]) AppendToArrayField(
 			{Key: "_id", Value: objectID},
 			{Key: arrFieldPath + "." + elementSelectorName, Value: elementSelectorValue},
 		}
-		elementUpdate := bson.D{}
-		for key, value := range elementUpdateValues {
-			elementUpdate = append(elementUpdate, bson.E{Key: arrFieldPath + ".$." + key, Value: value})
+		bsonValue, err := bson.Marshal(elementUpdateValue)
+		if err != nil {
+			log.Printf("Invalid update value providved:", err)
+			return false, err
 		}
-		addToSetElementUpdate := bson.D{}
-		for key, value := range elementUpdateValues {
-			addToSetElementUpdate = append(addToSetElementUpdate, bson.E{Key: key, Value: value})
-		}
+		addToSetElementUpdate := bson.M{arrFieldPath: bsonValue}
 		meta := repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(bson.D{}, &rc)
 		update := bson.M{
-			"$set":      append(elementUpdate, meta...),
-			"$addToSet": bson.M{arrFieldPath: addToSetElementUpdate},
+			"$set":      meta,
+			"$addToSet": addToSetElementUpdate,
 			"$inc":      bson.M{"meta._version": 1},
 		}
 		// TODO apply security.

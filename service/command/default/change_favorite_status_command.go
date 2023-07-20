@@ -9,6 +9,7 @@ import (
 	"github.com/rew3/rew3-internal/service/common"
 	r "github.com/rew3/rew3-internal/service/common/response"
 	c "github.com/rew3/rew3-internal/service/common/response/constants"
+	"go.mongodb.org/mongo-driver/bson"
 
 	rcUtil "github.com/rew3/rew3-internal/pkg/context"
 )
@@ -56,8 +57,12 @@ func (ch *ChangeFavoriteStatusCommandHandler[M, C]) changeStatus(ctx context.Con
 	}
 	if record := ch.Repository.FindById(ctx, id); record != nil {
 		contextUserId := rc.User.Id
-		data := make(map[string]interface{})
-		data["is_favourite"] = status
+		data := bson.D{
+			{Key: "is_favourite", Value: true},
+			{Key: "user._id", Value: rc.User.Id},
+			{Key: "user.first_name", Value: rc.User.FirstName},
+			{Key: "user.last_name", Value: rc.User.LastName},
+		}
 		if _, err := ch.Repository.AppendToArrayField(ctx, id, hContext.FavoriteFieldName(), "user._id", contextUserId, data); err != nil {
 			return nil, c.OK, err
 		} else {
