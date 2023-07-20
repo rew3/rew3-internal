@@ -57,14 +57,14 @@ func (ch *ChangeFavoriteStatusCommandHandler[M, C]) changeStatus(ctx context.Con
 	}
 	if record := ch.Repository.FindById(ctx, id); record != nil {
 		data := bson.D{
-			{Key: "is_favourite", Value: true},
+			{Key: "is_favourite", Value: status},
 			{Key: "user", Value: bson.D{
 				{Key: "_id", Value: rc.User.Id},
 				{Key: "first_name", Value: rc.User.FirstName},
 				{Key: "last_name", Value: rc.User.LastName},
 			}},
 		}
-		if _, err := ch.Repository.AppendToArrayField(ctx, id, hContext.FavoriteFieldName(), "favorites", rc.User.Id, data); err != nil {
+		if _, err := ch.Repository.AppendToArrayField(ctx, id, hContext.FavoriteFieldName(), "user._id", rc.User.Id, data); err != nil {
 			return nil, c.INTERNAL_SERVER_ERROR, err
 		} else {
 			updatedRecord := ch.Repository.FindById(ctx, id)

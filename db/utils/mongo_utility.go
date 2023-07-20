@@ -431,7 +431,7 @@ func flattenHelper(flattened *bson.D, prefix string, doc bson.D, prefixToAdd str
 		if reflect.TypeOf(elem.Value) == reflect.TypeOf(bson.D{}) {
 			subdoc, ok := elem.Value.(bson.D)
 			if ok {
-				flattenHelper(&tmpFlattened, key, subdoc, prefixToAdd)
+				flattenHelper(&tmpFlattened, key, subdoc, "")
 			}
 		} else {
 			tmpFlattened = append(tmpFlattened, bson.E{Key: key, Value: elem.Value})

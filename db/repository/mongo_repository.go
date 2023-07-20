@@ -356,7 +356,7 @@ func (repo *MongoRepository[Entity]) AppendToArrayField(
 			"$inc": bson.M{"meta._version": 1},
 		}
 		// TODO apply security.
-		_, err = repo.Collection.UpdateOne(ctx, selector, update)
+		result, err := repo.Collection.UpdateOne(ctx, selector, update)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				log.Printf("Record not found with provided selector")
@@ -365,10 +365,20 @@ func (repo *MongoRepository[Entity]) AppendToArrayField(
 			log.Printf("Failed to append element to array field: %v\n", err)
 			return false, err
 		}
-		// Now again perform addToSet. in case entry already not exists.
-		selectorForAts := bson.D{{Key: "_id", Value: objectID}}
-		updateForAts := bson.M{"$addToSet": elementUpdateValue}
-		repo.Collection.UpdateOne(ctx, selectorForAts, updateForAts)
+		if result.ModifiedCount == 0 {
+			// Now again perform addToSet. in case entry already not exists.
+			selectorForAts := bson.D{{Key: "_id", Value: objectID}}
+			updateForAts := bson.M{"$addToSet": bson.D{{Key: arrFieldPath, Value: elementUpdateValue}}}
+			_, err = repo.Collection.UpdateOne(ctx, selectorForAts, updateForAts)
+			if err != nil {
+				if err == mongo.ErrNoDocuments {
+					log.Printf("Record not found with provided selector")
+					return false, errors.New("record not found with provided selector")
+				}
+				log.Printf("Failed to append element to array field: %v\n", err)
+				return false, err
+			}
+		}
 		return true, nil
 	})
 }
