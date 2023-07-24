@@ -33,3 +33,20 @@ Update on git tag:
 - Delete and Push to repository `git push origin {tagname} or git push --tags`
 
 Reference: https://www.toolsqa.com/git/git-delete-tag/#:~:text=Similar%20to%20this%2C%20sometimes%2C%20we,depicting%20that%20the%20stable%20Version1.
+
+
+### Generating Proto Files:
+Install Protoc - `https://google.github.io/proto-lens/installing-protoc.html`  
+Download protoc-gen-go  - `go get -u github.com/golang/protobuf/protoc-gen-go`
+
+Usage:  
+`protoc --go_out=. --go-grpc_out=. path/to/your/protofile.proto`  
+ Replace `path/to/your/protofile.proto` with the path to your `.proto` file.
+
+Setup Environment Variable:  
+- Ensure `GOPATH` and `GOBIN` env variable set. If not, set it: `export GOPATH=$HOME/go`, `export GOBIN=$GOPATH/bin`.
+- Ensure `GOPATH` exists in system's `Path` variable (`echo $PATH`). If not, export it: `export PATH=$PATH:$(go env GOPATH)/bin`
+
+You might also need this:  
+`go get google.golang.org/grpc/cmd/protoc-gen-go-grpc`  
+`go install google.golang.org/grpc/cmd/protoc-gen-go-grpc`

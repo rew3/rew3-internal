@@ -1,0 +1,370 @@
+syntax = "proto3";
+
+option go_package = "service/grpc/proto/pb";
+
+import "google/protobuf/wrappers.proto";
+import "google/protobuf/any.proto";
+
+package payload;
+
+message RequestPayloadProto {
+  string api_operation = 1;
+  RequestContextProto request_context = 2;
+  google.protobuf.Any data = 3;
+}
+
+message ResponsePayloadProto {
+  string api_operation = 1;
+  StatusTypeProto status_type = 2;
+  string status_message = 3;
+  google.protobuf.Any data = 4;
+}
+
+enum StatusTypeProto {
+  STATUS_TYPE_UNKNOWN = 0;
+  OK = 1;
+  CREATED = 2;
+  DELETED = 3;
+  ACCEPTED = 4;
+  BAD_REQUEST = 5;
+  UNAUTHORIZED = 6;
+  FORBIDDEN = 7;
+  INTERNAL_SERVER_ERROR = 8;
+  BAD_GATEWAY = 9;
+  SERVICE_UNAVAILABLE = 10;
+  GATEWAY_TIMEOUT = 11;
+  NOT_FOUND = 12;
+  INVALID_INPUT = 13;
+}
+
+message RequestContextProto {
+  string member = 1;
+  MiniUserProto user = 2;
+  string full_name = 3;
+  string lang = 4;
+  google.protobuf.StringValue command = 5;
+  google.protobuf.StringValue e_tag = 6;
+  google.protobuf.StringValue entity = 7;
+  google.protobuf.StringValue module = 8;
+  bool is_external = 9;
+  bool is_admin = 10;
+  UserInfoProto info = 11;
+  google.protobuf.StringValue timezone = 12;
+  repeated TeamMiniAliasProto teams = 13;
+  repeated string subordinate_users = 14;
+  repeated SharingRuleContextProto rules_context = 15;
+  UserActionsProto actions = 16;
+  AccountTypeProto account_type = 17;
+  SecurityTypeProto security_type = 18;
+}
+
+message MiniUserProto {
+  google.protobuf.StringValue _id = 1 [json_name = "_id"];
+  google.protobuf.StringValue first_name = 2;
+  google.protobuf.StringValue last_name = 3;
+  google.protobuf.StringValue userpic = 4;
+  google.protobuf.StringValue role_name = 5;
+  google.protobuf.StringValue title = 6;
+  google.protobuf.StringValue job_title = 7;
+  google.protobuf.StringValue company_name = 8;
+}
+
+message UserInfoProto {
+  repeated EmailProto email = 1;
+  repeated PhoneProto phone_number = 2;
+  UserPersonalProto personal = 3;
+  CompanyProto company = 4;
+}
+
+message TeamMiniAliasProto {
+  string _id = 1 [json_name = "_id"];
+  string name = 2;
+}
+
+message SharingRuleContextProto {
+  EntityProto entity = 1;
+  repeated string visible_users = 2;
+}
+
+message PhoneProto {
+  google.protobuf.StringValue phone_type = 1;
+  google.protobuf.StringValue value = 2;
+  google.protobuf.Int32Value is_primary = 3;
+}
+
+message EmailProto {
+  google.protobuf.StringValue email_type = 1;
+  google.protobuf.StringValue value = 2;
+  google.protobuf.Int32Value is_primary = 3;
+}
+
+enum AccountTypeProto {
+  TEAM = 0;
+  ORGANIZATION = 1;
+}
+
+message TeamActionsProto {
+  bool post_sign_up_completed = 1;
+}
+
+message UserActionsProto {
+  TeamActionsProto team_actions = 1;
+}
+
+enum SecurityTypeProto {
+  SIMPLE = 0;
+  ADVANCE = 1;
+}
+
+message UserPersonalProto {
+  google.protobuf.StringValue first_name = 1;
+  google.protobuf.StringValue middle_name = 2;
+  google.protobuf.StringValue last_name = 3;
+  google.protobuf.StringValue full_name = 4;
+  google.protobuf.StringValue salutation = 5;
+  google.protobuf.StringValue gender = 6;
+}
+
+message CompanyProto {
+  google.protobuf.StringValue _id = 1 [json_name = "_id"];
+  google.protobuf.StringValue no_of_employees = 2;
+  google.protobuf.StringValue website = 3;
+  google.protobuf.Int64Value annual_revenue = 4;
+  google.protobuf.StringValue industry = 5;
+  google.protobuf.StringValue name = 6;
+}
+
+enum EntityProto {
+  ENTITY_UNKNOWN = 0;
+  crm_contact = 1;
+  crm_account = 2;
+  crm_lead = 3;
+  crm_opportunity = 4;
+  crm_case = 5;
+  email = 6;
+  address = 7;
+  phone = 8;
+  lookup = 9;
+  rew3_lookup = 10;
+  rtf = 11;
+  list_view = 12;
+  hrm_employee = 13;
+  hrm_performance = 14;
+  hrm_recruitment = 15;
+  hrm_training = 16;
+  rms_sale_associate = 17;
+  rms_commission = 18;
+  rms_deduction = 19;
+  rms_finance = 20;
+  rms_listing = 21;
+  rms_preferences = 22;
+  rms_property = 23;
+  rms_offer = 24;
+  rms_showing = 25;
+  rms_request = 26;
+  rms_agent = 27;
+  rms_agent_commission = 28;
+  rms_property_open_house = 29;
+  rms_todo_task = 30;
+  rms_purchase_agreement = 31;
+  rms_listing_document = 32;
+  rms_listing_purchase_agreement = 33;
+  rms_listing_todo = 34;
+  rms_listing_todo_list = 35;
+  rms_listing_showing = 36;
+  rms_transaction = 37;
+  rms_avenue_request = 38;
+  sale_receiving_payment = 39;
+  sale_transaction_associate = 40;
+  sale_transaction_buyer = 41;
+  sale_transaction_closing = 42;
+  sale_transaction = 43;
+  sale_transaction_seller = 44;
+  security_user = 45;
+  security_associate_user = 46;
+  security_csrf = 47;
+  security_me = 48;
+  security_role = 49;
+  security_user_invitation = 50;
+  security_user_favourite = 51;
+  security_user_group = 52;
+  security_user_team = 53;
+  security_user_profile = 54;
+  security_collaborator_role = 55;
+  security_organization_role = 56;
+  security_user_activeness = 57;
+  security_user_personalized_views = 58;
+  security_sharing_rule = 59;
+  security_default_organization_setting = 60;
+  security_team_visibility = 61;
+  dms_file = 62;
+  dms_folder = 63;
+  dms_file_associate_meta = 64;
+  dms_email = 65;
+  dms_document = 66;
+  dms_document_type = 67;
+  dms_dossier = 68;
+  dms_dossier_folder = 69;
+  dms_dossier_document_group = 70;
+  dms_dossier_user_document_group = 71;
+  dms_dossier_type = 72;
+  dms_dossier_collaborator = 73;
+  dms_dossier_document_category_document = 74;
+  dms_dossier_template = 75;
+  dms_dossier_template_document = 76;
+  dms_dossier_template_group = 77;
+  dms_dossier_category = 78;
+  collaboration_blog = 79;
+  collaboration_blog_category = 80;
+  collaboration_blog_tag = 81;
+  collaboration_conversation = 82;
+  collaboration_event = 83;
+  collaboration_facebook = 84;
+  collaboration_group = 85;
+  collaboration_media = 86;
+  collaboration_organization = 87;
+  collaboration_post = 88;
+  collaboration_project = 89;
+  collaboration_task = 90;
+  collaboration_call = 91;
+  collaboration_note = 92;
+  collaboration_comment = 93;
+  collaboration_campaign = 94;
+  collaboration_tag = 95;
+  collaboration_tag_link = 96;
+  collaboration_section = 97;
+  collaboration_status_update = 99;
+  collaboration_stream_group = 100;
+  collaboration_event_type = 101;
+  collaboration_event_category = 102;
+  collaboration_follow_like_status = 103;
+  collaboration_chat = 104;
+  collaboration_ticket = 105;
+  collaboration_email = 106;
+  collaboration_workspace = 107;
+  collaboration_multimedia = 108;
+  collaboration_social_interest = 109;
+  collaboration_poll = 110;
+  collaboration_forum = 111;
+  collaboration_forum_category = 112;
+  collaboration_forum_tag = 113;
+  collaboration_knowledge = 114;
+  collaboration_knowledge_category = 115;
+  collaboration_knowledge_tag = 116;
+  collaboration_form = 117;
+  collaboration_form_category = 118;
+  collaboration_news = 119;
+  collaboration_news_category = 120;
+  collaboration_news_tag = 121;
+  collaboration_post_tag = 122;
+  collaboration_post_category = 123;
+  collaboration_multimedia_album = 124;
+  collaboration_checklist = 125;
+  collaboration_asset = 126;
+  collaboration_avpost = 127;
+  collaboration_meeting = 128;
+  collaboration_appointment = 129;
+  collaboration_library_folder = 130;
+  collaboration_library_category = 131;
+  collaboration_library_document = 132;
+  collaboration_calendar = 133;
+  collaboration_calendar_type = 134;
+  collaboration_calendar_category = 135;
+  workflow_ = 136;
+  business_process = 137;
+  account_service_subscription = 138;
+  account_service_account = 139;
+  account_service_company = 140;
+  account_service_avenue_account = 141;
+  account_service_avenu_account = 142;
+  account_service_connection = 143;
+  account_service_org_access_setting = 144;
+  account_service_external_user_visibility = 145;
+  account_service_external_user_invitation = 146;
+  account_service_partnership_setting = 147;
+  stream_activity = 148;
+  utility_notification = 149;
+  rms_activity = 150;
+  sale_making_payment = 151;
+  sale_payable = 152;
+  sale_receivable = 153;
+  sale_transaction_property = 154;
+  history = 155;
+  subscription = 156;
+  financial_accounting_class = 157;
+  financial_accounting_code = 158;
+  financial_accounting_period = 159;
+  financial_accounting_period_request = 160;
+  financial_bank_deposit_slip = 161;
+  financial_bank_reconciliation = 162;
+  financial_bank_transaction = 163;
+  financial_billing_account = 164;
+  financial_deposit_item = 165;
+  financial_invoice = 166;
+  financial_invoice_item = 167;
+  financial_invoice_request = 168;
+  financial_normal_user = 169;
+  financial_payment_receipt = 170;
+  financial_payment_option = 171;
+  financial_payment_receipt_item = 172;
+  financial_product = 173;
+  financial_product_category = 174;
+  financial_product_category_link = 175;
+  financial_product_feature = 176;
+  financial_product_feature_link = 177;
+  financial_product_rate_plan = 178;
+  financial_product_rate_plan_charge = 179;
+  financial_product_rate_link = 180;
+  financial_sub_accounting_head = 181;
+  financial_terms = 182;
+  financial_transaction = 183;
+  financial_transaction_dummy = 184;
+  financial_payment_term = 185;
+  financial_associate_comission_plan = 186;
+  messaging_conversation = 187;
+  messaging_message = 188;
+  common_lookup = 189;
+  financial_invoice_credit_notes = 190;
+  financial_invoice_customers = 191;
+  financial_invoice_payments = 192;
+  financial_invoice_recurring_invoices = 193;
+  financial_expenses = 194;
+  financial_vendor = 195;
+  financial_bill = 196;
+  financial_bill_payment = 197;
+  financial_sales_tax = 198;
+  financial_recurring_template = 199;
+  financial_recurring_schedule = 200;
+  financial_estimate = 201;
+  financial_debit_note = 202;
+  financial_credit_note = 203;
+  financial_recurring_invoice_payment = 204;
+  financial_recurring_invoice = 205;
+  financial_customer = 206;
+  avenue_email_signature = 207;
+  avenue_email_schedule = 208;
+  avenue_email_template = 209;
+  avenue_email = 210;
+  financial_office = 211;
+  financial_trust_account = 212;
+  financial_agent = 213;
+  collaboration_project_group = 214;
+  app_security = 215;
+  app_security_profile = 216;
+  context_user_preference = 217;
+  collaboration_task_template = 218;
+  utility_activity = 219;
+  inbox = 220;
+  dms_dossier_people = 221;
+  dms_dossier_archive = 222;
+  collaboration_workflow = 223;
+  account_service_partnership_partnership = 224;
+  account_service_partnership_partnership_invitation = 225;
+  account_service_partnership_partner = 226;
+  account_service_partnership_partner_unlink_request = 227;
+  account_service_collaborator = 228;
+  account_service_network_user = 229;
+  rms_partner_listing = 230;
+  rms_partner_transaction = 231;
+  rms_agent_plan = 232;
+}

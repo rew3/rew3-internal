@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+option go_package = "service/grpc/proto/pb";
+
+import "service/grpc/proto/payload.proto";
+
+package service; 
+
+service ServiceProto {
+  rpc ExecuteRequest(payload.RequestPayloadProto) returns (payload.ResponsePayloadProto) {}
+}
