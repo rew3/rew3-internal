@@ -14,10 +14,11 @@ import (
 	"github.com/rew3/rew3-internal/service/grpc/proto/pb"
 
 	ac "github.com/rew3/rew3-internal/app/account/constants"
+	grpcLib "google.golang.org/grpc"
 )
 
 /**
- * Main GRPC Service to handle and execute request for server. 
+ * Main GRPC Service to handle and execute request for server.
  */
 type Service struct {
 	pb.UnimplementedServiceProtoServer
@@ -28,8 +29,18 @@ func NewService(registry *ServiceMethodRegistry) *Service {
 	return &Service{serviceMethodRegistry: registry}
 }
 
+/**
+ * Register this GRPC Service to Server.
+ */
+func (service *Service) RegisterToServer(server *grpcLib.Server) {
+	pb.RegisterServiceProtoServer(server, service)
+}
+
+/**
+ * Execute Request. 
+ */
 func (service *Service) ExecuteRequest(ctx context.Context, request *pb.RequestPayloadProto) (*pb.ResponsePayloadProto, error) {
-	if(request.ApiOperation == "") {
+	if request.ApiOperation == "" {
 		return &pb.ResponsePayloadProto{
 			ApiOperation:  request.ApiOperation,
 			StatusType:    pb.StatusTypeProto_SERVICE_UNAVAILABLE,
@@ -51,7 +62,7 @@ func (service *Service) ExecuteRequest(ctx context.Context, request *pb.RequestP
 }
 
 /**
- * Convert proto input to Request Payload. 
+ * Convert proto input to Request Payload.
  */
 func (service *Service) requestPayload(request *pb.RequestPayloadProto) grpc.RequestPayload {
 	return grpc.RequestPayload{
@@ -62,7 +73,7 @@ func (service *Service) requestPayload(request *pb.RequestPayloadProto) grpc.Req
 }
 
 /**
- * Convert to proto response from Response Payload. 
+ * Convert to proto response from Response Payload.
  */
 func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb.ResponsePayloadProto {
 	dataBytes, err := json.Marshal(response.Data)
