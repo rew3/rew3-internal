@@ -16,22 +16,31 @@ import (
 	ac "github.com/rew3/rew3-internal/app/account/constants"
 )
 
-type GRPCService struct {
+type Service struct {
 	pb.UnimplementedServiceProtoServer
-	requestHandler RequestHandler
+	serviceMethodRegistry *ServiceMethodRegistry
 }
 
-func NewGRPCService(handler RequestHandler) *GRPCService {
-	return &GRPCService{requestHandler: handler}
+func NewService(registry *ServiceMethodRegistry) *Service {
+	return &Service{serviceMethodRegistry: registry}
 }
 
-func (service *GRPCService) ExecuteRequest(ctx context.Context, request *pb.RequestPayloadProto) (*pb.ResponsePayloadProto, error) {
+func (service *Service) ExecuteRequest(ctx context.Context, request *pb.RequestPayloadProto) (*pb.ResponsePayloadProto, error) {
 	requestPayload := service.requestPayload(request)
-	response := service.requestHandler.Handle(requestPayload)
-	return service.responsePayloadProto(&response), nil
+	isExists, method := service.serviceMethodRegistry.GetServiceMethod(requestPayload.API)
+	if isExists {
+		response := method.call(ctx, requestPayload)
+		return service.responsePayloadProto(response), nil
+	} else {
+		return &pb.ResponsePayloadProto{
+			ApiOperation:  string(requestPayload.API),
+			StatusType:    pb.StatusTypeProto_SERVICE_UNAVAILABLE,
+			StatusMessage: "API Method not found.",
+		}, nil
+	}
 }
 
-func (service *GRPCService) requestPayload(request *pb.RequestPayloadProto) grpc.RequestPayload {
+func (service *Service) requestPayload(request *pb.RequestPayloadProto) grpc.RequestPayload {
 	return grpc.RequestPayload{
 		API:     api.ResolveOperation(request.ApiOperation),
 		Context: service.requestContext(request.RequestContext),
@@ -39,7 +48,7 @@ func (service *GRPCService) requestPayload(request *pb.RequestPayloadProto) grpc
 	}
 }
 
-func (service *GRPCService) responsePayloadProto(response *grpc.ResponsePayload) *pb.ResponsePayloadProto {
+func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb.ResponsePayloadProto {
 	dataBytes, err := json.Marshal(response.Data)
 	if err != nil {
 		log.Fatal("Error marshaling raw data from ResponsePayload to proto:", err)
@@ -74,7 +83,7 @@ func (service *GRPCService) responsePayloadProto(response *grpc.ResponsePayload)
 	}
 }
 
-func (service *GRPCService) requestContext(proto *pb.RequestContextProto) request.RequestContext {
+func (service *Service) requestContext(proto *pb.RequestContextProto) request.RequestContext {
 	if proto == nil {
 		return request.RequestContext{}
 	}
