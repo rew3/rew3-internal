@@ -29,6 +29,13 @@ func NewService(registry *ServiceMethodRegistry) *Service {
 }
 
 func (service *Service) ExecuteRequest(ctx context.Context, request *pb.RequestPayloadProto) (*pb.ResponsePayloadProto, error) {
+	if(request.ApiOperation == "") {
+		return &pb.ResponsePayloadProto{
+			ApiOperation:  request.ApiOperation,
+			StatusType:    pb.StatusTypeProto_SERVICE_UNAVAILABLE,
+			StatusMessage: "API Method not found.",
+		}, nil
+	}
 	requestPayload := service.requestPayload(request)
 	isExists, method := service.serviceMethodRegistry.GetServiceMethod(requestPayload.API)
 	if isExists {
