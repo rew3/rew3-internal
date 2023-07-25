@@ -90,7 +90,7 @@ func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPa
 }
 
 /**
- * Convert request context to proto. 
+ * Convert request context to proto.
  */
 func (client *Client) requestContextProto(rc request.RequestContext) *pb.RequestContextProto {
 	// TODO - do auto mapping.

@@ -15,5 +15,6 @@ const (
 
 	// READ Operations.
 	LIST_CONTACTS     api.APIOperation = "listContacts"
+	COUNT_CONTACTS    api.APIOperation = "countContacts"
 	GET_CONTACT_BY_ID api.APIOperation = "getContactById"
 )
