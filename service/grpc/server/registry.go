@@ -2,6 +2,10 @@ package server
 
 import "github.com/rew3/rew3-internal/service/grpc/api"
 
+/**
+ * Service method registry. 
+ * Contains list of all service methods. You can add methods as required/needed. 
+ */
 type ServiceMethodRegistry struct {
 	registry map[api.APIOperation]ServiceMethod
 }

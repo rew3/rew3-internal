@@ -7,6 +7,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/segmentio/encoding v0.3.6
+	github.com/tidwall/gjson v1.14.4
 	go.mongodb.org/mongo-driver v1.11.7
 	google.golang.org/grpc v1.56.2
 	google.golang.org/protobuf v1.30.0
@@ -21,6 +22,8 @@ require (
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/segmentio/asm v1.1.3 // indirect
+	github.com/tidwall/match v1.1.1 // indirect
+	github.com/tidwall/pretty v1.2.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.1 // indirect
 	github.com/xdg-go/stringprep v1.0.3 // indirect

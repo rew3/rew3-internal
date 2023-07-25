@@ -16,6 +16,9 @@ import (
 	ac "github.com/rew3/rew3-internal/app/account/constants"
 )
 
+/**
+ * Main GRPC Service to handle and execute request for server. 
+ */
 type Service struct {
 	pb.UnimplementedServiceProtoServer
 	serviceMethodRegistry *ServiceMethodRegistry
@@ -40,6 +43,9 @@ func (service *Service) ExecuteRequest(ctx context.Context, request *pb.RequestP
 	}
 }
 
+/**
+ * Convert proto input to Request Payload. 
+ */
 func (service *Service) requestPayload(request *pb.RequestPayloadProto) grpc.RequestPayload {
 	return grpc.RequestPayload{
 		API:     api.ResolveOperation(request.ApiOperation),
@@ -48,6 +54,9 @@ func (service *Service) requestPayload(request *pb.RequestPayloadProto) grpc.Req
 	}
 }
 
+/**
+ * Convert to proto response from Response Payload. 
+ */
 func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb.ResponsePayloadProto {
 	dataBytes, err := json.Marshal(response.Data)
 	if err != nil {
@@ -83,6 +92,9 @@ func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb
 	}
 }
 
+/**
+ * Convert proto input to Request Context.
+ */
 func (service *Service) requestContext(proto *pb.RequestContextProto) request.RequestContext {
 	if proto == nil {
 		return request.RequestContext{}

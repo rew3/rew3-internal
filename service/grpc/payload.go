@@ -8,6 +8,9 @@ import (
 	"github.com/rew3/rew3-internal/service/grpc/api"
 )
 
+/**
+ * Request and Response payloads. 
+ */
 type RequestPayload struct {
 	API     api.APIOperation
 	Context request.RequestContext
