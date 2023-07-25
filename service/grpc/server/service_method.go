@@ -12,17 +12,13 @@ import (
 )
 
 type ServiceMethod struct {
-	method    api.APIOperation
+	api       api.APIOperation
 	inputType interface{}
-	handler   ServiceMethodHandler
+	handler   func(context.Context, request.RequestContext, interface{}) *grpc.ResponsePayload
 }
 
-func NewServiceMethod(api api.APIOperation, inputType interface{}, handler ServiceMethodHandler) *ServiceMethod {
-	return &ServiceMethod{
-		method:    api,
-		inputType: inputType,
-		handler:   handler,
-	}
+func NewServiceMethod(api api.APIOperation) *ServiceMethod {
+	return &ServiceMethod{api: api}
 }
 
 func (sm *ServiceMethod) call(ctx context.Context, request grpc.RequestPayload) *grpc.ResponsePayload {
@@ -35,9 +31,15 @@ func (sm *ServiceMethod) call(ctx context.Context, request grpc.RequestPayload) 
 			StatusMessage: string("INVALID REQUEST DATA: " + err.Error()),
 		}
 	}
-	return sm.handler.HandleMethod(ctx, request.Context, sm.inputType)
+	return sm.handler(ctx, request.Context, sm.inputType)
 }
 
-type ServiceMethodHandler interface {
-	HandleMethod(ctx context.Context, rc request.RequestContext, data interface{}) *grpc.ResponsePayload
+func (sm *ServiceMethod) BindInput(inputType interface{}) *ServiceMethod {
+	sm.inputType = inputType
+	return sm
+}
+
+func (sm *ServiceMethod) BindHandler(handler func(context.Context, request.RequestContext, interface{}) *grpc.ResponsePayload) *ServiceMethod {
+	sm.handler = handler
+	return sm
 }

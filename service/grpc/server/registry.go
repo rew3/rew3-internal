@@ -11,8 +11,8 @@ func NewServiceMethodRegistry() *ServiceMethodRegistry {
 	return &ServiceMethodRegistry{registry: registry}
 }
 
-func (registry *ServiceMethodRegistry) AddServiceMethod(api api.APIOperation, method ServiceMethod) {
-	registry.registry[api] = method
+func (registry *ServiceMethodRegistry) AddServiceMethod(method ServiceMethod) {
+	registry.registry[method.api] = method
 }
 
 func (registry *ServiceMethodRegistry) GetServiceMethod(api api.APIOperation) (bool, *ServiceMethod) {
