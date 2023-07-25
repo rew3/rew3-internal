@@ -28,12 +28,12 @@ type ResponsePayload struct {
 /**
  * Parse given execution result nto ResponsePayload.
  */
-func ToResponsePayload[T any](api api.APIOperation, executionResult response.ExecutionResult[T]) ResponsePayload {
+func ToResponsePayload[T any](api api.APIOperation, executionResult *response.ExecutionResult[T]) *ResponsePayload {
 	var data json.RawMessage = nil
 	if parsed, err := ToJson[T](executionResult.Data); err == nil {
 		data = parsed
 	}
-	return ResponsePayload{
+	return &ResponsePayload{
 		API:           api,
 		Status:        executionResult.Status,
 		StatusMessage: executionResult.Message,
