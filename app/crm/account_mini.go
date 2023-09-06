@@ -27,7 +27,7 @@ type AccountMini struct {
 	ID            string    `json:"_id,omitempty" bson:"_id,omitempty"`
 	NoOfEmployees string    `json:"no_of_employees,omitempty" bson:"no_of_employees,omitempty"`
 	Website       c.Rew3Url `json:"website,omitempty" bson:"website,omitempty"`
-	AnnualRevenue int       `json:"annual_revenue,omitempty" bson:"annual_revenue,omitempty"` //It was BigDecimal
+	AnnualRevenue float64   `json:"annual_revenue,omitempty" bson:"annual_revenue,omitempty"` //It was BigDecimal
 	Industry      string    `json:"industry,omitempty" bson:"industry,omitempty"`
 	Name          string    `json:"name,omitempty" bson:"name,omitempty"`
 }

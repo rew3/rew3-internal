@@ -1,11 +1,11 @@
 package mapper
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
 	"github.com/mitchellh/mapstructure"
+	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"github.com/segmentio/encoding/json"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -19,13 +19,13 @@ func MapModelToPB[M any, P proto.Message](model M, defaultValue P) (P, error) {
 	// Converting model to Map.
 	maps, err := buildMapFromModel(model)
 	if err != nil {
-		fmt.Printf("MapModelToProto: Error while converting from Modal to Maps: %v", err)
+		logger.Log().Error("MapModelToProto: Error while converting from Modal to Maps:", err)
 		return defaultValue, err
 	}
 	// Converting maps to proto.
 	proto, err := buildProtoFromMap(maps, defaultValue)
 	if err != nil {
-		fmt.Printf("MapModelToProto: Error while converting from Maps to Proto: %v", err)
+		logger.Log().Error("MapModelToProto: Error while converting from Maps to Proto:", err)
 		return defaultValue, err
 	}
 	return proto, nil
@@ -40,16 +40,16 @@ func MapModelFromPB[M any, P proto.Message](proto P, defaultValue M, trimString 
 	// Converting proto to Map.
 	maps, err := buildMapFromProto(proto)
 	if err != nil {
-		fmt.Printf("MapModelFromProto: Error while converting from Proto to Maps: %v", err)
+		logger.Log().Error("MapModelFromProto: Error while converting from Proto to Maps:", err)
 		return defaultValue, err
 	}
-	if(trimString) {
+	if trimString {
 		recursivelyTrimStrings(maps)
 	}
 	// Converting maps to Model.
 	result, err := buildModelFromMap(maps, &defaultValue)
 	if err != nil {
-		fmt.Printf("MapModelFromProto: Error while converting from Maps to Model: %v", err)
+		logger.Log().Error("MapModelFromProto: Error while converting from Maps to Model:", err)
 		return defaultValue, err
 	}
 	return *result, nil

@@ -446,6 +446,9 @@ func (repo *MongoRepository[Entity]) Find(ctx context.Context, filters bson.D, o
 		if sort == nil {
 			sort = bson.D{{Key: "meta._created", Value: -1}}
 		}
+		if limit <= 0 {
+			limit = 25
+		}
 		options := &options.FindOptions{
 			Skip:  &offset,
 			Limit: &limit,
@@ -517,6 +520,9 @@ func (repo *MongoRepository[Entity]) FindPublic(ctx context.Context, filters bso
 	results := []*Entity{}
 	if sort == nil {
 		sort = bson.D{{Key: "meta._created", Value: -1}}
+	}
+	if limit <= 0 {
+		limit = 25
 	}
 	options := &options.FindOptions{
 		Skip:  &offset,
