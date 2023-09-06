@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/rew3/rew3-internal/pkg/utils/logger"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -38,14 +39,12 @@ func (client *MongoClient) connect() {
 	if err != nil {
 		logger.Log().Error("Failed to connect to MongoDB:", err)
 	}
-	if err := mongoClient.Ping(context.Background(), nil); err != nil {
-		// Connection is not active or there was an error
+	client.db = mongoClient.Database(client.dbName)
+	client.client = mongoClient
+	if err := client.db.RunCommand(context.TODO(), bson.D{{"ping", 1}}).Err(); err != nil {
 		logger.Log().Error("ERROR: MongoDB Client connection is not established: ", err)
-	} else {
-		logger.Log().Info("SUCCESS: MongoDB Client is connected.")
-		client.db = mongoClient.Database(client.dbName)
-		client.client = mongoClient
 	}
+	logger.Log().Info("SUCCESS: MongoDB Client is connected.")
 }
 
 /**
