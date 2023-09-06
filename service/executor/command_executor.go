@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	c "github.com/rew3/rew3-internal/service/command"
 	"github.com/rew3/rew3-internal/service/common/response"
 	"github.com/rew3/rew3-internal/service/common/response/constants"
@@ -28,7 +29,7 @@ func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command)
 	controller, err := executor.serviceRegistry.GetCommandController(commandName)
 	if err != nil {
 		message := "No handler/controller registered for command type: " + commandName
-		log.Println(message)
+		logger.Error(message)
 		return c.CommandResult[interface{}]{Response: response.ErrorExecutionResult[interface{}]("-", commandName, message, constants.SERVICE_UNAVAILABLE)}
 	} else {
 		resultChannel := c.NewCommandResultChannel()
@@ -38,7 +39,7 @@ func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command)
 			return result
 		case <-time.After(30 * time.Second):
 			message := "Timeout reached while receiving data by Command Executor."
-			log.Println(message)
+			logger.Error(message)
 			return c.CommandResult[interface{}]{Response: response.ErrorExecutionResult[interface{}]("-", commandName, message, constants.SERVICE_UNAVAILABLE)}
 		}
 	}

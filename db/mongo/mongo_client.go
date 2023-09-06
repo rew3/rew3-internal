@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -36,16 +37,16 @@ func (client *MongoClient) connect() {
 	defer cancel()
 	mongoClient, err := mongo.Connect(ctx, client.clientOptions)
 	if err != nil {
-		log.Fatalf("Failed to connect to MongoDB: %v", err)
+		logger.Error("Failed to connect to MongoDB:", err)
 	}
 	if err := mongoClient.Ping(context.Background(), nil); err != nil {
 		// Connection is not active or there was an error
-		log.Println("ERROR: MongoDB Client connection is not connected.")
+		logger.Error("ERROR: MongoDB Client connection is not established: ", err)
 	} else {
-		log.Println("SUCCESS: MongoDB Client is connected.")
+		logger.Error("SUCCESS: MongoDB Client is connected.")
+		client.db = mongoClient.Database(client.dbName)
+		client.client = mongoClient
 	}
-	client.db = mongoClient.Database(client.dbName)
-	client.client = mongoClient
 }
 
 /**
@@ -53,7 +54,7 @@ func (client *MongoClient) connect() {
  */
 func (client *MongoClient) GetCollection(collectionName string) *mongo.Collection {
 	if client.client == nil || client.db == nil {
-		log.Println("ERROR: MongoDB Client unavailable. Connecting...")
+		logger.Info("ERROR: MongoDB Client unavailable. Connecting...")
 		client.connect()
 	}
 	return client.db.Collection(collectionName)

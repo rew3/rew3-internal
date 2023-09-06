@@ -7,6 +7,7 @@ import (
 
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/rew3/rew3-internal/app/account"
+	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"github.com/rew3/rew3-internal/service/common/request"
 	"github.com/rew3/rew3-internal/service/common/response/constants"
 	"github.com/rew3/rew3-internal/service/grpc"
@@ -78,7 +79,7 @@ func (service *Service) requestPayload(request *pb.RequestPayloadProto) grpc.Req
 func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb.ResponsePayloadProto {
 	dataBytes, err := json.Marshal(response.Data)
 	if err != nil {
-		log.Fatal("Error marshaling raw data from ResponsePayload to proto:", err)
+		logger.Error("Error marshaling raw data from ResponsePayload to proto:", err)
 		return &pb.ResponsePayloadProto{
 			ApiOperation:  string(response.API),
 			StatusType:    pb.StatusTypeProto_INTERNAL_SERVER_ERROR,

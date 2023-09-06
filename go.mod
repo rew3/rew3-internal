@@ -7,6 +7,7 @@ require (
 	github.com/golang/protobuf v1.5.3
 	github.com/mitchellh/mapstructure v1.5.0
 	github.com/segmentio/encoding v0.3.6
+	github.com/sirupsen/logrus v1.9.3
 	github.com/tidwall/gjson v1.14.4
 	go.mongodb.org/mongo-driver v1.12.0
 	google.golang.org/grpc v1.56.2

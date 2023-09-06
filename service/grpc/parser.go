@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 
+	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"github.com/tidwall/gjson"
 )
 
@@ -32,7 +33,7 @@ func ParsePayload[T any](payload *PayloadWrapper, path string) (T, error) {
 	}
 	err := json.Unmarshal([]byte(rawJson), &data)
 	if err != nil {
-		log.Println("[ParsePayload] Parsing Error:", err.Error())
+		logger.Error("[ParsePayload] Parsing Error:", err.Error())
 		return data, errors.New("Parsing Error: " + err.Error())
 	}
 	return data, nil
@@ -44,7 +45,7 @@ func ParsePayload[T any](payload *PayloadWrapper, path string) (T, error) {
 func ToJson[T any](data T) (json.RawMessage, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		log.Println("[ToJson] Parsing Error:", err.Error())
+		logger.Error("[ToJson] Parsing Error:", err.Error())
 		return nil, err
 	}
 	return json.RawMessage(jsonData), nil
@@ -57,7 +58,7 @@ func ToType[T any](data json.RawMessage) (T, error) {
 	var result T
 	err := json.Unmarshal(data, &result)
 	if err != nil {
-		log.Println("[ToType] Parsing Error:", err.Error())
+		logger.Error("[ToType] Parsing Error:", err.Error())
 		return result, err
 	}
 	return result, nil

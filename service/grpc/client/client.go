@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/golang/protobuf/ptypes/any"
+	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"github.com/rew3/rew3-internal/service/common/request"
 	"github.com/rew3/rew3-internal/service/common/response/constants"
 	"github.com/rew3/rew3-internal/service/grpc"
@@ -42,10 +43,10 @@ func (client *Client) init() {
 	isInsecure := client.isInsecure
 	connection, err := NewConn(url, isInsecure)
 	if err != nil {
-		log.Println("Unable to connect to " + client.serviceName + " Client.")
+		logger.Error("Unable to connect to " + client.serviceName + " Client.")
 	}
 	client.grpcClient = pb.NewServiceProtoClient(connection)
-	log.Println(": Registered : GRPC Client for " + client.serviceName)
+	logger.Error("Registered : GRPC Client for " + client.serviceName)
 }
 
 /**
@@ -58,7 +59,7 @@ func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPa
 	// Marshal the json.RawMessage to a byte array
 	dataBytes, err := json.Marshal(request.Data)
 	if err != nil {
-		log.Fatal("Error marshaling raw data from RequestPayload to proto:", err)
+		logger.Error("Error marshaling raw data from RequestPayload to proto:", err)
 	}
 	requestProto := pb.RequestPayloadProto{
 		ApiOperation:   string(request.API),

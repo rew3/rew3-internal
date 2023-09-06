@@ -1,9 +1,9 @@
 package query
 
 import (
-	"fmt"
 	"time"
 
+	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	s "github.com/rew3/rew3-internal/service/common/response"
 )
 
@@ -36,7 +36,7 @@ func (cs *QueryResultChannel) Send(data QueryResult[interface{}]) {
 	select {
 	case cs.Result <- data:
 	case <-time.After(time.Second):
-		fmt.Println("Timeout reached while sending data to Query Result Channel.")
+		logger.Println("Timeout reached while sending data to Query Result Channel.")
 	}
 	close(cs.Result)
 }

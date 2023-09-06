@@ -8,6 +8,7 @@ import (
 	"time"
 
 	mongoUtility "github.com/rew3/rew3-internal/db/utils"
+	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	service "github.com/rew3/rew3-internal/service/common/request"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -33,7 +34,7 @@ func (repo *MongoRepository[Entity]) Insert(ctx context.Context, data *Entity) (
 	return handleWrite(ctx, func(rc service.RequestContext) (*Entity, error) {
 		doc, err := mongoUtility.EntityToBsonD(data, false, true)
 		if err != nil {
-			log.Printf("Invalid Input: Failed to create record: %v\n", err)
+			logger.Error("Invalid Input: Failed to create record:", err)
 			return nil, err
 		}
 		doc = removeInternalFields(doc)
@@ -41,7 +42,7 @@ func (repo *MongoRepository[Entity]) Insert(ctx context.Context, data *Entity) (
 		doc = repo.RepositoryContext.MetaDataWriter.WriteNewMeta(id.Hex(), doc, &rc)
 		res, err := repo.Collection.InsertOne(ctx, doc)
 		if err != nil {
-			log.Printf("Failed to create record: %v\n", err)
+			logger.Error("Failed to create record:", err)
 			return nil, err
 		}
 		var insertedDoc bson.D
@@ -62,12 +63,12 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 	return handleWrite(ctx, func(rc service.RequestContext) (*Entity, error) {
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
-			log.Printf("Invalid Record ID: %v\n", err)
+			logger.Error("Invalid Record ID:", err)
 			return nil, err
 		}
 		doc, err := mongoUtility.EntityToBsonD(data, false, true)
 		if err != nil {
-			log.Printf("Invalid Input: Failed to update record: %v\n", err)
+			logger.Error("Invalid Input: Failed to update record:", err)
 			return nil, err
 		}
 		doc = removeInternalFields(doc)
@@ -79,10 +80,10 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 		err = repo.Collection.FindOneAndUpdate(ctx, filter, update, options.FindOneAndUpdate().SetReturnDocument(options.After)).Decode(&record)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				log.Printf("Record not found with ID %s\n", id)
+				logger.Error("Record not found with ID", id)
 				return nil, errors.New("Record not found with ID" + id)
 			}
-			log.Printf("Failed to update record: %v\n", err)
+			logger.Error("Failed to update record:", err)
 			return nil, err
 		}
 		return &record, nil
@@ -97,12 +98,12 @@ func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id stri
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
-			log.Printf("Invalid Record ID: %v\n", err)
+			logger.Error("Invalid Record ID:", err)
 			return false, err
 		}
 		doc, err := mongoUtility.EntityToBsonD(data, false, true)
 		if err != nil {
-			log.Printf("Invalid Input: Failed to update record: %v\n", err)
+			logger.Error("Invalid Input: Failed to update record:", err)
 			return false, err
 		}
 		doc = removeInternalFields(doc)
@@ -112,10 +113,10 @@ func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id stri
 		_, err = repo.Collection.UpdateOne(ctx, filter, update)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				log.Printf("Record not found with ID %s\n", id)
+				logger.Error("Record not found with ID:", id)
 				return false, errors.New("Record not found with ID" + id)
 			}
-			log.Printf("Failed to update record: %v\n", err)
+			logger.Error("Failed to update record:", err)
 			return false, err
 		}
 		return true, nil
@@ -126,7 +127,7 @@ func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		doc, err := mongoUtility.EntityToBsonD(data, false, true)
 		if err != nil {
-			log.Printf("Invalid Input: Failed to update record: %v\n", err)
+			logger.Error("Invalid Input: Failed to update record:", err)
 			return false, err
 		}
 		doc = removeInternalFields(doc)
@@ -136,10 +137,10 @@ func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector
 		_, err = repo.Collection.UpdateOne(ctx, selector, update)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				log.Printf("Record not found with provided selector")
+				logger.Error("Record not found with provided selector")
 				return false, errors.New("record not found with provided selector")
 			}
-			log.Printf("Failed to update record: %v\n", err)
+			logger.Error("Failed to update record:", err)
 			return false, err
 		}
 		return true, nil
@@ -155,10 +156,10 @@ func (repo *MongoRepository[Entity]) UpdateWithRawData(ctx context.Context, sele
 		_, err := repo.Collection.UpdateOne(ctx, selector, update)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				log.Printf("Record not found with provided selector")
+				logger.Error("Record not found with provided selector")
 				return false, errors.New("record not found with provided selector")
 			}
-			log.Printf("Failed to update record: %v\n", err)
+			logger.Error("Failed to update record:", err)
 			return false, err
 		}
 		return true, nil
@@ -178,14 +179,14 @@ func (repo *MongoRepository[Entity]) UnsetFields(ctx context.Context, selector b
 			if err != nil {
 				return false, err
 			}
-			log.Printf("Document fields unset - %v", res.MatchedCount)
+			logger.Info("Document fields unset:", res.MatchedCount)
 			return true, nil
 		} else {
 			res, err := repo.Collection.UpdateOne(ctx, selector, update)
 			if err != nil {
 				return false, err
 			}
-			log.Printf("Document fields unset - %v", res.MatchedCount)
+			logger.Info("Document fields unset:", res.MatchedCount)
 			return true, nil
 		}
 	})
@@ -196,7 +197,7 @@ func (repo *MongoRepository[Entity]) Archive(ctx context.Context, id string) (bo
 		// TODO - add security filter.
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
-			log.Printf("Invalid ID: %v\n", err)
+			logger.Error("Invalid ID:", err)
 			return false, errors.New("provide document ID is not valid")
 		}
 		updateData := bson.M{
@@ -208,7 +209,7 @@ func (repo *MongoRepository[Entity]) Archive(ctx context.Context, id string) (bo
 		if err != nil {
 			return false, err
 		}
-		log.Printf("Document archived - %v", res.MatchedCount)
+		logger.Info("Document archived:", res.MatchedCount)
 		return true, nil
 	})
 }
@@ -218,7 +219,7 @@ func (repo *MongoRepository[Entity]) UnArchive(ctx context.Context, id string) (
 		// TODO - add security filter.
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
-			log.Printf("Invalid ID: %v\n", err)
+			logger.Error("Invalid ID:", err)
 			return false, errors.New("provide document ID is not valid")
 		}
 		selector := bson.D{{Key: "_id", Value: objectID}}
@@ -232,13 +233,13 @@ func (repo *MongoRepository[Entity]) Delete(ctx context.Context, id string) (boo
 		// TODO - add security filter.
 		objectID, err1 := primitive.ObjectIDFromHex(id)
 		if err1 != nil {
-			log.Printf("Invalid ID: %v\n", err1)
+			logger.Error("Invalid ID:", err1)
 			return false, fmt.Errorf("record not found with id %s", id)
 		}
 		filter := bson.M{"_id": objectID}
 		_, err := repo.Collection.DeleteOne(ctx, filter)
 		if err != nil {
-			log.Printf("Error deleting contact: %v", err)
+			logger.Error("Error deleting contact:v", err)
 			return false, err
 		}
 		return true, nil
@@ -249,7 +250,7 @@ func (repo *MongoRepository[Entity]) FindAndDelete(ctx context.Context, selector
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		// TODO - add security filter.
 		if _, err := repo.Collection.DeleteOne(ctx, selector); err != nil {
-			log.Printf("Error deleting contact: %v", err)
+			logger.Error("Error deleting contact:", err)
 			return false, err
 		}
 		return true, nil
@@ -262,7 +263,7 @@ func (repo *MongoRepository[Entity]) BulkInsert(ctx context.Context, data []*Ent
 		for _, entity := range data {
 			doc, err := mongoUtility.EntityToBsonD(&entity, true, true)
 			if err != nil {
-				return false, fmt.Errorf("invalid entity data : %v", doc)
+				return false, fmt.Errorf("invalid entity data:", doc)
 			}
 			doc = removeInternalFields(doc)
 			id, doc := mongoUtility.WriteObjectID(doc)
@@ -275,7 +276,7 @@ func (repo *MongoRepository[Entity]) BulkInsert(ctx context.Context, data []*Ent
 		}
 		_, err := repo.Collection.InsertMany(ctx, docs)
 		if err != nil {
-			log.Printf("Failed to bulk create record: %v\n", err)
+			logger.Error("Failed to bulk create record:", err)
 			return false, err
 		}
 		return true, nil
@@ -299,7 +300,7 @@ func (repo *MongoRepository[Entity]) BulkUpdate(ctx context.Context, data map[st
 		}
 		_, err := repo.Collection.BulkWrite(context.TODO(), writes)
 		if err != nil {
-			log.Printf("Failed to bulk create record: %v\n", err)
+			logger.Error("Failed to bulk create record:", err)
 			return false, err
 		}
 		return true, nil
@@ -314,7 +315,7 @@ func (repo *MongoRepository[Entity]) BulkDelete(ctx context.Context, ids []strin
 		for i, id := range ids {
 			objectID, err := primitive.ObjectIDFromHex(id)
 			if err != nil {
-				log.Fatal(err)
+				logger.Error("Unable to bulk delete: ", err)
 			}
 			objectIDs[i] = objectID
 		}
@@ -325,7 +326,7 @@ func (repo *MongoRepository[Entity]) BulkDelete(ctx context.Context, ids []strin
 		}
 		_, err := repo.Collection.DeleteMany(ctx, filter)
 		if err != nil {
-			log.Printf("Error deleting records: %v", err)
+			logger.Error("Error bulk deleting records:", err)
 			return false, err
 		}
 		return true, nil
@@ -343,7 +344,7 @@ func (repo *MongoRepository[Entity]) AppendToArrayField(
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		objectID, err := primitive.ObjectIDFromHex(docId)
 		if err != nil {
-			log.Printf("Invalid Record ID: %v\n", err)
+			logger.Error("Invalid Record ID:", err)
 			return false, err
 		}
 		selector := bson.D{
@@ -359,10 +360,10 @@ func (repo *MongoRepository[Entity]) AppendToArrayField(
 		result, err := repo.Collection.UpdateOne(ctx, selector, update)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				log.Printf("Record not found with provided selector")
+				logger.Error("Record not found with provided selector")
 				return false, errors.New("record not found with provided selector")
 			}
-			log.Printf("Failed to append element to array field: %v\n", err)
+			logger.Error("Failed to append element to array field:n", err)
 			return false, err
 		}
 		if result.ModifiedCount == 0 {
@@ -372,10 +373,10 @@ func (repo *MongoRepository[Entity]) AppendToArrayField(
 			_, err = repo.Collection.UpdateOne(ctx, selectorForAts, updateForAts)
 			if err != nil {
 				if err == mongo.ErrNoDocuments {
-					log.Printf("Record not found with provided selector")
+					logger.Error("Record not found with provided selector")
 					return false, errors.New("record not found with provided selector")
 				}
-				log.Printf("Failed to append element to array field: %v\n", err)
+				logger.Error("Failed to append element to array field:", err)
 				return false, err
 			}
 		}
@@ -392,7 +393,7 @@ func (repo *MongoRepository[Entity]) RemoveFromArrayField(
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		objectID, err := primitive.ObjectIDFromHex(docId)
 		if err != nil {
-			log.Printf("Invalid Record ID: %v\n", err)
+			logger.Error("Invalid Record ID:", err)
 			return false, err
 		}
 		selector := bson.D{
@@ -408,10 +409,10 @@ func (repo *MongoRepository[Entity]) RemoveFromArrayField(
 		_, err = repo.Collection.UpdateOne(ctx, selector, update)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				log.Printf("Record not found with provided selector")
+				logger.Error("Record not found with provided selector")
 				return false, errors.New("record not found with provided selector")
 			}
-			log.Printf("Failed to remove element from array field: %v\n", err)
+			logger.Error("Failed to remove element from array field:", err)
 			return false, err
 		}
 		return true, nil
@@ -422,7 +423,7 @@ func (repo *MongoRepository[Entity]) FindById(ctx context.Context, id string) *E
 	return handleRead(ctx, func(rc service.RequestContext) *Entity {
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
-			log.Printf("Invalid ID: %v\n", err)
+			logger.Error("Invalid ID: %v\n", err)
 			return nil
 		}
 		var document Entity
@@ -430,10 +431,10 @@ func (repo *MongoRepository[Entity]) FindById(ctx context.Context, id string) *E
 		err = repo.Collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&document)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				log.Printf("Record not found with ID %s\n", id)
+				logger.Error("Record not found with ID %s\n", id)
 				return nil
 			}
-			log.Printf("Failed to get document: %v\n", err)
+			logger.Error("Failed to get document: %v\n", err)
 			return nil
 		}
 		return &document
@@ -454,7 +455,7 @@ func (repo *MongoRepository[Entity]) Find(ctx context.Context, filters bson.D, o
 		// TODO re-generate filter using seucrity check.
 		cur, err := repo.Collection.Find(ctx, filters, options)
 		if err != nil {
-			log.Printf("Error listing documents: %v", err)
+			logger.Error("Error listing documents:", err)
 			return results
 		}
 		defer cur.Close(ctx)
@@ -462,12 +463,12 @@ func (repo *MongoRepository[Entity]) Find(ctx context.Context, filters bson.D, o
 			var document Entity
 			err := cur.Decode(&document)
 			if err != nil {
-				log.Printf("Error decoding document: %v", err)
+				logger.Error("Error decoding document:", err)
 			}
 			results = append(results, &document)
 		}
 		if err := cur.Err(); err != nil {
-			log.Printf("Error iterating over documents: %v", err)
+			logger.Error("Error iterating over documents:", err)
 			return nil
 		}
 		return results
@@ -478,7 +479,7 @@ func (repo *MongoRepository[Entity]) Count(ctx context.Context, filters bson.D) 
 	return handleRead(ctx, func(rc service.RequestContext) int64 {
 		count, err := repo.Collection.CountDocuments(ctx, filters)
 		if err != nil {
-			log.Printf("Error listing documents: %v", err)
+			logger.Error("Error listing documents:", err)
 			return 0
 		}
 		return count
@@ -496,7 +497,7 @@ func (repo *MongoRepository[Entity]) AggregateWithLookupJoin(ctx context.Context
 func (repo *MongoRepository[Entity]) FindByIdPublic(ctx context.Context, id string) *Entity {
 	objectID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		log.Printf("Invalid ID: %v\n", err)
+		logger.Error("Invalid ID: %v\n", err)
 		return nil
 	}
 	var document Entity
@@ -504,10 +505,10 @@ func (repo *MongoRepository[Entity]) FindByIdPublic(ctx context.Context, id stri
 	err = repo.Collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&document)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			log.Printf("Record not found with ID %s\n", id)
+			logger.Error("Record not found with ID:", id)
 			return nil
 		}
-		log.Printf("Failed to get document: %v\n", err)
+		logger.Error("Failed to get document:", err)
 		return nil
 	}
 	return &document
@@ -526,7 +527,7 @@ func (repo *MongoRepository[Entity]) FindPublic(ctx context.Context, filters bso
 	// TODO re-generate filter using seucrity check.
 	cur, err := repo.Collection.Find(ctx, filters, options)
 	if err != nil {
-		log.Printf("Error listing documents: %v", err)
+		logger.Error("Error listing documents:", err)
 		return results
 	}
 	defer cur.Close(ctx)
@@ -534,12 +535,12 @@ func (repo *MongoRepository[Entity]) FindPublic(ctx context.Context, filters bso
 		var document Entity
 		err := cur.Decode(&document)
 		if err != nil {
-			log.Printf("Error decoding document: %v", err)
+			logger.Error("Error decoding document:", err)
 		}
 		results = append(results, &document)
 	}
 	if err := cur.Err(); err != nil {
-		log.Printf("Error iterating over documents: %v", err)
+		logger.Error("Error iterating over documents:", err)
 		return nil
 	}
 	return results
@@ -548,7 +549,7 @@ func (repo *MongoRepository[Entity]) FindPublic(ctx context.Context, filters bso
 func (repo *MongoRepository[Entity]) CountPublic(ctx context.Context, filters bson.D) int64 {
 	count, err := repo.Collection.CountDocuments(ctx, bson.M{})
 	if err != nil {
-		log.Printf("Error listing documents: %v", err)
+		logger.Error("Error listing documents:", err)
 		return 0
 	}
 	return count
