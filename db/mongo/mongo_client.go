@@ -2,7 +2,6 @@ package mongo
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/rew3/rew3-internal/pkg/utils/logger"

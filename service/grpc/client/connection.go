@@ -34,7 +34,7 @@ func NewConn(host string, isInsecure bool) (*grpc.ClientConn, error) {
 	return grpc.Dial(host, opts...)
 }
 
-// For Testing only. 
+// For Testing only.
 func NewConnV2(serverAddr string) (*grpc.ClientConn, error) {
 	var opts []grpc.DialOption
 	serverHost := ""

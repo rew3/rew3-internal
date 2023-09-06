@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	mongoUtility "github.com/rew3/rew3-internal/db/utils"

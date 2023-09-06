@@ -3,7 +3,6 @@ package server
 import (
 	"context"
 	"encoding/json"
-	"log"
 
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/rew3/rew3-internal/app/account"
@@ -38,7 +37,7 @@ func (service *Service) RegisterToServer(server *grpcLib.Server) {
 }
 
 /**
- * Execute Request. 
+ * Execute Request.
  */
 func (service *Service) ExecuteRequest(ctx context.Context, request *pb.RequestPayloadProto) (*pb.ResponsePayloadProto, error) {
 	if request.ApiOperation == "" {

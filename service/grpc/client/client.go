@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"encoding/json"
-	"log"
 
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/rew3/rew3-internal/pkg/utils/logger"

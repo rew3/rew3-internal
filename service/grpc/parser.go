@@ -3,7 +3,6 @@ package grpc
 import (
 	"encoding/json"
 	"errors"
-	"log"
 
 	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"github.com/tidwall/gjson"
