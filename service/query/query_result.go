@@ -36,7 +36,7 @@ func (cs *QueryResultChannel) Send(data QueryResult[interface{}]) {
 	select {
 	case cs.Result <- data:
 	case <-time.After(time.Second):
-		logger.Println("Timeout reached while sending data to Query Result Channel.")
+		logger.Log().Error("Timeout reached while sending data to Query Result Channel.")
 	}
 	close(cs.Result)
 }

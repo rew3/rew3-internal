@@ -32,7 +32,7 @@ func ParsePayload[T any](payload *PayloadWrapper, path string) (T, error) {
 	}
 	err := json.Unmarshal([]byte(rawJson), &data)
 	if err != nil {
-		logger.Error("[ParsePayload] Parsing Error:", err.Error())
+		logger.Log().Error("[ParsePayload] Parsing Error:", err.Error())
 		return data, errors.New("Parsing Error: " + err.Error())
 	}
 	return data, nil
@@ -44,7 +44,7 @@ func ParsePayload[T any](payload *PayloadWrapper, path string) (T, error) {
 func ToJson[T any](data T) (json.RawMessage, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		logger.Error("[ToJson] Parsing Error:", err.Error())
+		logger.Log().Error("[ToJson] Parsing Error:", err.Error())
 		return nil, err
 	}
 	return json.RawMessage(jsonData), nil
@@ -57,7 +57,7 @@ func ToType[T any](data json.RawMessage) (T, error) {
 	var result T
 	err := json.Unmarshal(data, &result)
 	if err != nil {
-		logger.Error("[ToType] Parsing Error:", err.Error())
+		logger.Log().Error("[ToType] Parsing Error:", err.Error())
 		return result, err
 	}
 	return result, nil

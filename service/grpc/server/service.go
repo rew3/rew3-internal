@@ -78,7 +78,7 @@ func (service *Service) requestPayload(request *pb.RequestPayloadProto) grpc.Req
 func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb.ResponsePayloadProto {
 	dataBytes, err := json.Marshal(response.Data)
 	if err != nil {
-		logger.Error("Error marshaling raw data from ResponsePayload to proto:", err)
+		logger.Log().Error("Error marshaling raw data from ResponsePayload to proto:", err)
 		return &pb.ResponsePayloadProto{
 			ApiOperation:  string(response.API),
 			StatusType:    pb.StatusTypeProto_INTERNAL_SERVER_ERROR,

@@ -36,13 +36,13 @@ func (client *MongoClient) connect() {
 	defer cancel()
 	mongoClient, err := mongo.Connect(ctx, client.clientOptions)
 	if err != nil {
-		logger.Error("Failed to connect to MongoDB:", err)
+		logger.Log().Error("Failed to connect to MongoDB:", err)
 	}
 	if err := mongoClient.Ping(context.Background(), nil); err != nil {
 		// Connection is not active or there was an error
-		logger.Error("ERROR: MongoDB Client connection is not established: ", err)
+		logger.Log().Error("ERROR: MongoDB Client connection is not established: ", err)
 	} else {
-		logger.Error("SUCCESS: MongoDB Client is connected.")
+		logger.Log().Info("SUCCESS: MongoDB Client is connected.")
 		client.db = mongoClient.Database(client.dbName)
 		client.client = mongoClient
 	}
@@ -53,7 +53,7 @@ func (client *MongoClient) connect() {
  */
 func (client *MongoClient) GetCollection(collectionName string) *mongo.Collection {
 	if client.client == nil || client.db == nil {
-		logger.Info("ERROR: MongoDB Client unavailable. Connecting...")
+		logger.Log().Info("ERROR: MongoDB Client unavailable. Connecting...")
 		client.connect()
 	}
 	return client.db.Collection(collectionName)

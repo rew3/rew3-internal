@@ -42,10 +42,10 @@ func (client *Client) init() {
 	isInsecure := client.isInsecure
 	connection, err := NewConn(url, isInsecure)
 	if err != nil {
-		logger.Error("Unable to connect to " + client.serviceName + " Client.")
+		logger.Log().Error("Unable to connect to " + client.serviceName + " Client.")
 	}
 	client.grpcClient = pb.NewServiceProtoClient(connection)
-	logger.Error("Registered : GRPC Client for " + client.serviceName)
+	logger.Log().Error("Registered : GRPC Client for " + client.serviceName)
 }
 
 /**
@@ -58,7 +58,7 @@ func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPa
 	// Marshal the json.RawMessage to a byte array
 	dataBytes, err := json.Marshal(request.Data)
 	if err != nil {
-		logger.Error("Error marshaling raw data from RequestPayload to proto:", err)
+		logger.Log().Error("Error marshaling raw data from RequestPayload to proto:", err)
 	}
 	requestProto := pb.RequestPayloadProto{
 		ApiOperation:   string(request.API),

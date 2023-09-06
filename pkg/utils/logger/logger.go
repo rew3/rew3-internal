@@ -29,30 +29,6 @@ func Configure(outputType LogMessageType, level logrus.Level) {
 	log.SetLevel(level)
 }
 
-func Info(message ...interface{}) {
-	log.Infoln(message...)
-}
-
-func Debug(message ...interface{}) {
-	log.Debugln(message...)
-}
-
-func Warn(message ...interface{}) {
-	log.Warn(message...)
-}
-
-func Println(message ...interface{}) {
-	log.Println(message...)
-}
-
-func Error(message ...interface{}) {
-	log.Error(message...)
-}
-
-func Fatal(message ...interface{}) {
-	log.Fatal(message...)
-}
-
-func Panic(message ...interface{}) {
-	log.Panic(message...)
+func Log() *logrus.Logger {
+	return log
 }
