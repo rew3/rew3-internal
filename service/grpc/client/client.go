@@ -45,7 +45,7 @@ func (client *Client) init() {
 		logger.Log().Error("Unable to connect to " + client.serviceName + " Client.")
 	}
 	client.grpcClient = pb.NewServiceProtoClient(connection)
-	logger.Log().Error("Registered : GRPC Client for " + client.serviceName)
+	logger.Log().Info("Registered : GRPC Client for " + client.serviceName)
 }
 
 /**

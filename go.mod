@@ -1,6 +1,6 @@
 module github.com/rew3/rew3-internal
 
-go 1.20
+go 1.21
 
 require (
 	github.com/go-playground/validator v9.31.0+incompatible
