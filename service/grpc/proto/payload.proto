@@ -18,6 +18,11 @@ message ResponsePayloadProto {
   StatusTypeProto status_type = 2;
   string status_message = 3;
   google.protobuf.Any data = 4;
+  DataMeta data_meta = 5;
+}
+
+message DataMeta {
+	google.protobuf.Any type = 1; // Type is among one of Empty, Binary, List, Object and Scalar.
 }
 
 enum StatusTypeProto {

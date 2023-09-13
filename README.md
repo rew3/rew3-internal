@@ -43,8 +43,9 @@ Install Protoc - `https://google.github.io/proto-lens/installing-protoc.html`
 Download protoc-gen-go  - `go get -u github.com/golang/protobuf/protoc-gen-go`
 
 Usage:  
-`protoc --go_out=. --go-grpc_out=. path/to/your/protofile.proto`  
- Replace `path/to/your/protofile.proto` with the path to your `.proto` file.
+`protoc --go_out=. --go-grpc_out=. path/to/your/protofile.proto` 
+ Replace `path/to/your/protofile.proto` with the path to your `.proto` file.  
+ e.g. `protoc --go_out=. --go-grpc_out=. ./service/grpc/proto/*.proto`
 
 Setup Environment Variable:  
 - Ensure `GOPATH` and `GOBIN` env variable set. If not, set it: `export GOPATH=$HOME/go`, `export GOBIN=$GOPATH/bin`.
