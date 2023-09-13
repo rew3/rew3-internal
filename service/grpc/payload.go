@@ -4,9 +4,10 @@ import (
 	"encoding/json"
 
 	"github.com/rew3/rew3-internal/service/common/request"
-	"github.com/rew3/rew3-internal/service/common/response"
 	"github.com/rew3/rew3-internal/service/common/response/constants"
 	"github.com/rew3/rew3-internal/service/grpc/api"
+
+	baseConst "github.com/rew3/rew3-internal/app/common/constants"
 )
 
 /**
@@ -55,22 +56,49 @@ const (
 	String ScalarType = "String"
 )
 
+type DataType interface {
+	GetType() interface{}
+}
 type Empty struct{}
+
+func (t Empty) GetType() interface{} {
+	return t
+}
+
 type Binary struct{}
+
+func (t Binary) GetType() interface{} {
+	return t
+}
+
 type List struct {
-	ParamType string
+	ParamType baseConst.Entity
 }
+
+func (t List) GetType() interface{} {
+	return t
+}
+
 type Object struct {
-	ObjectType string
+	ObjectType baseConst.Entity
 }
+
+func (t Object) GetType() interface{} {
+	return t
+}
+
 type Scalar struct {
 	ScalarType ScalarType
+}
+
+func (t Scalar) GetType() interface{} {
+	return t
 }
 
 /**
  * Parse given execution result nto ResponsePayload.
  */
-func ToResponsePayload[T any](api api.APIOperation, executionResult *response.ExecutionResult[T]) *ResponsePayload {
+/*func ToResponsePayload[T any](api api.APIOperation, executionResult *response.ExecutionResult[T]) *ResponsePayload {
 	var data json.RawMessage = nil
 	if parsed, err := ToJson[T](executionResult.Data); err == nil {
 		data = parsed
@@ -80,5 +108,23 @@ func ToResponsePayload[T any](api api.APIOperation, executionResult *response.Ex
 		Status:        executionResult.Status,
 		StatusMessage: executionResult.Message,
 		Data:          data,
+	}
+}*/
+
+/**
+ * Parse given execution result nto ResponsePayload.
+ */
+func ToResponsePayload(api api.APIOperation, status constants.StatusType,
+	statusMessage string, data interface{}, dataType DataType) *ResponsePayload {
+	var rawdata json.RawMessage = nil
+	if parsed, err := ToJson[interface{}](data); err == nil {
+		rawdata = parsed
+	}
+	return &ResponsePayload{
+		API:           api,
+		Status:        status,
+		StatusMessage: statusMessage,
+		Data:          rawdata,
+		DataMeta:      DataMeta{Type: dataType.GetType()},
 	}
 }
