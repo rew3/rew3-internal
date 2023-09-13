@@ -72,7 +72,7 @@ func (t Binary) GetType() interface{} {
 }
 
 type List struct {
-	ParamType baseConst.Entity
+	Type baseConst.Entity
 }
 
 func (t List) GetType() interface{} {
@@ -80,7 +80,7 @@ func (t List) GetType() interface{} {
 }
 
 type Object struct {
-	ObjectType baseConst.Entity
+	Type baseConst.Entity
 }
 
 func (t Object) GetType() interface{} {
@@ -88,7 +88,7 @@ func (t Object) GetType() interface{} {
 }
 
 type Scalar struct {
-	ScalarType ScalarType
+	Type ScalarType
 }
 
 func (t Scalar) GetType() interface{} {
