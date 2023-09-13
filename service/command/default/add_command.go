@@ -26,7 +26,6 @@ type AddCommandHandler[M common.Model, C command.Command] struct {
 
 type AddCommandHandlerContext[M common.Model, C command.Command] struct {
 	CmdToModel    func(*C) (M, error)
-	GetId         func(*M) string
 	GetOwner      func(*M) account.MiniUser
 	SetOwner      func(*M, account.MiniUser)
 	GetVisibility func(*M) account.RecordVisibility
@@ -44,11 +43,11 @@ func (ch *AddCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hContext A
 	response, status, err := ch.add(ctx, &model, hContext)
 	if err != nil {
 		return command.CommandResult[M]{
-			Response: r.ErrorExecutionResult[M]("-", "Add"+ch.EntityName, err.Error(), status),
+			Response: r.ErrorExecutionResult[M]("Add"+ch.EntityName, err.Error(), status),
 		}
 	}
 	return command.CommandResult[M]{
-		Response: r.SuccessExecutionResult[M](hContext.GetId(response), "Add"+ch.EntityName, "Successfully record added.", c.CREATED, *response),
+		Response: r.SuccessExecutionResult[M]("Add"+ch.EntityName, "Successfully record added.", c.CREATED, *response),
 	}
 }
 

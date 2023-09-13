@@ -36,11 +36,11 @@ func (ch *ChangeOwnerCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hC
 	response, status, err := ch.changeOwner(ctx, id, owner, hContext)
 	if err != nil {
 		return command.CommandResult[M]{
-			Response: r.ErrorExecutionResult[M](id, "Change"+ch.EntityName+"Owner", err.Error(), status),
+			Response: r.ErrorExecutionResult[M]("Change"+ch.EntityName+"Owner", err.Error(), status),
 		}
 	}
 	return command.CommandResult[M]{
-		Response: r.SuccessExecutionResult[M](id, "Change"+ch.EntityName+"Owner", "Successfully record deleted.", c.OK, *response),
+		Response: r.SuccessExecutionResult[M]("Change"+ch.EntityName+"Owner", "Successfully record deleted.", c.OK, *response),
 	}
 
 }

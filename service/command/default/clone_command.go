@@ -25,7 +25,6 @@ type CloneCommandHandler[M common.Model, C command.Command] struct {
 }
 
 type CloneCommandHandlerContext[M common.Model, C command.Command] struct {
-	GetId          func(*M) string
 	SetOwner       func(*M, account.MiniUser)
 	SetVisibility  func(*M, account.RecordVisibility)
 	EmptyReference func(*M)
@@ -39,11 +38,11 @@ func (ch *CloneCommandHandler[M, C]) Handle(ctx context.Context, idToClone strin
 	response, status, err := ch.clone(ctx, idToClone, hContext)
 	if err != nil {
 		return command.CommandResult[M]{
-			Response: r.ErrorExecutionResult[M](idToClone, "Delete"+ch.EntityName, err.Error(), status),
+			Response: r.ErrorExecutionResult[M]("Delete"+ch.EntityName, err.Error(), status),
 		}
 	}
 	return command.CommandResult[M]{
-		Response: r.SuccessExecutionResult[M](hContext.GetId(response), "Delete"+ch.EntityName, "Successfully record deleted.", c.OK, *response),
+		Response: r.SuccessExecutionResult[M]("Delete"+ch.EntityName, "Successfully record deleted.", c.OK, *response),
 	}
 }
 

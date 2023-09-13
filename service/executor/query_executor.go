@@ -32,7 +32,7 @@ func (executor *QueryExecutor) Execute(ctx context.Context, query q.Query) q.Que
 	if err != nil {
 		message := "No handler/controller registered for query type: " + queryName
 		logger.Log().Error(message)
-		return q.QueryResult[interface{}]{Response: response.ErrorExecutionResult[interface{}]("-", queryName, message, constants.SERVICE_UNAVAILABLE)}
+		return q.QueryResult[interface{}]{Response: response.ErrorExecutionResult[interface{}](queryName, message, constants.SERVICE_UNAVAILABLE)}
 	} else {
 		resultChannel := q.NewQueryResultChannel()
 		controller.Dispatch(ctx, query, resultChannel)
@@ -42,7 +42,7 @@ func (executor *QueryExecutor) Execute(ctx context.Context, query q.Query) q.Que
 		case <-time.After(30 * time.Second):
 			message := "Timeout reached while receiving data by Query Executor."
 			logger.Log().Error(message)
-			return q.QueryResult[interface{}]{Response: response.ErrorExecutionResult[interface{}]("-", queryName, message, constants.SERVICE_UNAVAILABLE)}
+			return q.QueryResult[interface{}]{Response: response.ErrorExecutionResult[interface{}](queryName, message, constants.SERVICE_UNAVAILABLE)}
 		}
 	}
 }

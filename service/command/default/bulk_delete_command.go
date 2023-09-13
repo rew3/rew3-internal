@@ -29,11 +29,11 @@ func (ch *BulkDeleteCommandHandler[M, C]) Handle(ctx context.Context, idsToDelet
 	_, status, errs := ch.bulkDelete(ctx, idsToDelete)
 	if errs != nil {
 		return command.CommandResult[interface{}]{
-			Response: r.ErrorExecutionResult[interface{}]("-", "BulkDelete"+ch.EntityName, errs.Error(), status),
+			Response: r.ErrorExecutionResult[interface{}]("BulkDelete"+ch.EntityName, errs.Error(), status),
 		}
 	}
 	return command.CommandResult[interface{}]{
-		Response: r.SuccessExecutionResult[interface{}]("-", "BulkDelete"+ch.EntityName, "Successfully bulk deleted records", c.OK, nil),
+		Response: r.SuccessExecutionResult[interface{}]("BulkDelete"+ch.EntityName, "Successfully bulk deleted records", c.OK, nil),
 	}
 }
 

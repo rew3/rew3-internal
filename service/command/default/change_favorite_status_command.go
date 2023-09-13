@@ -39,11 +39,11 @@ func (ch *ChangeFavoriteStatusCommandHandler[M, C]) Handle(ctx context.Context, 
 	response, errStatus, err := ch.changeStatus(ctx, id, status, hContext)
 	if err != nil {
 		return command.CommandResult[M]{
-			Response: r.ErrorExecutionResult[M](id, "Change"+ch.EntityName+"FavoriteStatus", err.Error(), errStatus),
+			Response: r.ErrorExecutionResult[M]("Change"+ch.EntityName+"FavoriteStatus", err.Error(), errStatus),
 		}
 	}
 	return command.CommandResult[M]{
-		Response: r.SuccessExecutionResult[M](id, "Change"+ch.EntityName+"FavoriteStatus", "Successfully changed favorite status", c.OK, *response),
+		Response: r.SuccessExecutionResult[M]("Change"+ch.EntityName+"FavoriteStatus", "Successfully changed favorite status", c.OK, *response),
 	}
 }
 

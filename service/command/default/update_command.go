@@ -37,11 +37,11 @@ func (ch *UpdateCommandHandler[M, C]) Handle(ctx context.Context, id string, cmd
 	response, status, err := ch.update(ctx, id, model)
 	if err != nil {
 		return command.CommandResult[M]{
-			Response: r.ErrorExecutionResult[M](id, "Update"+ch.EntityName, err.Error(), status),
+			Response: r.ErrorExecutionResult[M]("Update"+ch.EntityName, err.Error(), status),
 		}
 	}
 	return command.CommandResult[M]{
-		Response: r.SuccessExecutionResult[M](id, "Update"+ch.EntityName, "Successfully record updated.", c.OK, *response),
+		Response: r.SuccessExecutionResult[M]("Update"+ch.EntityName, "Successfully record updated.", c.OK, *response),
 	}
 }
 

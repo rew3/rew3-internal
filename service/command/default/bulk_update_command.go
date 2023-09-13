@@ -37,11 +37,11 @@ func (ch *BulkUpdateCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hCo
 	_, status, errs := ch.bulkUpdate(ctx, models)
 	if errs != nil {
 		return command.CommandResult[interface{}]{
-			Response: r.ErrorExecutionResult[interface{}]("-", "BulkUpdate"+ch.EntityName, err.Error(), status),
+			Response: r.ErrorExecutionResult[interface{}]("BulkUpdate"+ch.EntityName, err.Error(), status),
 		}
 	}
 	return command.CommandResult[interface{}]{
-		Response: r.SuccessExecutionResult[interface{}]("-", "BulkUpdate"+ch.EntityName, "Successfully bulk updated records", c.OK, nil),
+		Response: r.SuccessExecutionResult[interface{}]("BulkUpdate"+ch.EntityName, "Successfully bulk updated records", c.OK, nil),
 	}
 }
 

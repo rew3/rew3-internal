@@ -36,11 +36,11 @@ func (ch *BulkChangeOwnerCommandHandler[M, C]) Handle(ctx context.Context, cmd C
 	_, status, err := ch.bulkChangeOwner(ctx, owners, hContext)
 	if err != nil {
 		return command.CommandResult[interface{}]{
-			Response: r.ErrorExecutionResult[interface{}]("-", "BulkChange"+ch.EntityName+"Owner", err.Error(), status),
+			Response: r.ErrorExecutionResult[interface{}]("BulkChange"+ch.EntityName+"Owner", err.Error(), status),
 		}
 	}
 	return command.CommandResult[interface{}]{
-		Response: r.SuccessExecutionResult[interface{}]("-", "BulkChange"+ch.EntityName+"Owner", "Successfully bulk changed record owners", c.OK, nil),
+		Response: r.SuccessExecutionResult[interface{}]("BulkChange"+ch.EntityName+"Owner", "Successfully bulk changed record owners", c.OK, nil),
 	}
 }
 

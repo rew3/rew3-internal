@@ -51,7 +51,6 @@ func ParseQueryResult[T any](result *QueryResult[interface{}], defaultValue T) *
 			IsSuccessful: result.Response.IsSuccessful,
 			Status:       result.Response.Status,
 			Message:      result.Response.Message,
-			Id:           result.Response.Id,
 			Action:       result.Response.Action,
 			Data:         defaultValue,
 		}
@@ -61,7 +60,6 @@ func ParseQueryResult[T any](result *QueryResult[interface{}], defaultValue T) *
 				IsSuccessful: result.Response.IsSuccessful,
 				Status:       result.Response.Status,
 				Message:      result.Response.Message,
-				Id:           result.Response.Id,
 				Action:       result.Response.Action,
 				Data:         data,
 			}
@@ -70,7 +68,6 @@ func ParseQueryResult[T any](result *QueryResult[interface{}], defaultValue T) *
 				IsSuccessful: result.Response.IsSuccessful,
 				Status:       result.Response.Status,
 				Message:      result.Response.Message,
-				Id:           result.Response.Id,
 				Action:       result.Response.Action,
 				Data:         *data,
 			}
@@ -79,7 +76,6 @@ func ParseQueryResult[T any](result *QueryResult[interface{}], defaultValue T) *
 				IsSuccessful: result.Response.IsSuccessful,
 				Status:       result.Response.Status,
 				Message:      result.Response.Message,
-				Id:           result.Response.Id,
 				Action:       result.Response.Action,
 				Data:         defaultValue,
 			}

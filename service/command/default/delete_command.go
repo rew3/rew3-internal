@@ -29,11 +29,11 @@ func (ch *DeleteCommandHandler[M, C]) Handle(ctx context.Context, id string) com
 	response, status, err := ch.delete(ctx, id)
 	if err != nil {
 		return command.CommandResult[M]{
-			Response: r.ErrorExecutionResult[M](id, "Delete"+ch.EntityName, err.Error(), status),
+			Response: r.ErrorExecutionResult[M]("Delete"+ch.EntityName, err.Error(), status),
 		}
 	}
 	return command.CommandResult[M]{
-		Response: r.SuccessExecutionResult[M](id, "Delete"+ch.EntityName, "Successfully record deleted.", c.OK, *response),
+		Response: r.SuccessExecutionResult[M]("Delete"+ch.EntityName, "Successfully record deleted.", c.OK, *response),
 	}
 }
 

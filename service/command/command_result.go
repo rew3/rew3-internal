@@ -52,7 +52,6 @@ func ParseCommandResult[T any](result *CommandResult[interface{}], defaultValue 
 			IsSuccessful: result.Response.IsSuccessful,
 			Status:       result.Response.Status,
 			Message:      result.Response.Message,
-			Id:           result.Response.Id,
 			Action:       result.Response.Action,
 			Data:         defaultValue,
 		}
@@ -62,7 +61,6 @@ func ParseCommandResult[T any](result *CommandResult[interface{}], defaultValue 
 				IsSuccessful: result.Response.IsSuccessful,
 				Status:       result.Response.Status,
 				Message:      result.Response.Message,
-				Id:           result.Response.Id,
 				Action:       result.Response.Action,
 				Data:         data,
 			}
@@ -71,7 +69,6 @@ func ParseCommandResult[T any](result *CommandResult[interface{}], defaultValue 
 				IsSuccessful: result.Response.IsSuccessful,
 				Status:       result.Response.Status,
 				Message:      result.Response.Message,
-				Id:           result.Response.Id,
 				Action:       result.Response.Action,
 				Data:         *data,
 			}
@@ -80,7 +77,6 @@ func ParseCommandResult[T any](result *CommandResult[interface{}], defaultValue 
 				IsSuccessful: result.Response.IsSuccessful,
 				Status:       result.Response.Status,
 				Message:      result.Response.Message,
-				Id:           result.Response.Id,
 				Action:       result.Response.Action,
 				Data:         defaultValue,
 			}

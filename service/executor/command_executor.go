@@ -29,7 +29,7 @@ func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command)
 	if err != nil {
 		message := "No handler/controller registered for command type: " + commandName
 		logger.Log().Error(message)
-		return c.CommandResult[interface{}]{Response: response.ErrorExecutionResult[interface{}]("-", commandName, message, constants.SERVICE_UNAVAILABLE)}
+		return c.CommandResult[interface{}]{Response: response.ErrorExecutionResult[interface{}](commandName, message, constants.SERVICE_UNAVAILABLE)}
 	} else {
 		resultChannel := c.NewCommandResultChannel()
 		controller.Dispatch(ctx, command, resultChannel)
@@ -39,7 +39,7 @@ func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command)
 		case <-time.After(30 * time.Second):
 			message := "Timeout reached while receiving data by Command Executor."
 			logger.Log().Error(message)
-			return c.CommandResult[interface{}]{Response: response.ErrorExecutionResult[interface{}]("-", commandName, message, constants.SERVICE_UNAVAILABLE)}
+			return c.CommandResult[interface{}]{Response: response.ErrorExecutionResult[interface{}](commandName, message, constants.SERVICE_UNAVAILABLE)}
 		}
 	}
 }

@@ -43,11 +43,11 @@ func (ch *BulkAddCommandHandler[M, C]) Handle(ctx context.Context, cmd C, hConte
 	_, status, errs := ch.bulkAdd(ctx, models, hContext)
 	if errs != nil {
 		return command.CommandResult[interface{}]{
-			Response: r.ErrorExecutionResult[interface{}]("-", "BulkAdd"+ch.EntityName, errs.Error(), status),
+			Response: r.ErrorExecutionResult[interface{}]("BulkAdd"+ch.EntityName, errs.Error(), status),
 		}
 	}
 	return command.CommandResult[interface{}]{
-		Response: r.SuccessExecutionResult[interface{}]("-", "BulkAdd"+ch.EntityName, "Successfully bulk added records", c.OK, nil),
+		Response: r.SuccessExecutionResult[interface{}]("BulkAdd"+ch.EntityName, "Successfully bulk added records", c.OK, nil),
 	}
 }
 
