@@ -39,7 +39,7 @@ func (r *ServiceRegistry) RegisterQueryController(query q.Query, controller q.Qu
  * Get Command handler/controllers.
  */
 func (r *ServiceRegistry) GetCommandController(command c.Command) (c.CommandController, error) {
-	commandName := c.CommandName(command)
+	commandName := c.ParentCommandName(command)
 	handler, ok := r.commandControllers[commandName]
 	if !ok {
 		return nil, fmt.Errorf("command handler/controller not found for command: %s", commandName)
@@ -51,7 +51,7 @@ func (r *ServiceRegistry) GetCommandController(command c.Command) (c.CommandCont
  * Get Query handler/controllers.
  */
 func (r *ServiceRegistry) GetQueryController(query q.Query) (q.QueryController, error) {
-	queryName := q.QueryName(query)
+	queryName := q.ParentQueryName(query)
 	handler, ok := r.queryControllers[queryName]
 	if !ok {
 		return nil, fmt.Errorf("query handler/controller not found for query: %s", queryName)

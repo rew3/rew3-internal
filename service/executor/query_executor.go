@@ -28,7 +28,7 @@ func NewQueryExecutor(registry *ServiceRegistry) *QueryExecutor {
  */
 func (executor *QueryExecutor) Execute(ctx context.Context, query q.Query) q.QueryResult[interface{}] {
 	queryName := q.QueryName(query)
-	controller, err := executor.serviceRegistry.GetQueryController(queryName)
+	controller, err := executor.serviceRegistry.GetQueryController(query)
 	if err != nil {
 		message := "No handler/controller registered for query type: " + queryName
 		logger.Log().Error(message)
