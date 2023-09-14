@@ -8,6 +8,14 @@ import "reflect"
  */
 type Query interface{}
 
+/**
+ * Get name of given query. 
+ * Note: you must provide query instance in pointer. e.g. ContactQuery. query := ContactQuery(nil); QueryName(&query)
+ */
 func QueryName(query Query) string {
-	return reflect.TypeOf(&query).Elem().Name()
+	queryType := reflect.TypeOf(query)
+	if queryType.Kind() == reflect.Ptr {
+		queryType = queryType.Elem()
+	}
+	return queryType.Name()
 }
