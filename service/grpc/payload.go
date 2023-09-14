@@ -179,6 +179,6 @@ func ToResponsePayload(api api.APIOperation, status constants.StatusType,
 		Status:        status,
 		StatusMessage: statusMessage,
 		Data:          data,
-		DataMeta:      DataMeta{Type: dataType.GetType()},
+		DataMeta:      DataMeta{Type: dataType},
 	}
 }

@@ -90,12 +90,14 @@ func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPa
 		if len(response.StatusType.String()) != 0 {
 			status = constants.StatusType(response.StatusType.String())
 		}
+		data, _ := grpc.ToType[interface{}](response.Data.Value)
+		dataMeta, _ := grpc.ToType[interface{}](response.DataMeta.Type.Value)
 		return grpc.ResponsePayload{
 			API:           api.APIOperation(response.ApiOperation),
 			StatusMessage: response.StatusMessage,
 			Status:        status,
-			Data:          response.Data.Value,
-			DataMeta:      grpc.DataMeta{Type: response.DataMeta.Type.Value},
+			Data:          data,
+			DataMeta:      grpc.DataMeta{Type: dataMeta},
 		}
 	}
 }
