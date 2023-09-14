@@ -11,6 +11,8 @@ import (
 	"github.com/rew3/rew3-internal/service/grpc"
 	"github.com/rew3/rew3-internal/service/grpc/api"
 	"github.com/rew3/rew3-internal/service/grpc/proto/pb"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
@@ -70,6 +72,14 @@ func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPa
 	}
 	response, err := client.grpcClient.ExecuteRequest(ctx, &requestProto)
 	if err != nil {
+		if grpcErr, ok := status.FromError(err); ok {
+			code := grpcErr.Code()
+			return grpc.ResponsePayload{
+				API:           request.API,
+				StatusMessage: client.serviceName + " Error: " + grpcErr.Message(),
+				Status:        getErrorStatusFromGrpcCode(code),
+			}
+		}
 		return grpc.ResponsePayload{
 			API:           request.API,
 			StatusMessage: client.serviceName + " Error: " + err.Error(),
@@ -86,6 +96,47 @@ func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPa
 			Status:        status,
 			Data:          response.Data.Value,
 		}
+	}
+}
+
+func getErrorStatusFromGrpcCode(code codes.Code) constants.StatusType {
+	switch code {
+	case codes.OK:
+		return constants.OK
+	case codes.Canceled:
+		return constants.SERVICE_UNAVAILABLE
+	case codes.Unknown:
+		return constants.INTERNAL_SERVER_ERROR
+	case codes.InvalidArgument:
+		return constants.BAD_REQUEST
+	case codes.DeadlineExceeded:
+		return constants.SERVICE_UNAVAILABLE
+	case codes.NotFound:
+		return constants.NOT_FOUND
+	case codes.AlreadyExists:
+		return constants.BAD_REQUEST
+	case codes.PermissionDenied:
+		return constants.FORBIDDEN
+	case codes.ResourceExhausted:
+		return constants.SERVICE_UNAVAILABLE
+	case codes.FailedPrecondition:
+		return constants.SERVICE_UNAVAILABLE
+	case codes.Aborted:
+		return constants.SERVICE_UNAVAILABLE
+	case codes.OutOfRange:
+		return constants.INTERNAL_SERVER_ERROR
+	case codes.Unimplemented:
+		return constants.SERVICE_UNAVAILABLE
+	case codes.Internal:
+		return constants.INTERNAL_SERVER_ERROR
+	case codes.Unavailable:
+		return constants.SERVICE_UNAVAILABLE
+	case codes.DataLoss:
+		return constants.INTERNAL_SERVER_ERROR
+	case codes.Unauthenticated:
+		return constants.UNAUTHORIZED
+	default:
+		return constants.OK
 	}
 }
 
