@@ -85,6 +85,15 @@ func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb
 			StatusMessage: "Error marshaling raw data from ResponsePayload to proto:: " + err.Error(),
 		}
 	}
+	dataMetaTypeBytes, err := json.Marshal(response.DataMeta.Type)
+	if err != nil {
+		logger.Log().Error("Error marshaling raw data from ResponsePayload to proto:", err)
+		return &pb.ResponsePayloadProto{
+			ApiOperation:  string(response.API),
+			StatusType:    pb.StatusTypeProto_INTERNAL_SERVER_ERROR,
+			StatusMessage: "Error marshaling raw data from ResponsePayload to proto:: " + err.Error(),
+		}
+	}
 	statusMap := map[constants.StatusType]pb.StatusTypeProto{
 		constants.OK:                    pb.StatusTypeProto_OK,
 		constants.CREATED:               pb.StatusTypeProto_CREATED,
@@ -106,6 +115,12 @@ func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb
 		Data: &any.Any{
 			TypeUrl: "json_data", // Provide a type URL to identify the data type
 			Value:   dataBytes,   // The byte array containing the JSON data
+		},
+		DataMeta: &pb.DataMeta{
+			Type: &any.Any{
+				TypeUrl: "json_data",
+				Value:   dataMetaTypeBytes,
+			},
 		},
 	}
 }
