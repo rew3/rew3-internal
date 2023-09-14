@@ -95,6 +95,7 @@ func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPa
 			StatusMessage: response.StatusMessage,
 			Status:        status,
 			Data:          response.Data.Value,
+			DataMeta:      grpc.DataMeta{Type: response.DataMeta.Type.Value},
 		}
 	}
 }
