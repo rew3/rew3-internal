@@ -91,7 +91,7 @@ func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPa
 			status = constants.StatusType(response.StatusType.String())
 		}
 		data, _ := grpc.ToType[interface{}](response.Data.Value)
-		dataMeta, _ := grpc.ToType[interface{}](response.DataMeta.Type.Value)
+		dataMeta, _ := grpc.ToType[grpc.DataType](response.DataMeta.Type.Value)
 		return grpc.ResponsePayload{
 			API:           api.APIOperation(response.ApiOperation),
 			StatusMessage: response.StatusMessage,

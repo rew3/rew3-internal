@@ -31,7 +31,7 @@ type ResponsePayload struct {
  * Contain data type information.
  */
 type DataMeta struct {
-	Type interface{} // Type is among one of Empty, Binary, Object/Scalar List, Object and Scalar.
+	Type DataType // Type is among one of Empty, Binary, Object/Scalar List, Object and Scalar.
 }
 
 type ScalarType string
