@@ -123,28 +123,35 @@ func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb
 }
 
 func resolveDataType(dataType grpc.DataType) *pb.DataType {
-	dataByte, _ := json.Marshal(dataType)
-	typeMeta := &any.Any{
-		TypeUrl: "json_data",
-		Value:   dataByte,
-	}
-	switch dataType.GetType().(type) {
+	switch t := dataType.GetType().(type) {
 	case grpc.Empty:
 		return &pb.DataType{DataType: pb.DataTypeEnum_EMPTY}
 	case grpc.Binary:
 		return &pb.DataType{DataType: pb.DataTypeEnum_BINARY}
 	case grpc.List:
-		return &pb.DataType{DataType: pb.DataTypeEnum_LIST, TypeMeta: typeMeta}
+		return &pb.DataType{DataType: pb.DataTypeEnum_LIST, TypeMeta: &any.Any{
+			TypeUrl: "json_data",
+			Value:   []byte(t.Type),
+		}}
 	case grpc.CustomList:
-		return &pb.DataType{DataType: pb.DataTypeEnum_CUSTOM_LIST, TypeMeta: typeMeta}
+		return &pb.DataType{DataType: pb.DataTypeEnum_CUSTOM_LIST}
 	case grpc.ScalarList:
-		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR_LIST, TypeMeta: typeMeta}
+		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR_LIST, TypeMeta: &any.Any{
+			TypeUrl: "json_data",
+			Value:   []byte(t.Type),
+		}}
 	case grpc.Object:
-		return &pb.DataType{DataType: pb.DataTypeEnum_OBJECT, TypeMeta: typeMeta}
+		return &pb.DataType{DataType: pb.DataTypeEnum_OBJECT, TypeMeta: &any.Any{
+			TypeUrl: "json_data",
+			Value:   []byte(t.Type),
+		}}
 	case *grpc.CustomObject:
-		return &pb.DataType{DataType: pb.DataTypeEnum_CUSTOM_OBJECT, TypeMeta: typeMeta}
+		return &pb.DataType{DataType: pb.DataTypeEnum_CUSTOM_OBJECT}
 	case grpc.Scalar:
-		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR, TypeMeta: typeMeta}
+		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR, TypeMeta: &any.Any{
+			TypeUrl: "json_data",
+			Value:   []byte(t.Type),
+		}}
 	default:
 		return nil
 	}
