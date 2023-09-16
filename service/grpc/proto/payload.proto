@@ -22,7 +22,23 @@ message ResponsePayloadProto {
 }
 
 message DataMeta {
-	google.protobuf.Any type = 1; // Type is among one of Empty, Binary, List, Object and Scalar.
+	DataType type = 1;
+}
+
+enum DataTypeEnum {
+  EMPTY = 0;
+  BINARY = 1;
+  LIST = 3;
+  CUSTOM_LIST = 4;
+  SCALAR_LIST = 5;
+  OBJECT = 6;
+  CUSTOM_OBJECT = 7;
+  SCALAR = 8;
+}
+
+message DataType {
+	DataTypeEnum dataType = 1; // Type is among one of Empty, Binary, List, Object and Scalar.
+  google.protobuf.Any typeMeta = 2;
 }
 
 enum StatusTypeProto {

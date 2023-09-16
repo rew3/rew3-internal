@@ -101,9 +101,7 @@ func (t List) GetType() interface{} {
 /*
  * List response type with data type for custom entities.
  */
-type CustomList struct {
-	Type any
-}
+type CustomList struct{}
 
 func (t CustomList) GetType() interface{} {
 	return t
@@ -134,9 +132,7 @@ func (t Object) GetType() interface{} {
 /*
  * Object response type with data type for custom entities.
  */
-type CustomObject struct {
-	Type baseConst.Entity
-}
+type CustomObject struct{}
 
 func (t CustomObject) GetType() interface{} {
 	return t

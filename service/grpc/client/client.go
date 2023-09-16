@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 
 	"github.com/golang/protobuf/ptypes/any"
+	bConst "github.com/rew3/rew3-internal/app/common/constants"
 	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"github.com/rew3/rew3-internal/service/common/request"
 	"github.com/rew3/rew3-internal/service/common/response/constants"
@@ -91,14 +92,36 @@ func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPa
 			status = constants.StatusType(response.StatusType.String())
 		}
 		data, _ := grpc.ToType[interface{}](response.Data.Value)
-		dataMeta, _ := grpc.ToType[grpc.DataType](response.DataMeta.Type.Value)
 		return grpc.ResponsePayload{
 			API:           api.APIOperation(response.ApiOperation),
 			StatusMessage: response.StatusMessage,
 			Status:        status,
 			Data:          data,
-			DataMeta:      grpc.DataMeta{Type: dataMeta},
+			DataMeta:      grpc.DataMeta{Type: resolveDataType(response.DataMeta.Type)},
 		}
+	}
+}
+
+func resolveDataType(dType *pb.DataType) grpc.DataType {
+	switch dType.DataType {
+	case pb.DataTypeEnum_EMPTY:
+		return grpc.Empty{}
+	case pb.DataTypeEnum_BINARY:
+		return grpc.Binary{}
+	case pb.DataTypeEnum_LIST:
+		return grpc.List{Type: bConst.Entity(string(dType.TypeMeta.Value))}
+	case pb.DataTypeEnum_CUSTOM_LIST:
+		return grpc.CustomList{}
+	case pb.DataTypeEnum_SCALAR_LIST:
+		return grpc.ScalarList{Type: grpc.ScalarType(string(dType.TypeMeta.Value))}
+	case pb.DataTypeEnum_OBJECT:
+		return grpc.Object{Type: bConst.Entity(string(dType.TypeMeta.Value))}
+	case pb.DataTypeEnum_CUSTOM_OBJECT:
+		return grpc.CustomObject{}
+	case pb.DataTypeEnum_SCALAR:
+		return grpc.Scalar{Type: grpc.ScalarType(string(dType.TypeMeta.Value))}
+	default:
+		return grpc.Empty{}
 	}
 }
 

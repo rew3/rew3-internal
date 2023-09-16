@@ -85,7 +85,7 @@ func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb
 			StatusMessage: "Error marshaling raw data from ResponsePayload to proto:: " + err.Error(),
 		}
 	}
-	dataMetaTypeBytes, err := json.Marshal(response.DataMeta.Type)
+	/*dataMetaTypeBytes, err := json.Marshal(response.DataMeta.Type)
 	if err != nil {
 		logger.Log().Error("Error marshaling raw data from ResponsePayload to proto:", err)
 		return &pb.ResponsePayloadProto{
@@ -93,7 +93,7 @@ func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb
 			StatusType:    pb.StatusTypeProto_INTERNAL_SERVER_ERROR,
 			StatusMessage: "Error marshaling raw data from ResponsePayload to proto:: " + err.Error(),
 		}
-	}
+	}*/
 	statusMap := map[constants.StatusType]pb.StatusTypeProto{
 		constants.OK:                    pb.StatusTypeProto_OK,
 		constants.CREATED:               pb.StatusTypeProto_CREATED,
@@ -117,11 +117,36 @@ func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb
 			Value:   dataBytes,   // The byte array containing the JSON data
 		},
 		DataMeta: &pb.DataMeta{
-			Type: &any.Any{
-				TypeUrl: "json_data",
-				Value:   dataMetaTypeBytes,
-			},
+			Type: resolveDataType(response.DataMeta.Type),
 		},
+	}
+}
+
+func resolveDataType(dataType grpc.DataType) *pb.DataType {
+	dataByte, _ := json.Marshal(dataType)
+	typeMeta := &any.Any{
+		TypeUrl: "json_data",
+		Value:   dataByte,
+	}
+	switch dataType.GetType().(type) {
+	case grpc.Empty:
+		return &pb.DataType{DataType: pb.DataTypeEnum_EMPTY}
+	case grpc.Binary:
+		return &pb.DataType{DataType: pb.DataTypeEnum_BINARY}
+	case grpc.List:
+		return &pb.DataType{DataType: pb.DataTypeEnum_LIST, TypeMeta: typeMeta}
+	case grpc.CustomList:
+		return &pb.DataType{DataType: pb.DataTypeEnum_CUSTOM_LIST, TypeMeta: typeMeta}
+	case grpc.ScalarList:
+		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR_LIST, TypeMeta: typeMeta}
+	case grpc.Object:
+		return &pb.DataType{DataType: pb.DataTypeEnum_OBJECT, TypeMeta: typeMeta}
+	case *grpc.CustomObject:
+		return &pb.DataType{DataType: pb.DataTypeEnum_CUSTOM_OBJECT, TypeMeta: typeMeta}
+	case grpc.Scalar:
+		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR, TypeMeta: typeMeta}
+	default:
+		return nil
 	}
 }
 
