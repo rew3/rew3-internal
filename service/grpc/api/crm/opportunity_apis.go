@@ -15,8 +15,4 @@ const (
 	LIST_OPPORTUNITIES    api.APIOperation = "listOpportunities"
 	COUNT_OPPORTUNITIES   api.APIOperation = "countOpportunities"
 	GET_OPPORTUNITY_BY_ID api.APIOperation = "getOpportunityById"
-
-	LIST_PIPELINES     api.APIOperation = "listPipelines"
-	COUNT_PIPELINES    api.APIOperation = "countPipelines"
-	GET_PIPELINE_BY_ID api.APIOperation = "getPipelineById"
 )
