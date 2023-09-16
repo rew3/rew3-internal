@@ -11,7 +11,6 @@ const (
 	CHANGE_OPPORTUNITY_OWNER           api.APIOperation = "changeOwner"
 	CHANGE_OPPORTUNITY_FAVORITE_STATUS api.APIOperation = "changeFavoriteStatus"
 
-
 	// READ Operations.
 	LIST_OPPORTUNITIES    api.APIOperation = "listOpportunities"
 	COUNT_OPPORTUNITIES   api.APIOperation = "countOpportunities"
