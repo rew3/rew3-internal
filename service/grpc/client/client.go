@@ -110,14 +110,10 @@ func resolveDataType(dType *pb.DataType) grpc.DataType {
 		return grpc.Binary{}
 	case pb.DataTypeEnum_LIST:
 		return grpc.List{Type: bConst.Entity(string(dType.TypeMeta.Value))}
-	case pb.DataTypeEnum_CUSTOM_LIST:
-		return grpc.CustomList{}
 	case pb.DataTypeEnum_SCALAR_LIST:
 		return grpc.ScalarList{Type: grpc.ScalarType(string(dType.TypeMeta.Value))}
 	case pb.DataTypeEnum_OBJECT:
 		return grpc.Object{Type: bConst.Entity(string(dType.TypeMeta.Value))}
-	case pb.DataTypeEnum_CUSTOM_OBJECT:
-		return grpc.CustomObject{}
 	case pb.DataTypeEnum_SCALAR:
 		return grpc.Scalar{Type: grpc.ScalarType(string(dType.TypeMeta.Value))}
 	default:

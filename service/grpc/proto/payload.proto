@@ -29,10 +29,8 @@ enum DataTypeEnum {
   EMPTY = 0;
   BINARY = 1;
   LIST = 3;
-  CUSTOM_LIST = 4;
   SCALAR_LIST = 5;
   OBJECT = 6;
-  CUSTOM_OBJECT = 7;
   SCALAR = 8;
 }
 

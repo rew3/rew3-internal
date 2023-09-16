@@ -133,8 +133,6 @@ func resolveDataType(dataType grpc.DataType) *pb.DataType {
 			TypeUrl: "json_data",
 			Value:   []byte(t.Type),
 		}}
-	case grpc.CustomList:
-		return &pb.DataType{DataType: pb.DataTypeEnum_CUSTOM_LIST}
 	case grpc.ScalarList:
 		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR_LIST, TypeMeta: &any.Any{
 			TypeUrl: "json_data",
@@ -145,8 +143,6 @@ func resolveDataType(dataType grpc.DataType) *pb.DataType {
 			TypeUrl: "json_data",
 			Value:   []byte(t.Type),
 		}}
-	case *grpc.CustomObject:
-		return &pb.DataType{DataType: pb.DataTypeEnum_CUSTOM_OBJECT}
 	case grpc.Scalar:
 		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR, TypeMeta: &any.Any{
 			TypeUrl: "json_data",

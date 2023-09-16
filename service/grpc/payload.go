@@ -88,22 +88,14 @@ func (t Binary) GetType() interface{} {
 }
 
 /*
- * List response type with data type for business entities e.g. CRM_CONTACT etc.
+ * List response type with data type.
+ * Note: you can set Type to Nil, if you want to use entities other that defined in Entity.
  */
 type List struct {
 	Type baseConst.Entity
 }
 
 func (t List) GetType() interface{} {
-	return t
-}
-
-/*
- * List response type with data type for custom entities.
- */
-type CustomList struct{}
-
-func (t CustomList) GetType() interface{} {
 	return t
 }
 
@@ -119,22 +111,14 @@ func (t ScalarList) GetType() interface{} {
 }
 
 /*
- * Object response type with data type for business entities e.g. CRM_CONTACT etc.
+ * Object response type.
+ * Note: you can set Type to Nil, if you want to use entities other that defined in Entity.
  */
 type Object struct {
 	Type baseConst.Entity
 }
 
 func (t Object) GetType() interface{} {
-	return t
-}
-
-/*
- * Object response type with data type for custom entities.
- */
-type CustomObject struct{}
-
-func (t CustomObject) GetType() interface{} {
 	return t
 }
 
