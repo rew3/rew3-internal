@@ -11,13 +11,6 @@ const (
 	CHANGE_OPPORTUNITY_OWNER           api.APIOperation = "changeOwner"
 	CHANGE_OPPORTUNITY_FAVORITE_STATUS api.APIOperation = "changeFavoriteStatus"
 
-	ADD_PIPELINE                    api.APIOperation = "addPipeline"
-	UPDATE_PIPELINE                 api.APIOperation = "updatePipeline"
-	DELETE_PIPELINE                 api.APIOperation = "deletePipeline"
-	CLONE_PIPELINE                  api.APIOperation = "clonePipeline"
-	CHANGE_PIPELINE_OWNER           api.APIOperation = "changeOwner"
-	CHANGE_PIPELINE_FAVORITE_STATUS api.APIOperation = "changeFavoriteStatus"
-
 	// READ Operations.
 	LIST_OPPORTUNITIES    api.APIOperation = "listOpportunities"
 	COUNT_OPPORTUNITIES   api.APIOperation = "countOpportunities"
