@@ -2,6 +2,8 @@ package filter
 
 import (
 	dsl "github.com/rew3/rew3-internal/db/query"
+	"github.com/rew3/rew3-internal/pkg/utils/logger"
+	"github.com/rew3/rew3-internal/service/common/request"
 )
 
 /**
@@ -14,6 +16,19 @@ func GenerateQueryDSL(filters []Filter) dsl.QueryDSL {
 		queries = append(queries, query)
 	}
 	return dsl.QueryDSL{Queries: queries}
+}
+
+/**
+ * Resolve given request parameter and generate query dsl.
+ * Note: if request param filter is invalid, empty dsl is returned.
+ */
+func ResolveAndGenerateQueryDSL(param request.RequestParam) dsl.QueryDSL {
+	filters, err := ParseFilterParams(param)
+	if err != nil {
+		logger.Log().Errorln("Unable to parse request parameter while generating Query DSL: ", err.Error())
+		return dsl.Query()
+	}
+	return GenerateQueryDSL(filters)
 }
 
 /**

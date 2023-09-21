@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"strings"
 
+	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
@@ -403,7 +404,7 @@ func PrintJson(document bson.D) {
 	// Convert bson.D to JSON bytes
 	jsonBytes, err := bson.MarshalExtJSON(document, true, false)
 	if err != nil {
-		fmt.Println("Error marshaling BSON to JSON:", err)
+		logger.Log().Error("Error marshaling BSON to JSON: ", err.Error())
 		return
 	}
 	// Convert JSON bytes to string
@@ -438,4 +439,19 @@ func flattenHelper(flattened *bson.D, prefix string, doc bson.D, prefixToAdd str
 		}
 	}
 	*flattened = tmpFlattened
+}
+
+/**
+ * Resolve raw string json and return bson.D document.
+ * Note: if invalid json, empty bson document is returned.
+ */
+func RawJsonStringToBson(rawValue string) bson.D {
+	var bsonDoc bson.D
+	err := bson.UnmarshalExtJSON([]byte(rawValue), true, &bsonDoc)
+	if err != nil {
+		logger.Log().Error("Unable to resolve sort value: ", err.Error())
+		return bson.D{}
+	} else {
+		return bsonDoc
+	}
 }

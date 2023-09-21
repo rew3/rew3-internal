@@ -12,7 +12,7 @@ import (
 )
 
 /**
- * Request context resolver.
+ * Request context resolver for Write operation.
  */
 func handleWrite[T any](ctx context.Context, operation func(service.RequestContext) (T, error)) (T, error) {
 	if rc, isRcAvailable := rcUtil.GetRequestContext(ctx); isRcAvailable {
@@ -24,7 +24,7 @@ func handleWrite[T any](ctx context.Context, operation func(service.RequestConte
 }
 
 /**
- * Request context resolver.
+ * Request context resolver for Read operation. 
  */
 func handleRead[T any](ctx context.Context, operation func(service.RequestContext) T, defaultValue T) T {
 	if rc, isRcAvailable := rcUtil.GetRequestContext(ctx); isRcAvailable {

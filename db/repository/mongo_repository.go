@@ -422,7 +422,7 @@ func (repo *MongoRepository[Entity]) FindById(ctx context.Context, id string) *E
 	return handleRead(ctx, func(rc service.RequestContext) *Entity {
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
-			logger.Log().Error("Invalid ID: %v\n", err)
+			logger.Log().Error("Invalid ID: ", err)
 			return nil
 		}
 		var document Entity
@@ -430,10 +430,10 @@ func (repo *MongoRepository[Entity]) FindById(ctx context.Context, id string) *E
 		err = repo.Collection.FindOne(ctx, bson.M{"_id": objectID}).Decode(&document)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
-				logger.Log().Error("Record not found with ID %s\n", id)
+				logger.Log().Error("Record not found with ID: ", id)
 				return nil
 			}
-			logger.Log().Error("Failed to get document: %v\n", err)
+			logger.Log().Error("Failed to get document: ", err)
 			return nil
 		}
 		return &document
