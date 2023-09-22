@@ -8,8 +8,8 @@ const (
 	UPDATE_CASE                 api.APIOperation = "updateCase"
 	DELETE_CASE                 api.APIOperation = "deleteCase"
 	CLONE_CASE                  api.APIOperation = "cloneCase"
-	CHANGE_CASE_OWNER           api.APIOperation = "changeOwner"
-	CHANGE_CASE_FAVORITE_STATUS api.APIOperation = "changeFavoriteStatus"
+	CHANGE_CASE_OWNER           api.APIOperation = "changeCaseOwner"
+	CHANGE_CASE_FAVORITE_STATUS api.APIOperation = "changeCaseFavoriteStatus"
 
 	// READ Operations.
 	LIST_CASES     api.APIOperation = "listCases"

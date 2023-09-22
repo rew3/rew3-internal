@@ -8,8 +8,8 @@ const (
 	UPDATE_OPPORTUNITY                 api.APIOperation = "updateOpportunity"
 	DELETE_OPPORTUNITY                 api.APIOperation = "deleteOpportunity"
 	CLONE_OPPORTUNITY                  api.APIOperation = "cloneOpportunity"
-	CHANGE_OPPORTUNITY_OWNER           api.APIOperation = "changeOwner"
-	CHANGE_OPPORTUNITY_FAVORITE_STATUS api.APIOperation = "changeFavoriteStatus"
+	CHANGE_OPPORTUNITY_OWNER           api.APIOperation = "changeOpportunityOwner"
+	CHANGE_OPPORTUNITY_FAVORITE_STATUS api.APIOperation = "changeOpportunityFavoriteStatus"
 
 	// READ Operations.
 	LIST_OPPORTUNITIES    api.APIOperation = "listOpportunities"

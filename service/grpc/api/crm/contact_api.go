@@ -10,8 +10,8 @@ const (
 	UPDATE_CONTACT                 api.APIOperation = "updateContact"
 	DELETE_CONTACT                 api.APIOperation = "deleteContact"
 	CLONE_CONTACT                  api.APIOperation = "cloneContact"
-	CHANGE_CONTACT_OWNER           api.APIOperation = "changeOwner"
-	CHANGE_CONTACT_FAVORITE_STATUS api.APIOperation = "changeFavoriteStatus"
+	CHANGE_CONTACT_OWNER           api.APIOperation = "changeContactOwner"
+	CHANGE_CONTACT_FAVORITE_STATUS api.APIOperation = "changeContactFavoriteStatus"
 
 	// READ Operations.
 	LIST_CONTACTS     api.APIOperation = "listContacts"

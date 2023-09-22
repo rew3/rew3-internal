@@ -8,8 +8,8 @@ const (
 	UPDATE_ACCOUNT                 api.APIOperation = "updateAccount"
 	DELETE_ACCOUNT                 api.APIOperation = "deleteAccount"
 	CLONE_ACCOUNT                  api.APIOperation = "cloneAccount"
-	CHANGE_ACCOUNT_OWNER           api.APIOperation = "changeOwner"
-	CHANGE_ACCOUNT_FAVORITE_STATUS api.APIOperation = "changeFavoriteStatus"
+	CHANGE_ACCOUNT_OWNER           api.APIOperation = "changeAccountOwner"
+	CHANGE_ACCOUNT_FAVORITE_STATUS api.APIOperation = "changeAccountFavoriteStatus"
 
 	// READ Operations.
 	LIST_ACCOUNTS     api.APIOperation = "listAccounts"

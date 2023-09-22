@@ -8,8 +8,8 @@ const (
 	UPDATE_CAMPAIGN                 api.APIOperation = "updateCampaign"
 	DELETE_CAMPAIGN                 api.APIOperation = "deleteCampaign"
 	CLONE_CAMPAIGN                  api.APIOperation = "cloneCampaign"
-	CHANGE_CAMPAIGN_OWNER           api.APIOperation = "changeOwner"
-	CHANGE_CAMPAIGN_FAVORITE_STATUS api.APIOperation = "changeFavoriteStatus"
+	CHANGE_CAMPAIGN_OWNER           api.APIOperation = "changeCampaignOwner"
+	CHANGE_CAMPAIGN_FAVORITE_STATUS api.APIOperation = "changeCampaignFavoriteStatus"
 
 	// READ Operations.
 	LIST_CAMPAIGNS     api.APIOperation = "listCampaigns"

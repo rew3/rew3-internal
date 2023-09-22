@@ -8,8 +8,8 @@ const (
 	UPDATE_LEAD                 api.APIOperation = "updateLead"
 	DELETE_LEAD                 api.APIOperation = "deleteLead"
 	CLONE_LEAD                  api.APIOperation = "cloneLead"
-	CHANGE_LEAD_OWNER           api.APIOperation = "changeOwner"
-	CHANGE_LEAD_FAVORITE_STATUS api.APIOperation = "changeFavoriteStatus"
+	CHANGE_LEAD_OWNER           api.APIOperation = "changeLeadOwner"
+	CHANGE_LEAD_FAVORITE_STATUS api.APIOperation = "changeLeadFavoriteStatus"
 
 	// READ Operations.
 	LIST_LEADS     api.APIOperation = "listLeads"
