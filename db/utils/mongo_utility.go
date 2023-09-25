@@ -446,6 +446,9 @@ func flattenHelper(flattened *bson.D, prefix string, doc bson.D, prefixToAdd str
  * Note: if invalid json, empty bson document is returned.
  */
 func RawJsonStringToBson(rawValue string) bson.D {
+	if rawValue == "" {
+		return bson.D{}
+	}
 	var bsonDoc bson.D
 	err := bson.UnmarshalExtJSON([]byte(rawValue), true, &bsonDoc)
 	if err != nil {
