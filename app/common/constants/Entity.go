@@ -43,7 +43,7 @@ const (
 	CMS_AVPOST             Entity = "cms_avpost"
 	CMS_BLOG               Entity = "cms_blog"
 	CMS_BLOG_CATEGORY      Entity = "cms_blog_category"
-	CMS_FOUM               Entity = "cms_form"
+	CMS_FORM               Entity = "cms_form"
 	CMS_FORM_CATEGORY      Entity = "cms_form_category"
 	CMS_FORUM              Entity = "cms_forum"
 	CMS_FORUM_CATEGORY     Entity = "cms_forum_category"
