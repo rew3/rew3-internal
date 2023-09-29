@@ -19,6 +19,7 @@ const (
 	RMS_SHOWING     Entity = "rms_showing"
 	RMS_REQUEST     Entity = "rms_request"
 	RMS_TRANSACTION Entity = "rms_transaction"
+	RMS_OFFER       Entity = "rms_offer"
 
 	// DMS Entities
 	DMS_FILE                               Entity = "dms_file"
