@@ -1,4 +1,4 @@
-package 
+package project
 
 import "github.com/rew3/rew3-internal/service/grpc/api"
 
