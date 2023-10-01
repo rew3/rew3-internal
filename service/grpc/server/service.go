@@ -2,7 +2,6 @@ package server
 
 import (
 	"context"
-	"encoding/json"
 
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/rew3/rew3-internal/app/account"
@@ -76,7 +75,7 @@ func (service *Service) requestPayload(request *pb.RequestPayloadProto) grpc.Req
  * Convert to proto response from Response Payload.
  */
 func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb.ResponsePayloadProto {
-	dataBytes, err := json.Marshal(response.Data)
+	dataBytes, err := grpc.ToJson(response.Data)
 	if err != nil {
 		logger.Log().Error("Error marshaling raw data from ResponsePayload to proto:", err)
 		return &pb.ResponsePayloadProto{
