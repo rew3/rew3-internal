@@ -26,6 +26,8 @@ const (
 	DMS_FOLDER                             Entity = "dms_folder"
 	DMS_DOCUMENT                           Entity = "dms_document"
 	DMS_DOCUMENT_TYPE                      Entity = "dms_document_type"
+	DMS_VERSIONED_DOCUMENT                 Entity = "dms_versioned_document"
+	DMS_DOCUMENT_ACCESS                    Entity = "dms_document_access"
 	DMS_DOSSIER                            Entity = "dms_dossier"
 	DMS_DOSSIER_TYPE                       Entity = "dms_dossier_type"
 	DMS_DOSSIER_FOLDER                     Entity = "dms_dossier_folder"
