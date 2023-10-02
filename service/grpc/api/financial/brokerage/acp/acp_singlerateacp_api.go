@@ -1,4 +1,4 @@
-package brokerage/acp
+package acp
 
 import "github.com/rew3/rew3-internal/service/grpc/api"
 
