@@ -162,3 +162,14 @@ func ToResponsePayload(api api.APIOperation, status constants.StatusType,
 		DataMeta:      DataMeta{Type: dataType},
 	}
 }
+
+/**
+ * Invalid Request Payload builder.
+ */
+func InvalidRequestResponsePayload(api api.APIOperation, err string) *ResponsePayload {
+	return &ResponsePayload{
+		API:           api,
+		Status:        constants.BAD_REQUEST,
+		StatusMessage: err,
+	}
+}
