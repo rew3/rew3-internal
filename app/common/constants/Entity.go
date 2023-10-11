@@ -215,6 +215,17 @@ const (
 	FINANCIAL_AGENT                      Entity = "financial_agent"
 	FINANCIAL_TRUST_ACCOUNT              Entity = "financial_trust_account"*/
 
+	// Activity
+	ACTIVITY_ACTIVITY_LOG Entity = "activity_activity_log"
+	ACTIVITY_USER_FEED    Entity = "activity_user_feed"
+
+	// List View
+	LISTVIEW_LIST_VIEW       Entity = "listview_listview"
+	LISTVIEW_VIEW_PREFERENCE Entity = "listview_view_preference"
+
+	// Tags
+	TAGS_TAG Entity = "tags_tags"
+
 	// Account Service
 	ACCOUNT_SERVICE_SUBSCRIPTION             Entity = "account_service_subscription"
 	ACCOUNT_SERVICE_ACCOUNT                  Entity = "account_service_account"

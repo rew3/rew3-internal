@@ -3,12 +3,20 @@ package constants
 type Module string
 
 const (
-	CRM           Module = "crm"
-	RMS           Module = "rms"
-	CMS           Module = "cms"
-	DMS           Module = "dms"
-	FINANCIAL     Module = "financial"
+	// ERP
+	CRM       Module = "crm"
+	RMS       Module = "rms"
+	CMS       Module = "cms"
+	DMS       Module = "dms"
+	FINANCIAL Module = "financial"
+
+	// REW3 and Platform.
+	PROJECT       Module = "project"
 	COLLABORATION Module = "collaboration"
-	UTILITY       Module = "utility"
-	ACCOUNT       Module = "accountService"
+	ACTIVITY      Module = "activity"
+	LISTVIEW      Module = "listview"
+	TAGS          Module = "tags"
+
+	ACCOUNT Module = "accountService"
+	UTILITY Module = "utility"
 )
