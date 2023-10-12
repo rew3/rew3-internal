@@ -9,13 +9,12 @@ const (
 	CMS       Module = "cms"
 	DMS       Module = "dms"
 	FINANCIAL Module = "financial"
+	PROJECT   Module = "project"
 
 	// REW3 and Platform.
-	PROJECT       Module = "project"
 	COLLABORATION Module = "collaboration"
 	ACTIVITY      Module = "activity"
-	LISTVIEW      Module = "listview"
-	TAGS          Module = "tags"
+	CUSTOMIZATION Module = "listview"
 
 	ACCOUNT Module = "accountService"
 	UTILITY Module = "utility"

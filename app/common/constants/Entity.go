@@ -219,12 +219,10 @@ const (
 	ACTIVITY_ACTIVITY_LOG Entity = "activity_activity_log"
 	ACTIVITY_USER_FEED    Entity = "activity_user_feed"
 
-	// List View
-	LISTVIEW_LIST_VIEW       Entity = "listview_listview"
-	LISTVIEW_VIEW_PREFERENCE Entity = "listview_view_preference"
-
-	// Tags
-	TAGS_TAG Entity = "tags_tags"
+	// Customization
+	CUSTOMIZATION_LIST_VIEW       Entity = "customization_listview"
+	CUSTOMIZATION_VIEW_PREFERENCE Entity = "customization_view_preference"
+	CUSTOMIZATION_TAGS            Entity = "customization_tags"
 
 	// Account Service
 	ACCOUNT_SERVICE_SUBSCRIPTION             Entity = "account_service_subscription"
