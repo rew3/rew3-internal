@@ -216,8 +216,9 @@ const (
 	FINANCIAL_TRUST_ACCOUNT              Entity = "financial_trust_account"*/
 
 	// Activity
-	ACTIVITY_ACTIVITY_LOG Entity = "activity_activity_log"
-	ACTIVITY_USER_FEED    Entity = "activity_user_feed"
+	ACTIVITY_ACTIVITY_STREAMS Entity = "activity_activity_streams"
+	ACTIVITY_USER_ACTIVITY    Entity = "activity_user_activity"
+	ACTIVITY_HISTORY_LOG      Entity = "activity_history_log"
 
 	// Customization
 	CUSTOMIZATION_LIST_VIEW       Entity = "customization_listview"
