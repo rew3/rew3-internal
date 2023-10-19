@@ -225,6 +225,13 @@ const (
 	CUSTOMIZATION_VIEW_PREFERENCE Entity = "customization_view_preference"
 	CUSTOMIZATION_TAGS            Entity = "customization_tags"
 
+	// Notifications.
+	NOTIFICATION_NOTIFICATIONS Entity = "notification_notifications"
+
+	ACCOUNT_AVENUEACCOUNT Entity = "account_avenueaccount"
+	ACCOUNT_COMPANY       Entity = "account_company"
+	ACCOUNT_USER          Entity = "account_user"
+
 	// Account Service
 	ACCOUNT_SERVICE_SUBSCRIPTION             Entity = "account_service_subscription"
 	ACCOUNT_SERVICE_ACCOUNT                  Entity = "account_service_account"
