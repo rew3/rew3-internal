@@ -11,7 +11,7 @@ const (
 	DELETE_AVENUEACCOUNT api.APIOperation = "account_deleteAvenueAccount"
 
 	// READ APIs.
-	LIST_ACCOUNT            api.APIOperation = "account_listaccount"
-	COUNT_ACCOUNT           api.APIOperation = "account_countaccount"
+	LIST_AVENUEACCOUNT      api.APIOperation = "account_listAvenueAccount"
+	COUNT_AVENUEACCOUNT     api.APIOperation = "account_countAvenueAccount"
 	GET_AVENUEACCOUNT_BY_ID api.APIOperation = "caccount_getAvenueAccountById"
 )
