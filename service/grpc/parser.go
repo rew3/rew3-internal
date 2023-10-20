@@ -22,9 +22,26 @@ func WrapPayload(data json.RawMessage) *PayloadWrapper {
 }
 
 /**
+ * Parse value of given full json payload to given type T. 
+ */
+ func ParseFullPayload[T any](payload *PayloadWrapper) (T, error) {
+	var data T
+	rawJson := payload.ParsedJson.Raw
+	if rawJson == "" {
+		return data, errors.New("[ParsePayload] parsing error: invalid data provided")
+	}
+	err := json.Unmarshal([]byte(rawJson), &data)
+	if err != nil {
+		logger.Log().Error("[ParsePayload] Parsing Error:", err.Error())
+		return data, errors.New("Parsing Error: " + err.Error())
+	}
+	return data, nil
+}
+
+/**
  * Parse value at given path to provided type.
  */
-func ParsePayload[T any](payload *PayloadWrapper, path string) (T, error) {
+ func ParsePayload[T any](payload *PayloadWrapper, path string) (T, error) {
 	var data T
 	rawJson := payload.ParsedJson.Get(path).Raw
 	if rawJson == "" {

@@ -3,7 +3,7 @@ package server
 import (
 	"context"
 
-	"github.com/golang/protobuf/ptypes/any"
+	pAny "github.com/golang/protobuf/ptypes/any"
 	"github.com/rew3/rew3-internal/app/account"
 	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"github.com/rew3/rew3-internal/service/common/request"
@@ -111,7 +111,7 @@ func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb
 		ApiOperation:  string(response.API),
 		StatusType:    statusMap[response.Status],
 		StatusMessage: response.StatusMessage,
-		Data: &any.Any{
+		Data: &pAny.Any{
 			TypeUrl: "json_data", // Provide a type URL to identify the data type
 			Value:   dataBytes,   // The byte array containing the JSON data
 		},
@@ -128,22 +128,22 @@ func resolveDataType(dataType grpc.DataType) *pb.DataType {
 	case grpc.Binary:
 		return &pb.DataType{DataType: pb.DataTypeEnum_BINARY}
 	case grpc.List:
-		return &pb.DataType{DataType: pb.DataTypeEnum_LIST, TypeMeta: &any.Any{
+		return &pb.DataType{DataType: pb.DataTypeEnum_LIST, TypeMeta: &pAny.Any{
 			TypeUrl: "json_data",
 			Value:   []byte(t.Type),
 		}}
 	case grpc.ScalarList:
-		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR_LIST, TypeMeta: &any.Any{
+		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR_LIST, TypeMeta: &pAny.Any{
 			TypeUrl: "json_data",
 			Value:   []byte(t.Type),
 		}}
 	case grpc.Object:
-		return &pb.DataType{DataType: pb.DataTypeEnum_OBJECT, TypeMeta: &any.Any{
+		return &pb.DataType{DataType: pb.DataTypeEnum_OBJECT, TypeMeta: &pAny.Any{
 			TypeUrl: "json_data",
 			Value:   []byte(t.Type),
 		}}
 	case grpc.Scalar:
-		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR, TypeMeta: &any.Any{
+		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR, TypeMeta: &pAny.Any{
 			TypeUrl: "json_data",
 			Value:   []byte(t.Type),
 		}}
