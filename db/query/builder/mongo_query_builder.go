@@ -52,7 +52,7 @@ func (qb *MongoQueryBuilder) Regular(key string, value interface{}) bson.E {
  * {$not: {first_name: value}}
  */
 func (qb *MongoQueryBuilder) RegularNot(key string, value interface{}) bson.E {
-	query := bson.E{Key: key, Value: value}
+	query := bson.M{key: value}
 	return bson.E{Key: "$not", Value: query}
 }
 
@@ -60,7 +60,7 @@ func (qb *MongoQueryBuilder) RegularNot(key string, value interface{}) bson.E {
  * Create query for Comparison operator.
  */
 func (qb *MongoQueryBuilder) Comparison(op ComparisonOperator, key string, value interface{}) bson.E {
-	query := bson.E{Key: key, Value: bson.E{Key: string(op), Value: value}}
+	query := bson.E{Key: key, Value: bson.M{string(op): value}}
 	return query
 }
 
@@ -68,7 +68,7 @@ func (qb *MongoQueryBuilder) Comparison(op ComparisonOperator, key string, value
  * Create query for Comparison operator with Negation i.e. $not.
  */
 func (qb *MongoQueryBuilder) ComparisonNot(op ComparisonOperator, key string, value interface{}) bson.E {
-	query := bson.E{Key: key, Value: bson.E{Key: string(op), Value: value}}
+	query := bson.M{key: bson.M{string(op): value}}
 	return bson.E{Key: "$not", Value: query}
 }
 
@@ -84,8 +84,21 @@ func (qb *MongoQueryBuilder) Logical(op LogicalOperator, queries ...bson.E) bson
  * Create query for Element operator $exists.
  */
 func (qb *MongoQueryBuilder) ElementExists(key string, value bool) bson.E {
-	query := bson.E{Key: key, Value: bson.E{Key: string(EXISTS), Value: value}}
-	return query
+	if value {
+		return bson.E{
+			Key: "$or", Value: []bson.M{
+				{key: bson.M{string(EXISTS): false}},
+				{key: nil},
+			},
+		}
+	} else {
+		return bson.E{
+			Key: key, Value: bson.M{
+				string(EXISTS): true,
+				"$ne":          nil,
+			},
+		}
+	}
 }
 
 /**
@@ -108,7 +121,7 @@ func (qb *MongoQueryBuilder) EvaluationRegex(key string, pattern string, caseInS
 	} else {
 		query := bson.E{
 			Key:   key,
-			Value: bson.E{Key: string(REGEX), Value: pattern},
+			Value: bson.M{string(REGEX): pattern},
 		}
 		if isNegation {
 			return bson.E{Key: "$not", Value: query}
