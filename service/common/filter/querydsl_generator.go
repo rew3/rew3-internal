@@ -73,13 +73,37 @@ func resolveQuery(filter Filter) dsl.BaseDSL {
 	case NOT_GREATER_THAN_EQUAL:
 		return dsl.Criteria(dsl.FieldDSL{Name: filter.Field, IsNegation: true}, filter.Value, dsl.GREATER_THAN_EQUAL)
 	case IN:
-		return dsl.Criteria(dsl.FieldDSL{Name: filter.Field, IsNegation: false}, filter.Value, dsl.IN)
+		{
+			if value, ok := filter.Value.([]interface{}); ok {
+				return dsl.CriteriaForIn(dsl.FieldDSL{Name: filter.Field, IsNegation: false}, value)
+			} else {
+				return dsl.CriteriaForIn(dsl.FieldDSL{Name: filter.Field, IsNegation: false}, nil)
+			}
+		}
 	case NOT_IN:
-		return dsl.Criteria(dsl.FieldDSL{Name: filter.Field, IsNegation: true}, filter.Value, dsl.IN)
+		{
+			if value, ok := filter.Value.([]interface{}); ok {
+				return dsl.CriteriaForIn(dsl.FieldDSL{Name: filter.Field, IsNegation: true}, value)
+			} else {
+				return dsl.CriteriaForIn(dsl.FieldDSL{Name: filter.Field, IsNegation: true}, nil)
+			}
+		}
 	case RANGE:
-		return dsl.Criteria(dsl.FieldDSL{Name: filter.Field, IsNegation: false}, filter.Value, dsl.RANGE)
+		{
+			if value, ok := filter.Value.([]interface{}); ok {
+				return dsl.CriteriaForRange(dsl.FieldDSL{Name: filter.Field, IsNegation: false}, value[0], value[1])
+			} else {
+				return dsl.CriteriaForRange(dsl.FieldDSL{Name: filter.Field, IsNegation: false}, nil, nil)
+			}
+		}
 	case NOT_IN_RANGE:
-		return dsl.Criteria(dsl.FieldDSL{Name: filter.Field, IsNegation: true}, filter.Value, dsl.RANGE)
+		{
+			if value, ok := filter.Value.([]interface{}); ok {
+				return dsl.CriteriaForRange(dsl.FieldDSL{Name: filter.Field, IsNegation: true}, value[0], value[1])
+			} else {
+				return dsl.CriteriaForRange(dsl.FieldDSL{Name: filter.Field, IsNegation: true}, nil, nil)
+			}
+		}
 	default:
 		return dsl.Criteria(dsl.FieldDSL{Name: filter.Field, IsNegation: false}, filter.Value, dsl.UNKNOWN)
 	}

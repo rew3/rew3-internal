@@ -221,7 +221,7 @@ func Criteria(field FieldDSL, value interface{}, operator QueryOperator) Criteri
 /*
  * Build instance of Criteria DSL for In operator.
  */
-func criteriaForIn(field FieldDSL, value []interface{}) CriteriaDSL {
+func CriteriaForIn(field FieldDSL, value []interface{}) CriteriaDSL {
 	resolvedValues := []ScalarValue{}
 	for _, item := range value {
 		resolvedValues = append(resolvedValues, ToScalarValue(item))
@@ -232,7 +232,7 @@ func criteriaForIn(field FieldDSL, value []interface{}) CriteriaDSL {
 /*
  * Build instance of Criteria DSL for Range Operator.
  */
-func criteriaForRange(field FieldDSL, start interface{}, end interface{}) CriteriaDSL {
+func CriteriaForRange(field FieldDSL, start interface{}, end interface{}) CriteriaDSL {
 	return CriteriaDSL{Field: field, Value: RangeValue{Start: ToScalarValue(start), End: ToScalarValue(end)}, Operator: RANGE}
 }
 
@@ -268,10 +268,10 @@ func (field FieldDSL) Gte(value interface{}) CriteriaDSL {
 	return Criteria(field, value, GREATER_THAN_EQUAL)
 }
 func (field FieldDSL) In(value ...interface{}) CriteriaDSL {
-	return criteriaForIn(field, value)
+	return CriteriaForIn(field, value)
 }
 func (field FieldDSL) Range(start interface{}, end interface{}) CriteriaDSL {
-	return criteriaForRange(field, start, end)
+	return CriteriaForRange(field, start, end)
 }
 
 // Type Safe Query Operators.
@@ -308,10 +308,10 @@ func (field StringFieldDSL) Gte(value string) CriteriaDSL {
 	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field StringFieldDSL) In(value ...string) CriteriaDSL {
-	return criteriaForIn(field.Field, make([]interface{}, len(value)))
+	return CriteriaForIn(field.Field, make([]interface{}, len(value)))
 }
 func (field StringFieldDSL) Range(start string, end string) CriteriaDSL {
-	return criteriaForRange(field.Field, start, end)
+	return CriteriaForRange(field.Field, start, end)
 }
 
 // Applies to Boolean
@@ -348,10 +348,10 @@ func (field IntFieldDSL) Gte(value int) CriteriaDSL {
 	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field IntFieldDSL) In(value ...int) CriteriaDSL {
-	return criteriaForIn(field.Field, make([]interface{}, len(value)))
+	return CriteriaForIn(field.Field, make([]interface{}, len(value)))
 }
 func (field IntFieldDSL) Range(start int, end int) CriteriaDSL {
-	return criteriaForRange(field.Field, start, end)
+	return CriteriaForRange(field.Field, start, end)
 }
 
 // Applies to Int32
@@ -377,10 +377,10 @@ func (field Int32FieldDSL) Gte(value int32) CriteriaDSL {
 	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field Int32FieldDSL) In(value ...int32) CriteriaDSL {
-	return criteriaForIn(field.Field, make([]interface{}, len(value)))
+	return CriteriaForIn(field.Field, make([]interface{}, len(value)))
 }
 func (field Int32FieldDSL) Range(start int32, end int32) CriteriaDSL {
-	return criteriaForRange(field.Field, start, end)
+	return CriteriaForRange(field.Field, start, end)
 }
 
 // Applies to Int64
@@ -406,10 +406,10 @@ func (field Int64FieldDSL) Gte(value int64) CriteriaDSL {
 	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field Int64FieldDSL) In(value ...int64) CriteriaDSL {
-	return criteriaForIn(field.Field, make([]interface{}, len(value)))
+	return CriteriaForIn(field.Field, make([]interface{}, len(value)))
 }
 func (field Int64FieldDSL) Range(start int64, end int64) CriteriaDSL {
-	return criteriaForRange(field.Field, start, end)
+	return CriteriaForRange(field.Field, start, end)
 }
 
 // Applies to float32
@@ -435,10 +435,10 @@ func (field Float32FieldDSL) Gte(value float32) CriteriaDSL {
 	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field Float32FieldDSL) In(value ...float32) CriteriaDSL {
-	return criteriaForIn(field.Field, make([]interface{}, len(value)))
+	return CriteriaForIn(field.Field, make([]interface{}, len(value)))
 }
 func (field Float32FieldDSL) Range(start float32, end float32) CriteriaDSL {
-	return criteriaForRange(field.Field, start, end)
+	return CriteriaForRange(field.Field, start, end)
 }
 
 // Applies to float64
@@ -464,10 +464,10 @@ func (field Float64FieldDSL) Gte(value float64) CriteriaDSL {
 	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field Float64FieldDSL) In(value ...float64) CriteriaDSL {
-	return criteriaForIn(field.Field, make([]interface{}, len(value)))
+	return CriteriaForIn(field.Field, make([]interface{}, len(value)))
 }
 func (field Float64FieldDSL) Range(start float64, end float64) CriteriaDSL {
-	return criteriaForRange(field.Field, start, end)
+	return CriteriaForRange(field.Field, start, end)
 }
 
 // Applies to big.Int
@@ -493,10 +493,10 @@ func (field BigIntFieldDSL) Gte(value big.Int) CriteriaDSL {
 	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field BigIntFieldDSL) In(value ...big.Int) CriteriaDSL {
-	return criteriaForIn(field.Field, make([]interface{}, len(value)))
+	return CriteriaForIn(field.Field, make([]interface{}, len(value)))
 }
 func (field BigIntFieldDSL) Range(start big.Int, end big.Int) CriteriaDSL {
-	return criteriaForRange(field.Field, start, end)
+	return CriteriaForRange(field.Field, start, end)
 }
 
 // Applies to DateTime
@@ -520,10 +520,10 @@ func (field DateTimeFieldDSL) Gte(value time.Time) CriteriaDSL {
 	return Criteria(field.Field, value, GREATER_THAN_EQUAL)
 }
 func (field DateTimeFieldDSL) In(value ...time.Time) CriteriaDSL {
-	return criteriaForIn(field.Field, make([]interface{}, len(value)))
+	return CriteriaForIn(field.Field, make([]interface{}, len(value)))
 }
 func (field DateTimeFieldDSL) Range(start time.Time, end time.Time) CriteriaDSL {
-	return criteriaForRange(field.Field, start, end)
+	return CriteriaForRange(field.Field, start, end)
 }
 
 // TODO - Use elemMatch.
