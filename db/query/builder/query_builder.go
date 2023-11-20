@@ -68,13 +68,13 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 				switch i.(type) {
 				case dsl.LogicalDSL:
 					res, err := builder.generateMongoQuery([]dsl.BaseDSL{i})
-					if(err != nil) {
+					if err != nil {
 						return nil, err
 					}
 					doc = append(doc, res...)
 				case dsl.CriteriaDSL:
 					res, err := builder.generateMongoQuery([]dsl.BaseDSL{i})
-					if(err != nil) {
+					if err != nil {
 						return nil, err
 					}
 					doc = append(doc, res...)
@@ -168,28 +168,28 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 				doc = append(doc, res)
 			case dsl.LESS_THAN:
 				err := checkScalarValueAndThen(func() {
-					doc = append(doc, comparisonQuery(LT, q.Field, q.Value))
+					doc = append(doc, comparisonQuery(LT, q.Field, dsl.ResolveScalarValue(q.Value)))
 				})
 				if err != nil {
 					return nil, err
 				}
 			case dsl.LESS_THAN_EQUAL:
 				err := checkScalarValueAndThen(func() {
-					doc = append(doc, comparisonQuery(LTE, q.Field, q.Value))
+					doc = append(doc, comparisonQuery(LTE, q.Field, dsl.ResolveScalarValue(q.Value)))
 				})
 				if err != nil {
 					return nil, err
 				}
 			case dsl.GREATER_THAN:
 				err := checkScalarValueAndThen(func() {
-					doc = append(doc, comparisonQuery(GT, q.Field, q.Value))
+					doc = append(doc, comparisonQuery(GT, q.Field, dsl.ResolveScalarValue(q.Value)))
 				})
 				if err != nil {
 					return nil, err
 				}
 			case dsl.GREATER_THAN_EQUAL:
 				err := checkScalarValueAndThen(func() {
-					doc = append(doc, comparisonQuery(GTE, q.Field, q.Value))
+					doc = append(doc, comparisonQuery(GTE, q.Field, dsl.ResolveScalarValue(q.Value)))
 				})
 				if err != nil {
 					return nil, err
