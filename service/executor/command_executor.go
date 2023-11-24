@@ -25,7 +25,7 @@ func NewCommandExecutor(registry *ServiceRegistry) *CommandExecutor {
  */
 func (executor *CommandExecutor) Execute(ctx context.Context, command c.Command) c.CommandResult[interface{}] {
 	commandName := c.CommandName(command)
-	controller, err := executor.serviceRegistry.GetCommandController(commandName)
+	controller, err := executor.serviceRegistry.GetCommandController(command)
 	if err != nil {
 		message := "No handler/controller registered for command type: " + commandName
 		logger.Log().Error(message)
