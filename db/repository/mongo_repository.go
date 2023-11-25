@@ -31,7 +31,7 @@ type MongoRepository[Entity any] struct {
  */
 func (repo *MongoRepository[Entity]) Insert(ctx context.Context, data *Entity) (*Entity, error) {
 	return handleWrite(ctx, func(rc service.RequestContext) (*Entity, error) {
-		doc, err := mongoUtility.EntityToBsonD(data, false, true)
+		doc, err := mongoUtility.EntityToBsonD(data, false, true, true)
 		if err != nil {
 			logger.Log().Error("Invalid Input: Failed to create record:", err)
 			return nil, err
@@ -44,13 +44,12 @@ func (repo *MongoRepository[Entity]) Insert(ctx context.Context, data *Entity) (
 			logger.Log().Error("Failed to create record:", err)
 			return nil, err
 		}
-		var insertedDoc bson.D
+		var entity Entity
 		selector := bson.M{"_id": res.InsertedID}
-		if err = repo.Collection.FindOne(ctx, selector).Decode(&insertedDoc); err != nil {
+		if err = repo.Collection.FindOne(ctx, selector).Decode(&entity); err != nil {
 			return nil, err
-		} else {
-			return mongoUtility.BsonDToEntity[Entity](insertedDoc, true)
 		}
+		return &entity, nil
 	})
 }
 
@@ -65,7 +64,7 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
 			logger.Log().Error("Invalid Record ID:", err)
 			return nil, err
 		}
-		doc, err := mongoUtility.EntityToBsonD(data, false, true)
+		doc, err := mongoUtility.EntityToBsonD(data, false, true, true)
 		if err != nil {
 			logger.Log().Error("Invalid Input: Failed to update record:", err)
 			return nil, err
@@ -100,7 +99,7 @@ func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id stri
 			logger.Log().Error("Invalid Record ID:", err)
 			return false, err
 		}
-		doc, err := mongoUtility.EntityToBsonD(data, false, true)
+		doc, err := mongoUtility.EntityToBsonD(data, false, true, true)
 		if err != nil {
 			logger.Log().Error("Invalid Input: Failed to update record:", err)
 			return false, err
@@ -124,7 +123,7 @@ func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id stri
 
 func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector bson.D, data *Entity) (bool, error) {
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
-		doc, err := mongoUtility.EntityToBsonD(data, false, true)
+		doc, err := mongoUtility.EntityToBsonD(data, false, true, true)
 		if err != nil {
 			logger.Log().Error("Invalid Input: Failed to update record:", err)
 			return false, err
@@ -260,7 +259,7 @@ func (repo *MongoRepository[Entity]) BulkInsert(ctx context.Context, data []*Ent
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		bsonDocuments := []*bson.D{}
 		for _, entity := range data {
-			doc, err := mongoUtility.EntityToBsonD(&entity, true, true)
+			doc, err := mongoUtility.EntityToBsonD(&entity, true, true, true)
 			if err != nil {
 				return false, fmt.Errorf("invalid entity data:", doc)
 			}
@@ -287,7 +286,7 @@ func (repo *MongoRepository[Entity]) BulkUpdate(ctx context.Context, data map[st
 		var writes []mongo.WriteModel
 		for key, entity := range data {
 			filter := bson.M{"_id": key}
-			doc, err := mongoUtility.EntityToBsonD(&entity, true, true)
+			doc, err := mongoUtility.EntityToBsonD(&entity, true, true, true)
 			if err != nil {
 				return false, fmt.Errorf("invalid entity data : %v", doc)
 			}

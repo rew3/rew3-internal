@@ -9,6 +9,7 @@ import (
 
 	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsonrw"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -16,7 +17,7 @@ import (
  * Convert given raw json message to bson.M document.
  */
 func JsonToBsonM(rawMessage json.RawMessage) (bson.M, error) {
-	var bsonM bson.M
+	bsonM := bson.M{}
 	err := bson.Unmarshal(rawMessage, &bsonM)
 	if err != nil {
 		return nil, err
@@ -28,7 +29,7 @@ func JsonToBsonM(rawMessage json.RawMessage) (bson.M, error) {
  * Convert given raw json message to bson.D document.
  */
 func JsonToBsonD(rawMessage json.RawMessage) (bson.D, error) {
-	var bsonD bson.D
+	bsonD := bson.D{}
 	err := bson.Unmarshal(rawMessage, &bsonD)
 	if err != nil {
 		return nil, err
@@ -62,16 +63,28 @@ func BsonDToJson(bsonData bson.D) (json.RawMessage, error) {
 
 /*
  * Convert given entity to Mongo bson.M document.
+ * If noCache true proivided - default decoder is used else bson.Unmarshal used where mongo will apply internal cache.
  */
-func EntityToBsonM[Entity any](entity *Entity, convertToObjectId bool, removeEmptyFields bool) (bson.M, error) {
+func EntityToBsonM[Entity any](entity *Entity, convertToObjectId bool, removeEmptyFields bool, noCache bool) (bson.M, error) {
 	bsonData, err := bson.Marshal(entity)
 	if err != nil {
 		return nil, err
 	}
-	var doc bson.M
-	err = bson.Unmarshal(bsonData, &doc)
-	if err != nil {
-		return nil, err
+	doc := bson.M{}
+	if noCache {
+		dec, err := bson.NewDecoder(bsonrw.NewBSONDocumentReader(bsonData))
+		if err != nil {
+			return nil, err
+		}
+		dec.SetRegistry(bson.DefaultRegistry)
+		if err = dec.Decode(&doc); err != nil {
+			return nil, err
+		}
+	} else {
+		err := bson.Unmarshal(bsonData, &doc)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if convertToObjectId {
 		if err := BsonMHexToObjectID(doc); err != nil {
@@ -86,16 +99,28 @@ func EntityToBsonM[Entity any](entity *Entity, convertToObjectId bool, removeEmp
 
 /*
  * Convert given entity to Mongo bson.D document.
+ * If noCache true proivided - default decoder is used else bson.Unmarshal used where mongo will apply internal cache.
  */
-func EntityToBsonD[Entity any](entity *Entity, convertToObjectId bool, removeEmptyFields bool) (bson.D, error) {
+func EntityToBsonD[Entity any](entity *Entity, convertToObjectId bool, removeEmptyFields bool, noCache bool) (bson.D, error) {
 	bsonData, err := bson.Marshal(entity)
 	if err != nil {
 		return nil, err
 	}
-	var doc bson.D
-	err = bson.Unmarshal(bsonData, &doc)
-	if err != nil {
-		return nil, err
+	doc := bson.D{}
+	if noCache {
+		dec, err := bson.NewDecoder(bsonrw.NewBSONDocumentReader(bsonData))
+		if err != nil {
+			return nil, err
+		}
+		dec.SetRegistry(bson.DefaultRegistry)
+		if err = dec.Decode(&doc); err != nil {
+			return nil, err
+		}
+	} else {
+		err := bson.Unmarshal(bsonData, &doc)
+		if err != nil {
+			return nil, err
+		}
 	}
 	if convertToObjectId {
 		if err := BsonDHexToObjectID(doc); err != nil {
@@ -111,41 +136,63 @@ func EntityToBsonD[Entity any](entity *Entity, convertToObjectId bool, removeEmp
 /*
  * Convert given mongo bson document to Entity.
  */
-func BsonMToEntity[Entity any](document bson.M, convertIdToHex bool) (*Entity, error) {
+func BsonMToEntity[Entity any](document bson.M, convertIdToHex bool, val *Entity, noCache bool) error {
 	if convertIdToHex {
 		if err := BsonMObjectIDToHex(document); err != nil {
-			return nil, err
+			return err
 		}
 	}
-	var entity Entity
 	bsonData, err := bson.Marshal(document)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if err := bson.Unmarshal(bsonData, &entity); err != nil {
-		return nil, err
+	if noCache {
+		dec, err := bson.NewDecoder(bsonrw.NewBSONDocumentReader(bsonData))
+		if err != nil {
+			return err
+		}
+		dec.SetRegistry(bson.DefaultRegistry)
+		if err = dec.Decode(&val); err != nil {
+			return err
+		}
+	} else {
+		err := bson.Unmarshal(bsonData, &val)
+		if err != nil {
+			return err
+		}
 	}
-	return &entity, nil
+	return nil
 }
 
 /*
  * Convert given mongo bson document to Entity.
  */
-func BsonDToEntity[Entity any](document bson.D, convertIdToHex bool) (*Entity, error) {
+func BsonDToEntity[Entity any](document bson.D, convertIdToHex bool, val *Entity, noCache bool) error {
 	if convertIdToHex {
 		if err := BsonDObjectIDToHex(document); err != nil {
-			return nil, err
+			return err
 		}
 	}
-	var entity Entity
 	bsonData, err := bson.Marshal(document)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	if err := bson.Unmarshal(bsonData, &entity); err != nil {
-		return nil, err
+	if noCache {
+		dec, err := bson.NewDecoder(bsonrw.NewBSONDocumentReader(bsonData))
+		if err != nil {
+			return err
+		}
+		dec.SetRegistry(bson.DefaultRegistry)
+		if err = dec.Decode(&val); err != nil {
+			return err
+		}
+	} else {
+		err := bson.Unmarshal(bsonData, &val)
+		if err != nil {
+			return err
+		}
 	}
-	return &entity, nil
+	return nil
 }
 
 // Convert _id from string to primitive.ObjectID
@@ -449,7 +496,7 @@ func RawJsonStringToBson(rawValue string) bson.D {
 	if rawValue == "" {
 		return bson.D{}
 	}
-	var bsonDoc bson.D
+	bsonDoc := bson.D{}
 	err := bson.UnmarshalExtJSON([]byte(rawValue), true, &bsonDoc)
 	if err != nil {
 		logger.Log().Error("Unable to resolve sort value: ", err.Error())
