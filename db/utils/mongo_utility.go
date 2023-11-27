@@ -9,7 +9,6 @@ import (
 
 	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/bsonrw"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -63,28 +62,16 @@ func BsonDToJson(bsonData bson.D) (json.RawMessage, error) {
 
 /*
  * Convert given entity to Mongo bson.M document.
- * If noCache true proivided - default decoder is used else bson.Unmarshal used where mongo will apply internal cache.
  */
-func EntityToBsonM[Entity any](entity *Entity, convertToObjectId bool, removeEmptyFields bool, noCache bool) (bson.M, error) {
+func EntityToBsonM[Entity any](entity *Entity, convertToObjectId bool, removeEmptyFields bool) (bson.M, error) {
 	bsonData, err := bson.Marshal(entity)
 	if err != nil {
 		return nil, err
 	}
 	doc := bson.M{}
-	if noCache {
-		dec, err := bson.NewDecoder(bsonrw.NewBSONDocumentReader(bsonData))
-		if err != nil {
-			return nil, err
-		}
-		dec.SetRegistry(bson.DefaultRegistry)
-		if err = dec.Decode(&doc); err != nil {
-			return nil, err
-		}
-	} else {
-		err := bson.Unmarshal(bsonData, &doc)
-		if err != nil {
-			return nil, err
-		}
+	err = bson.Unmarshal(bsonData, &doc)
+	if err != nil {
+		return nil, err
 	}
 	if convertToObjectId {
 		if err := BsonMHexToObjectID(doc); err != nil {
@@ -99,28 +86,16 @@ func EntityToBsonM[Entity any](entity *Entity, convertToObjectId bool, removeEmp
 
 /*
  * Convert given entity to Mongo bson.D document.
- * If noCache true proivided - default decoder is used else bson.Unmarshal used where mongo will apply internal cache.
  */
-func EntityToBsonD[Entity any](entity *Entity, convertToObjectId bool, removeEmptyFields bool, noCache bool) (bson.D, error) {
+func EntityToBsonD[Entity any](entity *Entity, convertToObjectId bool, removeEmptyFields bool) (bson.D, error) {
 	bsonData, err := bson.Marshal(entity)
 	if err != nil {
 		return nil, err
 	}
 	doc := bson.D{}
-	if noCache {
-		dec, err := bson.NewDecoder(bsonrw.NewBSONDocumentReader(bsonData))
-		if err != nil {
-			return nil, err
-		}
-		dec.SetRegistry(bson.DefaultRegistry)
-		if err = dec.Decode(&doc); err != nil {
-			return nil, err
-		}
-	} else {
-		err := bson.Unmarshal(bsonData, &doc)
-		if err != nil {
-			return nil, err
-		}
+	err = bson.Unmarshal(bsonData, &doc)
+	if err != nil {
+		return nil, err
 	}
 	if convertToObjectId {
 		if err := BsonDHexToObjectID(doc); err != nil {
@@ -136,7 +111,7 @@ func EntityToBsonD[Entity any](entity *Entity, convertToObjectId bool, removeEmp
 /*
  * Convert given mongo bson document to Entity.
  */
-func BsonMToEntity[Entity any](document bson.M, convertIdToHex bool, val *Entity, noCache bool) error {
+func BsonMToEntity[Entity any](document bson.M, convertIdToHex bool, val *Entity) error {
 	if convertIdToHex {
 		if err := BsonMObjectIDToHex(document); err != nil {
 			return err
@@ -146,20 +121,9 @@ func BsonMToEntity[Entity any](document bson.M, convertIdToHex bool, val *Entity
 	if err != nil {
 		return err
 	}
-	if noCache {
-		dec, err := bson.NewDecoder(bsonrw.NewBSONDocumentReader(bsonData))
-		if err != nil {
-			return err
-		}
-		dec.SetRegistry(bson.DefaultRegistry)
-		if err = dec.Decode(&val); err != nil {
-			return err
-		}
-	} else {
-		err := bson.Unmarshal(bsonData, &val)
-		if err != nil {
-			return err
-		}
+	err = bson.Unmarshal(bsonData, &val)
+	if err != nil {
+		return err
 	}
 	return nil
 }
@@ -167,7 +131,7 @@ func BsonMToEntity[Entity any](document bson.M, convertIdToHex bool, val *Entity
 /*
  * Convert given mongo bson document to Entity.
  */
-func BsonDToEntity[Entity any](document bson.D, convertIdToHex bool, val *Entity, noCache bool) error {
+func BsonDToEntity[Entity any](document bson.D, convertIdToHex bool, val *Entity) error {
 	if convertIdToHex {
 		if err := BsonDObjectIDToHex(document); err != nil {
 			return err
@@ -177,20 +141,9 @@ func BsonDToEntity[Entity any](document bson.D, convertIdToHex bool, val *Entity
 	if err != nil {
 		return err
 	}
-	if noCache {
-		dec, err := bson.NewDecoder(bsonrw.NewBSONDocumentReader(bsonData))
-		if err != nil {
-			return err
-		}
-		dec.SetRegistry(bson.DefaultRegistry)
-		if err = dec.Decode(&val); err != nil {
-			return err
-		}
-	} else {
-		err := bson.Unmarshal(bsonData, &val)
-		if err != nil {
-			return err
-		}
+	err = bson.Unmarshal(bsonData, &val)
+	if err != nil {
+		return err
 	}
 	return nil
 }

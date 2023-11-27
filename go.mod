@@ -9,7 +9,7 @@ require (
 	github.com/segmentio/encoding v0.3.6
 	github.com/sirupsen/logrus v1.9.3
 	github.com/tidwall/gjson v1.14.4
-	go.mongodb.org/mongo-driver v1.13.0
+	go.mongodb.org/mongo-driver v1.12.0
 	google.golang.org/grpc v1.56.2
 	google.golang.org/protobuf v1.31.0
 )
