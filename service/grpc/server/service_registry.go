@@ -10,6 +10,7 @@ import (
 
 	ctxUtil "github.com/rew3/rew3-internal/pkg/context"
 	baseCommand "github.com/rew3/rew3-internal/service/command"
+	s "github.com/rew3/rew3-internal/service/common/response"
 	baseQuery "github.com/rew3/rew3-internal/service/query"
 )
 
@@ -66,4 +67,23 @@ func AddQueryService[Input any, Output any](bc *MappingContext, api api.APIOpera
 		},
 	)
 	bc.Registry.AddServiceMethod(method)
+}
+
+/*
+ * Create new Service - with mapping of given API to its respective service handler.
+ * You can use created service method and add to registry. 
+ * Output - output response type returned by query handler.
+ */
+func CreateService[Output any](api api.APIOperation, callback func(interface{}, context.Context) *s.ExecutionResult[Output], responseMeta grpc.DataType) *ServiceMethod {
+	return NewServiceMethod(api).BindHandler(
+		func(ctx context.Context, rc request.RequestContext, input *grpc.PayloadWrapper) *grpc.ResponsePayload {
+			parsed, err := grpc.ParseFullPayload[interface{}](input)
+			if err != nil {
+				return grpc.InvalidRequestResponsePayload(api, "Invalid request data provided: "+err.Error())
+			}
+			updatedCtx := ctxUtil.WithRequestContext(ctx, rc)
+			er := callback(parsed, updatedCtx)
+			return grpc.ToResponsePayload(api, er.Status, er.Message, er.Data, responseMeta)
+		},
+	)
 }
