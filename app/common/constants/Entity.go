@@ -228,6 +228,12 @@ const (
 	// Notifications.
 	NOTIFICATION_NOTIFICATIONS Entity = "notification_notifications"
 
+	// Chat
+	CHAT_USERS   Entity = "chat_user"
+	CHAT_MESSAGE Entity = "chat_message"
+	CHAT_CHANNEL Entity = "chat_channel"
+	CHAT_TEAM    Entity = "chat_team"
+
 	ACCOUNT_AVENUEACCOUNT Entity = "account_avenueaccount"
 	ACCOUNT_COMPANY       Entity = "account_company"
 	ACCOUNT_USER          Entity = "account_user"
