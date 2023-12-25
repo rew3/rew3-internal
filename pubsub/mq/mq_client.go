@@ -1,4 +1,4 @@
-package pubsub
+package mq
 
 import (
 	"github.com/rew3/rew3-internal/pubsub/mq/config"
