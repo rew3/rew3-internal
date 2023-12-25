@@ -1,0 +1,46 @@
+package pubsub
+
+import (
+	"github.com/rew3/rew3-internal/pubsub/mq/config"
+	"github.com/rew3/rew3-internal/pubsub/mq/rabbitmq"
+	"github.com/rew3/rew3-internal/pubsub/mq/types"
+)
+
+/**
+ * Message Queue Client.
+ */
+type MQClient struct {
+	URL        string
+	connection *rabbitmq.MQConnection
+}
+
+/**
+ * Create new message queue server.
+ */
+func NewMQClient(url string) *MQClient {
+	connection := rabbitmq.NewConnection(url)
+	return &MQClient{
+		connection: connection,
+	}
+}
+
+/**
+ * Connect to message queue server.
+ */
+func (s *MQClient) ConnectServer() {
+	s.connection.Connect()
+}
+
+/**
+ * Create new publisher.
+ */
+func (s *MQClient) Publisher(props config.PublisherProps) (types.Publisher, error) {
+	return rabbitmq.NewPublisher(s.connection, props)
+}
+
+/**
+ * Create new consumer.
+ */
+func (s *MQClient) Consumer(props config.ConsumerProps) (types.Consumer, error) {
+	return rabbitmq.NewConsumer(s.connection, props)
+}
