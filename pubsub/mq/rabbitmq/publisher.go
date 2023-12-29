@@ -2,6 +2,7 @@ package rabbitmq
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"time"
 
@@ -23,14 +24,16 @@ type MQPublisher struct {
 	codec          *message.Codec[message.Message, []byte]
 	ackCallbacks   map[types.DeliveryTag]func()
 	errorCallbacks map[string]func()
-	pendingDT      types.DeliveryTag // delivery tag computed for last published message.
+	processedDT    types.DeliveryTag // delivery tag computed for last published message.
 	confirmedDT    types.DeliveryTag // delivery tag for message that has been confirmed and successfully published.
+	isConfigured   bool
+	isStopped      bool
 }
 
 /**
  * Create new publisher.
  */
-func NewPublisher(connection *MQConnection, props config.PublisherProps) (types.Publisher, error) {
+func NewPublisher(connection *MQConnection, props config.PublisherProps) types.Publisher {
 	channel := NewChannel(true, connection)
 	publisher := &MQPublisher{
 		mutex:          sync.Mutex{},
@@ -39,17 +42,13 @@ func NewPublisher(connection *MQConnection, props config.PublisherProps) (types.
 		codec:          message.DefaultCodec[message.Message](),
 		ackCallbacks:   make(map[types.DeliveryTag]func()),
 		errorCallbacks: make(map[string]func()),
-		pendingDT:      0,
+		processedDT:    0,
 		confirmedDT:    0,
+		isConfigured:   false,
+		isStopped:      false,
 	}
-	publisher.checkConnection()
-	err := publisher.declareExchange()
-	if err != nil {
-		logger.Log().Errorln("Unable to create publisher: exchange declare failed")
-		channel.Close()
-		return nil, err
-	}
-	return publisher, nil
+	publisher.asyncInit()
+	return publisher
 }
 
 /**
@@ -57,7 +56,12 @@ func NewPublisher(connection *MQConnection, props config.PublisherProps) (types.
  * Note: make sure to provide routing key, if distribution type require routing key.
  */
 func (p *MQPublisher) Publish(key config.RoutingKey, message message.Message) (types.DeliveryTag, error) {
-	p.checkConnection()
+	if p.isStopped {
+		return 0, errors.New("publisher is already stopped")
+	}
+	if !p.isConfigured {
+		return 0, errors.New("publisher is is not yet configured, please try again in a while")
+	}
 	body, err := p.codec.Serializer.Serialize(message)
 	if err != nil {
 		logger.Log().Errorln("Unable to serialize message: ", err)
@@ -81,9 +85,9 @@ func (p *MQPublisher) Publish(key config.RoutingKey, message message.Message) (t
 		return 0, err
 	}
 	p.mutex.Lock()
-	p.pendingDT = p.pendingDT + 1
-	p.mutex.Unlock()
-	return types.DeliveryTag(p.pendingDT), nil
+	defer p.mutex.Unlock()
+	p.processedDT = p.processedDT + 1
+	return p.processedDT, nil
 }
 
 /**
@@ -111,26 +115,61 @@ func (p *MQPublisher) OnError(messageId string, callback func()) {
 }
 
 /**
- * Check and wait till channel connection is opened.
+ * Stop the publisher.
  */
-func (p *MQPublisher) checkConnection() {
-	if !p.channel.IsOpened() && p.channel.AutoReconnect {
-		logger.Log().Infoln("Waiting till connection is opened...")
-		<-p.channel.NotifyOpened
-		logger.Log().Infoln("Channel opened.")
-		p.mutex.Lock()
-		p.pendingDT = 0
-		p.confirmedDT = 0
-		p.mutex.Unlock()
-		p.initListeners() // will have to reinitialize after channel/connection is closed.
+func (c *MQPublisher) Stop() {
+	c.mutex.Lock()
+	c.channel.Close()
+	c.isStopped = true
+	c.mutex.Unlock()
+	logger.Log().Infoln("Publisher is manually cancelled.")
+}
+
+/**
+ * Initialize the publisher.
+ */
+func (p *MQPublisher) asyncInit() {
+	if p.channel.IsOpened() {
+		p.initListeners()
+		go func() { // mocking. for first initialization.
+			p.channel.NotifyOpened <- p.channel.channel
+		}()
+	} else {
+		p.initListeners()
 	}
+}
+
+/**
+ * Reset the publisher, clear all ack and error callbacks, reset delivery tags.
+ */
+func (p *MQPublisher) reset() {
+	p.mutex.Lock()
+	p.ackCallbacks = make(map[types.DeliveryTag]func())
+	p.errorCallbacks = make(map[string]func())
+	p.processedDT = 0
+	p.confirmedDT = 0
+	p.mutex.Unlock()
 }
 
 /**
  * Initialize event listeners.
  */
 func (p *MQPublisher) initListeners() {
-	logger.Log().Infoln("initializing listeners...")
+	logger.Log().Infoln("Initializing listeners...")
+	go func() {
+		// when channel connection opened - new or reconnected.
+		for range p.channel.NotifyOpened {
+			if !p.isConfigured {
+				p.configureMqSetting(false)
+			}
+		}
+	}()
+	go func() {
+		// when error in channel, reset publisher.
+		for range p.channel.NotifyErrorClose {
+			p.reset()
+		}
+	}()
 	go func() {
 		// Handle publish failed case.
 		cn := p.channel.GetChannel().NotifyReturn(make(chan amqp091.Return, 1000))
@@ -138,30 +177,49 @@ func (p *MQPublisher) initListeners() {
 			msg, _ := p.codec.Deserializer.Deserialize(returnErr.Body)
 			cb := p.errorCallbacks[msg.MessageId]
 			if cb != nil {
-				cb()
+				go cb()
 			}
 			p.mutex.Lock()
 			delete(p.errorCallbacks, msg.MessageId)
 			p.mutex.Unlock()
 		}
 	}()
-	if p.channel.PublisherConfirmMode {
-		// handle acknowledgement confirmation.
-		go func() {
-			cn := p.channel.GetChannel().NotifyPublish(make(chan amqp091.Confirmation, 1000))
-			for confirmation := range cn {
-				tag := types.DeliveryTag(confirmation.DeliveryTag)
-				cb := p.ackCallbacks[tag]
-				if cb != nil {
-					cb()
-				}
-				p.mutex.Lock()
-				p.confirmedDT = tag
-				delete(p.ackCallbacks, tag)
-				p.mutex.Unlock()
+	// handle acknowledgement confirmation. make sure channel.ConfirmAck() is called.
+	go func() {
+		cn := p.channel.GetChannel().NotifyPublish(make(chan amqp091.Confirmation, 1000))
+		for confirmation := range cn {
+			tag := types.DeliveryTag(confirmation.DeliveryTag)
+			cb := p.ackCallbacks[tag]
+			if cb != nil {
+				go cb()
 			}
-		}()
+			p.mutex.Lock()
+			p.confirmedDT = tag
+			delete(p.ackCallbacks, tag)
+			p.mutex.Unlock()
+		}
+	}()
+}
+
+/**
+ * Configure message queue settings.
+ * Note: if one of the configuration failed, it will try to reattempt in every 15 seconds untill
+ * setting is configured. once completed, isConfigured is set true.
+ */
+func (c *MQPublisher) configureMqSetting(isExDeclared bool) {
+	logger.Log().Infoln("Configuring message queue settings...")
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	err := c.declareExchange()
+	if err != nil {
+		logger.Log().Errorln("Redeclaring exchange in 15 seconds...")
+		time.AfterFunc(time.Duration(15)*time.Second, func() {
+			c.configureMqSetting(false)
+		})
+		return
 	}
+	c.isConfigured = true
+	logger.Log().Infoln("Publisher configured.")
 }
 
 /**

@@ -19,7 +19,7 @@ type Publisher interface {
  * Consumer for Message Queue.
  */
 type Consumer interface {
-	Subscribe() (<-chan message.Message, error)
+	Subscribe(int) <-chan message.Message
 }
 
 /**

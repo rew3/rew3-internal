@@ -34,13 +34,13 @@ func (s *MQClient) ConnectServer() {
 /**
  * Create new publisher.
  */
-func (s *MQClient) Publisher(props config.PublisherProps) (types.Publisher, error) {
+func (s *MQClient) Publisher(props config.PublisherProps) types.Publisher {
 	return rabbitmq.NewPublisher(s.connection, props)
 }
 
 /**
  * Create new consumer.
  */
-func (s *MQClient) Consumer(props config.ConsumerProps) (types.Consumer, error) {
+func (s *MQClient) Consumer(props config.ConsumerProps) types.Consumer {
 	return rabbitmq.NewConsumer(s.connection, props)
 }

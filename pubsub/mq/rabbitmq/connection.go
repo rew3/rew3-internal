@@ -31,8 +31,9 @@ func NewConnection(url string) *MQConnection {
 
 /**
  * Connect to the message queue server.
- * If there is error in connecting, it will be retried after every 10 seconds.
- * When connected, status will be notified via NotifyConnected go channel.
+ * If there is error in connecting, it will be retried after every 10 seconds in
+ * non-blocking async way. When connected, status will be notified via NotifyConnected
+ * go channel.
  */
 func (c *MQConnection) Connect() {
 	if c.IsConnected() {
@@ -45,6 +46,10 @@ func (c *MQConnection) Connect() {
 		time.AfterFunc(time.Duration(10)*time.Second, func() {
 			c.Connect()
 		})
+		/*timerChan := time.After(10 * time.Second)
+		<- timerChan
+		c.Connect()*/
+		return
 	}
 	c.mutex.Lock()
 	c.connection = connection
