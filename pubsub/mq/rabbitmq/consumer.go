@@ -129,7 +129,7 @@ func NewConsumer(connection *MQConnection, props config.ConsumerProps) types.Con
  *
  * Note: you can subscribe multiple times using same consumer.
  */
-func (c *MQConsumer) Subscribe(bufSize int, isAutoAck bool) (chan<- message.Message, <-chan bool) {
+func (c *MQConsumer) Subscribe(bufSize int, isAutoAck bool) (<-chan message.Message, chan<- bool) {
 	if c.isCancelled {
 		return nil, nil
 	}
