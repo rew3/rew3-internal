@@ -39,16 +39,15 @@ func (c *MQConnection) Connect() {
 	if c.IsConnected() {
 		return // connection is already connected.
 	}
+	c.mutex.Lock()
 	connection, err := amqp091.Dial(c.URL)
+	c.mutex.Unlock()
 	if err != nil {
 		logger.Log().Error("Unable to connect to Message Queue Server: ", c.URL)
 		logger.Log().Info("Retrying in 10 seconds...")
 		time.AfterFunc(time.Duration(10)*time.Second, func() {
 			c.Connect()
 		})
-		/*timerChan := time.After(10 * time.Second)
-		<- timerChan
-		c.Connect()*/
 		return
 	}
 	c.mutex.Lock()
@@ -59,14 +58,15 @@ func (c *MQConnection) Connect() {
 
 	errorChannel := c.connection.NotifyClose(make(chan *amqp091.Error))
 	go func() {
-		for err := range errorChannel {
+		err, ok := <-errorChannel
+		logger.Log().Error("Connection closed unexpectedly: ", err)
+		logger.Log().Info("Reconnecting connection in 10 seconds...")
+		if ok { // close the channel if not closed.
 			close(errorChannel)
-			logger.Log().Error("Connection closed unexpectedly: ", err)
-			logger.Log().Info("Reconnecting connection in 10 seconds...")
-			time.AfterFunc(time.Duration(10)*time.Second, func() {
-				c.Connect()
-			})
 		}
+		time.AfterFunc(time.Duration(10)*time.Second, func() {
+			c.Connect()
+		})
 	}()
 }
 
@@ -97,6 +97,7 @@ func (c *MQConnection) IsConnected() bool {
 
 /**
  * Stop the connection.
+ * Note: must be accessed from same goroutine where connection is created. 
  */
 func (c *MQConnection) Stop() {
 	if c.connection != nil {

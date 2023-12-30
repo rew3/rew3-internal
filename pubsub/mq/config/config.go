@@ -20,6 +20,7 @@ type PublisherProps struct {
  * Properties for consumer.
  */
 type ConsumerProps struct {
+	Name           string // name for queue. dont use spaces or special characters.
 	ExchangeProps  ExchangeProps
 	RoutingKeys    []RoutingKey
 	IsDurableQueue bool // message are not loss on server fail/restart.

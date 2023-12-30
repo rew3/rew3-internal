@@ -69,6 +69,8 @@ func (p *MQPublisher) Publish(key config.RoutingKey, message message.Message) (t
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
 	err = p.channel.GetChannel().PublishWithContext(
 		ctx,
 		string(p.props.ExchangeProps.Name), // exchange
@@ -84,8 +86,6 @@ func (p *MQPublisher) Publish(key config.RoutingKey, message message.Message) (t
 		logger.Log().Errorln("Error while publishing message: ", err)
 		return 0, err
 	}
-	p.mutex.Lock()
-	defer p.mutex.Unlock()
 	p.processedDT = p.processedDT + 1
 	return p.processedDT, nil
 }
@@ -199,6 +199,7 @@ func (p *MQPublisher) initListeners() {
 			p.mutex.Unlock()
 		}
 	}()
+	logger.Log().Infoln("Listener initialized.")
 }
 
 /**
@@ -218,12 +219,15 @@ func (c *MQPublisher) configureMqSetting(isExDeclared bool) {
 		})
 		return
 	}
+	c.channel.EnableConfirm()
 	c.isConfigured = true
-	logger.Log().Infoln("Publisher configured.")
+	logger.Log().Infoln("Message queue settings configured.")
+	logger.Log().Infoln("Ready to Publish Messages.")
 }
 
 /**
  * Declare rabbitmq exchange.
+ * Note: make sure channel is already opened.
  */
 func (p *MQPublisher) declareExchange() error {
 	err := p.channel.GetChannel().ExchangeDeclare(

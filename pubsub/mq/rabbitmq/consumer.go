@@ -4,6 +4,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/google/uuid"
+	"github.com/rabbitmq/amqp091-go"
 	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"github.com/rew3/rew3-internal/pubsub/mq/config"
 	"github.com/rew3/rew3-internal/pubsub/mq/message"
@@ -14,8 +16,6 @@ import (
  * MQConsumer for rabbitmq Message Queue.
  * This consumer is asynchronous and is self error handling with auto connect and retries
  * in case of channel/consumer error. Only, calling Cancel() will stop this consumer completely.
- *
- * Note: Messages are automatically acknowledged when received and serialized.
  */
 type MQConsumer struct {
 	types.Consumer
@@ -23,10 +23,77 @@ type MQConsumer struct {
 	channel      *MQChannel
 	props        config.ConsumerProps
 	codec        *message.Codec[message.Message, []byte]
-	subscribers  []chan<- message.Message
+	subscribers  []*subscriber
 	isConfigured bool
 	isCancelled  bool
 	isConsuming  bool
+	queueName    string
+}
+
+/**
+ * Message Subscriber
+ */
+type subscriber struct {
+	isAutoAck  bool                 // Flag if message should be auto acknowledge or manually.
+	msgChannel chan message.Message // Channel to receive message.
+	ackChannel chan bool            // If manual ack, acknowledge via this channel by publishing true or false.
+}
+
+/**
+ * Consumer groups.
+ * Used to manage multiple consumers using same channel and connection. This is useful to allow
+ * consuming multiple messages, using same channel connection. In addition, using this, we can gracefully
+ * close multiple consumers at once.
+ */
+type MQConsumerGroup struct {
+	mutex     sync.Mutex
+	channel   *MQChannel
+	consumers []*MQConsumer
+}
+
+/*
+ * Create new consumer group.
+ */
+func NewConsumerGroup(connection *MQConnection) *MQConsumerGroup {
+	channel := NewChannel(true, connection)
+	return &MQConsumerGroup{
+		mutex:     sync.Mutex{},
+		channel:   channel,
+		consumers: []*MQConsumer{},
+	}
+}
+
+/**
+ * Create new consumer using consumer group.
+ */
+func (cg *MQConsumerGroup) NewConsumer(props config.ConsumerProps) types.Consumer {
+	consumer := &MQConsumer{
+		mutex:        sync.Mutex{},
+		channel:      cg.channel,
+		props:        props,
+		codec:        message.DefaultCodec[message.Message](),
+		subscribers:  []*subscriber{},
+		isConfigured: false,
+		isCancelled:  false,
+		isConsuming:  false,
+		queueName:    props.Name + "_" + uuid.NewString(),
+	}
+	cg.mutex.Lock()
+	cg.consumers = append(cg.consumers, consumer)
+	cg.mutex.Unlock()
+	consumer.asyncInit()
+	return consumer
+}
+
+/**
+ * Cancel all consumers of this consumer group.
+ */
+func (cg *MQConsumerGroup) Cancel() {
+	logger.Log().Infoln("Cancelling all consumers of consuemr group...")
+	for _, c := range cg.consumers {
+		c.Cancel()
+	}
+	logger.Log().Infoln("All consumer group's consumers are cancelled.")
 }
 
 /*
@@ -39,10 +106,11 @@ func NewConsumer(connection *MQConnection, props config.ConsumerProps) types.Con
 		channel:      channel,
 		props:        props,
 		codec:        message.DefaultCodec[message.Message](),
-		subscribers:  []chan<- message.Message{},
+		subscribers:  []*subscriber{},
 		isConfigured: false,
 		isCancelled:  false,
 		isConsuming:  false,
+		queueName:    props.Name + "_" + uuid.NewString(),
 	}
 	consumer.asyncInit()
 	return consumer
@@ -51,19 +119,31 @@ func NewConsumer(connection *MQConnection, props config.ConsumerProps) types.Con
 /**
  * Subscribe to new message from queue.
  * If consumer is already cancelled, subscribe will have no effect (do nothing).
- * bufSize: Default buffer size for channel. so make sure when receiving message, it is handled
- * properly. If buffer size, exceed, deadlock will occur.
+ *
+ * bufSize: Default buffer size for channel. provide valid size, to avoid deadlock.
+ * isAutoAck: if true, message acknowledge automatically.
+ *
+ * Returns: (messageChannel, ackChannel)
+ * messageChannel:  receive main message from consumer. if subscriber is cancelled, it is nil.
+ * ackChannel: channel to confirm acknowledgement of message (use only if isAutoAck is true).
+ *
  * Note: you can subscribe multiple times using same consumer.
  */
-func (c *MQConsumer) Subscribe(bufSize int) <-chan message.Message {
+func (c *MQConsumer) Subscribe(bufSize int, isAutoAck bool) (chan<- message.Message, <-chan bool) {
 	if c.isCancelled {
-		return nil
+		return nil, nil
 	}
-	ch := make(chan message.Message, 100)
 	c.mutex.Lock()
-	c.subscribers = append(c.subscribers, ch)
+	ch := make(chan message.Message, bufSize)
+	ackCh := make(chan bool, 20)
+	subscriber := &subscriber{
+		isAutoAck:  isAutoAck,
+		msgChannel: ch,
+		ackChannel: ackCh,
+	}
+	c.subscribers = append(c.subscribers, subscriber)
 	c.mutex.Unlock()
-	return ch
+	return ch, ackCh
 }
 
 /**
@@ -76,8 +156,10 @@ func (c *MQConsumer) Cancel() {
 	c.isCancelled = true
 	c.isConsuming = false
 	for _, s := range c.subscribers {
-		close(s)
+		close(s.msgChannel)
+		close(s.ackChannel)
 	}
+	c.subscribers = []*subscriber{}
 	c.mutex.Unlock()
 	logger.Log().Infoln("Consumer is manually cancelled.")
 }
@@ -164,16 +246,14 @@ func (c *MQConsumer) configureMqSetting(isExDeclared, isQueueDec, isRKBinded boo
 
 /**
  * Declare rabbitmq exchange.
+ * Note: make sure channel is already opened.
  */
-func (p *MQConsumer) declareExchange() error {
+func (c *MQConsumer) declareExchange() error {
 	logger.Log().Infoln("Declaring exchange...")
-	if p.channel.GetChannel() == nil {
-		logger.Log().Println("Nil channel.....")
-	}
-	err := p.channel.GetChannel().ExchangeDeclare(
-		string(p.props.ExchangeProps.Name), // name
-		string(p.props.ExchangeProps.Type), // type
-		p.props.ExchangeProps.IsDurable,    // durable
+	err := c.channel.GetChannel().ExchangeDeclare(
+		string(c.props.ExchangeProps.Name), // name
+		string(c.props.ExchangeProps.Type), // type
+		c.props.ExchangeProps.IsDurable,    // durable
 		false,                              // auto-deleted
 		false,                              // internal
 		false,                              // no-wait
@@ -188,12 +268,13 @@ func (p *MQConsumer) declareExchange() error {
 
 /**
  * Declare rabbitmq queue.
+ * Note: make sure channel is already opened.
  */
-func (p *MQConsumer) declareQueue() error {
+func (c *MQConsumer) declareQueue() error {
 	logger.Log().Infoln("Declaring queue...")
-	_, err := p.channel.GetChannel().QueueDeclare(
-		"",                     // name
-		p.props.IsDurableQueue, // durable
+	_, err := c.channel.GetChannel().QueueDeclare(
+		c.queueName,            // name
+		c.props.IsDurableQueue, // durable
 		false,                  // delete when unused
 		true,                   // exclusive
 		false,                  // no-wait
@@ -208,14 +289,15 @@ func (p *MQConsumer) declareQueue() error {
 
 /**
  * Bind routing keys to queue.
+ * Note: make sure channel is already opened.
  */
-func (p *MQConsumer) bindRoutingKeys() error {
+func (c *MQConsumer) bindRoutingKeys() error {
 	logger.Log().Infoln("Binding routing keys...")
-	for _, key := range p.props.RoutingKeys {
-		err := p.channel.GetChannel().QueueBind(
-			"",                                 // queue name
+	for _, key := range c.props.RoutingKeys {
+		err := c.channel.GetChannel().QueueBind(
+			c.queueName,                        // queue name
 			string(key),                        // routing key
-			string(p.props.ExchangeProps.Name), // exchange
+			string(c.props.ExchangeProps.Name), // exchange
 			false,
 			nil,
 		)
@@ -235,39 +317,51 @@ func (c *MQConsumer) startConsume() {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	msgs, err := c.channel.GetChannel().Consume(
-		"",    // queue
-		"",    // consumer
-		false, // auto ack
-		false, // exclusive
-		false, // no local
-		false, // no wait
-		nil,   // args
+		c.queueName, // queue
+		"",          // consumer
+		false,       // auto ack
+		false,       // exclusive
+		false,       // no local
+		false,       // no wait
+		nil,         // args
 	)
 	if err != nil {
 		logger.Log().Errorln("Error, Unable start consuming: ", err)
 		logger.Log().Errorln("Restarting consumer in 15 seconds...")
+		c.mutex.Unlock()
 		time.AfterFunc(time.Duration(15)*time.Second, func() {
 			c.startConsume()
 		})
 		return
 	}
 	c.isConsuming = true
+	c.mutex.Unlock()
 	go func() {
 		for d := range msgs {
 			data := d.Body
-			d.Ack(false) // acknowledge message.
 			msg, err := c.codec.Deserializer.Deserialize(data)
 			if err != nil {
 				// no need to handle, ensure, correct message is published.
 				logger.Log().Errorln("Unable to de-serialize message: ", err)
 			}
-			for _, susbcriber := range c.subscribers {
-				susbcriber <- msg // publishing to each registered subscriber.
+			for _, sc := range c.subscribers {
+				go func(s *subscriber, dv amqp091.Delivery) {
+					s.msgChannel <- msg // publishing to each registered subscriber.
+					if s.isAutoAck {
+						dv.Ack(false) // acknowledge message.
+					} else {
+						if <-s.ackChannel {
+							dv.Ack(false) // acknowledge message.
+						}
+					}
+				}(sc, d)
 			}
 		}
-		// consumer stopped.
+		// if this is reached, that means, consumer is stopped.
+		logger.Log().Infoln("Consumer stopped receiving message.")
 		c.mutex.Lock()
 		c.isConsuming = false
 		c.mutex.Unlock()
 	}()
+	logger.Log().Infoln("Consumer Started.")
 }
