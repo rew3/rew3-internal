@@ -19,15 +19,16 @@ import (
  */
 type MQConsumer struct {
 	types.Consumer
-	mutex        sync.Mutex
-	channel      *MQChannel
-	props        config.ConsumerProps
-	codec        *message.Codec[message.Message, []byte]
-	subscribers  []*subscriber
-	isConfigured bool
-	isCancelled  bool
-	isConsuming  bool
-	queueName    string
+	mutex         sync.Mutex
+	channel       *MQChannel
+	props         config.ConsumerProps
+	codec         *message.Codec[message.Message, []byte]
+	subscribers   []*subscriber
+	isConfigured  bool
+	isConfiguring bool
+	isCancelled   bool
+	isConsuming   bool
+	queueName     string
 }
 
 /**
@@ -68,15 +69,16 @@ func NewConsumerGroup(connection *MQConnection) *MQConsumerGroup {
  */
 func (cg *MQConsumerGroup) NewConsumer(props config.ConsumerProps) types.Consumer {
 	consumer := &MQConsumer{
-		mutex:        sync.Mutex{},
-		channel:      cg.channel,
-		props:        props,
-		codec:        message.DefaultCodec[message.Message](),
-		subscribers:  []*subscriber{},
-		isConfigured: false,
-		isCancelled:  false,
-		isConsuming:  false,
-		queueName:    props.Name + "_" + uuid.NewString(),
+		mutex:         sync.Mutex{},
+		channel:       cg.channel,
+		props:         props,
+		codec:         message.DefaultCodec[message.Message](),
+		subscribers:   []*subscriber{},
+		isConfigured:  false,
+		isConfiguring: false,
+		isCancelled:   false,
+		isConsuming:   false,
+		queueName:     props.Name + "_" + uuid.NewString(),
 	}
 	cg.mutex.Lock()
 	cg.consumers = append(cg.consumers, consumer)
@@ -102,15 +104,16 @@ func (cg *MQConsumerGroup) Cancel() {
 func NewConsumer(connection *MQConnection, props config.ConsumerProps) types.Consumer {
 	channel := NewChannel(true, connection)
 	consumer := &MQConsumer{
-		mutex:        sync.Mutex{},
-		channel:      channel,
-		props:        props,
-		codec:        message.DefaultCodec[message.Message](),
-		subscribers:  []*subscriber{},
-		isConfigured: false,
-		isCancelled:  false,
-		isConsuming:  false,
-		queueName:    props.Name + "_" + uuid.NewString(),
+		mutex:         sync.Mutex{},
+		channel:       channel,
+		props:         props,
+		codec:         message.DefaultCodec[message.Message](),
+		subscribers:   []*subscriber{},
+		isConfigured:  false,
+		isConfiguring: false,
+		isCancelled:   false,
+		isConsuming:   false,
+		queueName:     props.Name + "_" + uuid.NewString(),
 	}
 	consumer.asyncInit()
 	return consumer
@@ -167,38 +170,53 @@ func (c *MQConsumer) Cancel() {
 /**
  * Initialize the consumer asynchrously.
  */
-func (p *MQConsumer) asyncInit() {
-	if p.channel.IsOpened() {
-		p.initListeners()
+func (c *MQConsumer) asyncInit() {
+	logger.Log().Infoln("Initializing Consumer...")
+	if c.channel.IsOpened() {
+		c.initListeners()
 		go func() { // mocking. for first initialization.
-			p.channel.NotifyOpened <- p.channel.channel
+			c.channel.NotifyOpened <- c.channel.channel
 		}()
 	} else {
-		p.initListeners()
+		c.initListeners()
 	}
 }
 
 /**
  * Initialize listeners for consumer configuration and startup.
  */
-func (p *MQConsumer) initListeners() {
+func (c *MQConsumer) initListeners() {
+	logger.Log().Infoln("Setting up Consumer event listeners...")
 	go func() {
-		for range p.channel.NotifyOpened {
-			if !p.isConfigured {
+		for range c.channel.NotifyOpened {
+			logger.Log().Infoln("Channel opened event received by Consumer.")
+			c.mutex.Lock()
+			isConfigured := c.isConfigured
+			c.mutex.Unlock()
+			if !isConfigured {
 				logger.Log().Infoln("Configuring consumer...")
 				ch := make(chan bool, 1)
-				p.configureMqSetting(false, false, false, ch)
-				<-ch // configured.
-				close(ch)
-				logger.Log().Infoln("Consumer configured.")
-				logger.Log().Infoln("Starting consumer...")
-				if !p.isConsuming {
-					p.startConsume()
-				}
+				c.configureMqSetting(false, false, false, ch)
+				go func() {
+					<-ch // configured.
+					close(ch)
+					logger.Log().Infoln("Consumer configured.")
+					logger.Log().Infoln("Starting consumer...")
+
+					c.mutex.Lock() // To avoid: WARNING: DATA RACE
+					isConsuming := c.isConsuming
+					c.mutex.Unlock()
+					if !isConsuming {
+						c.startConsume()
+					}
+				}()
 			} else {
 				logger.Log().Infoln("Starting consumer...")
-				if !p.isConsuming {
-					p.startConsume()
+				c.mutex.Lock() // To avoid: WARNING: DATA RACE
+				isConsuming := c.isConsuming
+				c.mutex.Unlock()
+				if !isConsuming {
+					c.startConsume()
 				}
 			}
 		}
@@ -212,12 +230,26 @@ func (p *MQConsumer) initListeners() {
  * settings are configured. once completed, isConfigured is set true.
  */
 func (c *MQConsumer) configureMqSetting(isExDeclared, isQueueDec, isRKBinded bool, ch chan<- bool) {
-	logger.Log().Infoln("Configuring message queue settings...")
+	logger.Log().Infoln("Configuring message queue settings for consumer...")
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+	if c.isConfiguring {
+		logger.Log().Infoln("Consumer is being already being configured...")
+		return
+	}
+	if c.channel.isClosed {
+		logger.Log().Infoln("Channel is not already closed. Cancelling consumer configuration...")
+		return
+	}
+	if !c.channel.IsOpened() {
+		logger.Log().Infoln("Channel is not opened. Cancelling consumer configuration...")
+		return
+	}
+	c.isConfiguring = true
 	err := c.declareExchange()
 	if err != nil {
 		logger.Log().Errorln("Redeclaring exchange in 15 seconds...")
+		c.isConfiguring = false
 		time.AfterFunc(time.Duration(15)*time.Second, func() {
 			c.configureMqSetting(false, isQueueDec, isRKBinded, ch)
 		})
@@ -226,6 +258,7 @@ func (c *MQConsumer) configureMqSetting(isExDeclared, isQueueDec, isRKBinded boo
 	err = c.declareQueue()
 	if err != nil {
 		logger.Log().Errorln("Redeclaring queue in 15 seconds...")
+		c.isConfiguring = false
 		time.AfterFunc(time.Duration(15)*time.Second, func() {
 			c.configureMqSetting(isExDeclared, false, isRKBinded, ch)
 		})
@@ -234,12 +267,14 @@ func (c *MQConsumer) configureMqSetting(isExDeclared, isQueueDec, isRKBinded boo
 	err = c.bindRoutingKeys()
 	if err != nil {
 		logger.Log().Errorln("Binding routing keys in 15 seconds...")
+		c.isConfiguring = false
 		time.AfterFunc(time.Duration(15)*time.Second, func() {
 			c.configureMqSetting(isExDeclared, isQueueDec, false, ch)
 		})
 		return
 	}
 	c.isConfigured = true
+	c.isConfiguring = false
 	logger.Log().Infoln("Configuration of message queue setting completed.")
 	ch <- true // all configured, notifying.
 }
@@ -315,7 +350,6 @@ func (c *MQConsumer) bindRoutingKeys() error {
  */
 func (c *MQConsumer) startConsume() {
 	c.mutex.Lock()
-	defer c.mutex.Unlock()
 	msgs, err := c.channel.GetChannel().Consume(
 		c.queueName, // queue
 		"",          // consumer

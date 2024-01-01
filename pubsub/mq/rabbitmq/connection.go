@@ -10,7 +10,7 @@ import (
 
 /**
  * Message Queue Connection.
- * This connection has automatic connection recovery with every connection retry in every 10 seconds
+ * This connection has automatic connection recovery with every connection retry in every 15 seconds
  * in case of network faliure or disgraceful disconnect.
  */
 type MQConnection struct {
@@ -25,7 +25,7 @@ func NewConnection(url string) *MQConnection {
 		mutex:           sync.Mutex{},
 		URL:             url,
 		connection:      nil,
-		notifyConnected: make(chan bool, 1),
+		notifyConnected: make(chan bool, 50),
 	}
 }
 
@@ -43,9 +43,9 @@ func (c *MQConnection) Connect() {
 	connection, err := amqp091.Dial(c.URL)
 	c.mutex.Unlock()
 	if err != nil {
-		logger.Log().Error("Unable to connect to Message Queue Server: ", c.URL)
-		logger.Log().Info("Retrying in 10 seconds...")
-		time.AfterFunc(time.Duration(10)*time.Second, func() {
+		logger.Log().Error("Unable to establish MQ Connection: ", c.URL)
+		logger.Log().Info("Retrying to establish connection in 15 seconds...")
+		time.AfterFunc(time.Duration(15)*time.Second, func() {
 			c.Connect()
 		})
 		return
@@ -53,18 +53,16 @@ func (c *MQConnection) Connect() {
 	c.mutex.Lock()
 	c.connection = connection
 	c.mutex.Unlock()
-	c.notifyConnected <- true
 	logger.Log().Info("Connection establish successful")
+	c.notifyConnected <- true
+	logger.Log().Info("Connection establish notified")
 
 	errorChannel := c.connection.NotifyClose(make(chan *amqp091.Error))
 	go func() {
-		err, ok := <-errorChannel
+		err := <-errorChannel
 		logger.Log().Error("Connection closed unexpectedly: ", err)
-		logger.Log().Info("Reconnecting connection in 10 seconds...")
-		if ok { // close the channel if not closed.
-			close(errorChannel)
-		}
-		time.AfterFunc(time.Duration(10)*time.Second, func() {
+		logger.Log().Info("Reconnecting connection in 15 seconds...")
+		time.AfterFunc(time.Duration(15)*time.Second, func() {
 			c.Connect()
 		})
 	}()
@@ -97,7 +95,7 @@ func (c *MQConnection) IsConnected() bool {
 
 /**
  * Stop the connection.
- * Note: must be accessed from same goroutine where connection is created. 
+ * Note: must be accessed from same goroutine where connection is created.
  */
 func (c *MQConnection) Stop() {
 	if c.connection != nil {

@@ -54,6 +54,8 @@ func NewPublisher(connection *MQConnection, props config.PublisherProps) types.P
 /**
  * Publish message.
  * Note: make sure to provide routing key, if distribution type require routing key.
+ * Please call publish() only in same goroutine where publisher is created, otherwise, there can be
+ * possible chance of Data race and deadlock when multiple publish() is called from different goroutines.
  */
 func (p *MQPublisher) Publish(key config.RoutingKey, message message.Message) (types.DeliveryTag, error) {
 	if p.isStopped {
@@ -94,6 +96,8 @@ func (p *MQPublisher) Publish(key config.RoutingKey, message message.Message) (t
  * Check is message has been delivered and successfully acknowledged or not.
  */
 func (p *MQPublisher) IsAck(tag types.DeliveryTag) bool {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
 	return tag <= p.confirmedDT
 }
 
@@ -103,6 +107,8 @@ func (p *MQPublisher) IsAck(tag types.DeliveryTag) bool {
  * Note: Call back will be executed in another go-routine.
  */
 func (p *MQPublisher) OnAck(tag types.DeliveryTag, callback func()) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
 	p.ackCallbacks[tag] = callback
 }
 
@@ -111,6 +117,8 @@ func (p *MQPublisher) OnAck(tag types.DeliveryTag, callback func()) {
  * Note: Call back will be executed in another go-routine.
  */
 func (p *MQPublisher) OnError(messageId string, callback func()) {
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
 	p.errorCallbacks[messageId] = callback
 }
 
@@ -159,44 +167,52 @@ func (p *MQPublisher) initListeners() {
 	go func() {
 		// when channel connection opened - new or reconnected.
 		for range p.channel.NotifyOpened {
-			if !p.isConfigured {
-				p.configureMqSetting(false)
+			logger.Log().Infoln("Channel opened. configuring publisher...")
+			p.reset()
+			p.mutex.Lock()
+			isConfigured := p.isConfigured
+			p.mutex.Unlock()
+			if !isConfigured {
+				go p.configureMqSetting(false)
 			}
+
+			// Handle publish failed case.
+			go func() {
+				cn := p.channel.GetChannel().NotifyReturn(make(chan amqp091.Return, 1000))
+				for returnErr := range cn {
+					msg, _ := p.codec.Deserializer.Deserialize(returnErr.Body)
+					cb := p.errorCallbacks[msg.MessageId]
+					if cb != nil {
+						go cb()
+					}
+					p.mutex.Lock()
+					delete(p.errorCallbacks, msg.MessageId)
+					p.mutex.Unlock()
+				}
+			}()
+
+			// handle acknowledgement confirmation. make sure channel.ConfirmAck() is called.
+			go func() {
+				cn := p.channel.GetChannel().NotifyPublish(make(chan amqp091.Confirmation, 1000))
+				for confirmation := range cn {
+					tag := types.DeliveryTag(confirmation.DeliveryTag)
+					cb := p.ackCallbacks[tag]
+					if cb != nil {
+						go cb()
+					}
+					p.mutex.Lock()
+					p.confirmedDT = tag
+					delete(p.ackCallbacks, tag)
+					p.mutex.Unlock()
+				}
+			}()
 		}
 	}()
 	go func() {
 		// when error in channel, reset publisher.
 		for range p.channel.NotifyErrorClose {
+			logger.Log().Infoln("Channel Closed on error. Resetting publisher...")
 			p.reset()
-		}
-	}()
-	go func() {
-		// Handle publish failed case.
-		cn := p.channel.GetChannel().NotifyReturn(make(chan amqp091.Return, 1000))
-		for returnErr := range cn {
-			msg, _ := p.codec.Deserializer.Deserialize(returnErr.Body)
-			cb := p.errorCallbacks[msg.MessageId]
-			if cb != nil {
-				go cb()
-			}
-			p.mutex.Lock()
-			delete(p.errorCallbacks, msg.MessageId)
-			p.mutex.Unlock()
-		}
-	}()
-	// handle acknowledgement confirmation. make sure channel.ConfirmAck() is called.
-	go func() {
-		cn := p.channel.GetChannel().NotifyPublish(make(chan amqp091.Confirmation, 1000))
-		for confirmation := range cn {
-			tag := types.DeliveryTag(confirmation.DeliveryTag)
-			cb := p.ackCallbacks[tag]
-			if cb != nil {
-				go cb()
-			}
-			p.mutex.Lock()
-			p.confirmedDT = tag
-			delete(p.ackCallbacks, tag)
-			p.mutex.Unlock()
 		}
 	}()
 	logger.Log().Infoln("Listener initialized.")
@@ -208,9 +224,17 @@ func (p *MQPublisher) initListeners() {
  * setting is configured. once completed, isConfigured is set true.
  */
 func (c *MQPublisher) configureMqSetting(isExDeclared bool) {
-	logger.Log().Infoln("Configuring message queue settings...")
+	logger.Log().Infoln("Configuring message queue settings for publisher...")
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+	if c.channel.isClosed {
+		logger.Log().Infoln("Channel is not already closed. Cancelling publisher configuration...")
+		return
+	}
+	if !c.channel.IsOpened() {
+		logger.Log().Infoln("Channel is not opened. Cancelling publisher configuration...")
+		return
+	}
 	err := c.declareExchange()
 	if err != nil {
 		logger.Log().Errorln("Redeclaring exchange in 15 seconds...")
