@@ -29,7 +29,7 @@ type ConsumerProps struct {
 /**
  * Define exchange properties.
  */
-func DefineExchangeProps(name ExchangeName, dType DistributionType, isDurable bool) ExchangeProps {
+func NewExchangeProps(name ExchangeName, dType DistributionType, isDurable bool) ExchangeProps {
 	return ExchangeProps{
 		Name:      name,
 		Type:      dType,
@@ -40,7 +40,7 @@ func DefineExchangeProps(name ExchangeName, dType DistributionType, isDurable bo
 /**
  * Define message queue properties for publisher.
  */
-func DefinePublisherProps(exchangeProps ExchangeProps) PublisherProps {
+func NewPublisherProps(exchangeProps ExchangeProps) PublisherProps {
 	return PublisherProps{
 		ExchangeProps: exchangeProps,
 	}
@@ -49,8 +49,9 @@ func DefinePublisherProps(exchangeProps ExchangeProps) PublisherProps {
 /**
  * Define message queue properties for consumer.
  */
-func DefineConsumerProps(exchangeProps ExchangeProps, keys []RoutingKey, isDurable bool) ConsumerProps {
+func NewConsumerProps(name string, exchangeProps ExchangeProps, keys []RoutingKey, isDurable bool) ConsumerProps {
 	return ConsumerProps{
+		Name:           name,
 		ExchangeProps:  exchangeProps,
 		RoutingKeys:    keys,
 		IsDurableQueue: isDurable,

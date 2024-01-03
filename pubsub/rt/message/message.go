@@ -14,10 +14,17 @@ type Message struct {
 }
 
 /**
- * Message payload interface.
- * Message must inherit this interface.
+ * Message payload.
  */
-type RTMessagePayload interface{}
+type RTMessagePayload struct {
+	Type MessageType            `json:"message_type"`
+	Data map[string]interface{} `json:"data"`
+}
+
+/**
+ * Type of Message.
+ */
+type MessageType string
 
 /**
  * Message category type.
