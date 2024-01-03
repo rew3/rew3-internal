@@ -48,6 +48,6 @@ func (s *MQClient) Consumer(props config.ConsumerProps) types.Consumer {
 /**
  * Create new consumer group.
  */
-func (s *MQClient) ConsumerGroup(props config.ConsumerProps) types.ConsumerGroup {
+func (s *MQClient) ConsumerGroup() types.ConsumerGroup {
 	return rabbitmq.NewConsumerGroup(s.connection)
 }
