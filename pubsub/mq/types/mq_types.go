@@ -23,6 +23,14 @@ type Consumer interface {
 }
 
 /**
+ * ConsumerGroup for Message Queue.
+ * This provides efficient way to define list of multiple consumer with shared channels.
+ */
+type ConsumerGroup interface {
+	NewConsumer(props config.ConsumerProps) Consumer
+}
+
+/**
  * DeliveryTag identifier for particular message.
  * This tag can be used to check if message has been delivered or not.
  */

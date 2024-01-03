@@ -47,6 +47,7 @@ type subscriber struct {
  * close multiple consumers at once.
  */
 type MQConsumerGroup struct {
+	types.ConsumerGroup
 	mutex     sync.Mutex
 	channel   *MQChannel
 	consumers []*MQConsumer

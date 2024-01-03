@@ -44,3 +44,10 @@ func (s *MQClient) Publisher(props config.PublisherProps) types.Publisher {
 func (s *MQClient) Consumer(props config.ConsumerProps) types.Consumer {
 	return rabbitmq.NewConsumer(s.connection, props)
 }
+
+/**
+ * Create new consumer group.
+ */
+func (s *MQClient) ConsumerGroup(props config.ConsumerProps) types.ConsumerGroup {
+	return rabbitmq.NewConsumerGroup(s.connection)
+}
