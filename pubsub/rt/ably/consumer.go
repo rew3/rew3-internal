@@ -31,11 +31,11 @@ func NewAblyConsumer(channelName config.ChannelName, connection *AblyConnection)
 }
 
 /**
- * Subscribe to message for given category messages in this consumer channel.
+ * Subscribe to messages published in given route in this consumer channel.
  */
-func (c *AblyConsumer) Subscribe(category message.MessageCategory, onMessage func(received message.Message)) {
+func (c *AblyConsumer) Subscribe(route config.MessageRoute, onMessage func(received message.Message)) {
 	channel := c.channel.Channel
-	channel.Subscribe(context.Background(), string(category), func(msg *ably.Message) {
+	channel.Subscribe(context.Background(), string(route), func(msg *ably.Message) {
 		serialized, err := c.serialize(msg.Data)
 		if err != nil {
 			logger.Log().Errorln("Unable to serialize received message.")

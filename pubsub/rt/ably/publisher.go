@@ -30,10 +30,10 @@ func NewAblyPublisher(channelName config.ChannelName, connection *AblyConnection
 
 /**
  * Publish message.
+ * MessageRoute is a routing to publish this message, client can consume this route in order to receive this message.
  */
-func (p *AblyPublisher) Publish(message message.Message) error {
-	eventType := message.Category
-	err := p.channel.Channel.Publish(context.Background(), string(eventType), message)
+func (p *AblyPublisher) Publish(route config.MessageRoute, message message.Message) error {
+	err := p.channel.Channel.Publish(context.Background(), string(route), message)
 	if err != nil {
 		logger.Log().Errorln("Error while publishing: ", err)
 		return err
@@ -43,12 +43,12 @@ func (p *AblyPublisher) Publish(message message.Message) error {
 
 /**
  * Publish message asynchronously.
+ * MessageRoute is a routing to publish this message, client can consume this route in order to receive this message.
  * Note: onAck() will be called when message is acknowledge successfully or failed with error.
  * onAck() will be called in goroutine to avoid ably running thread block.
  */
-func (p *AblyPublisher) PublishAsync(message message.Message, onAck func(error)) error {
-	eventType := message.Category
-	err := p.channel.Channel.PublishAsync(string(eventType), message, func(err error) {
+func (p *AblyPublisher) PublishAsync(route config.MessageRoute, message message.Message, onAck func(error)) error {
+	err := p.channel.Channel.PublishAsync(string(route), message, func(err error) {
 		go onAck(err)
 	})
 	if err != nil {

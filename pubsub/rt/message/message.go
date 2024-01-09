@@ -1,16 +1,34 @@
 package message
 
-import "time"
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
 
 /**
  * Realtime messaging Message structure.
  */
 type Message struct {
 	MessageId string           `json:"message_id"`
-	HistoryId string           `json:"history_id"` // history id, in order or all received message.
-	Category  MessageCategory  `json:"category"`
+	HistoryId int64            `json:"history_id"` // history id, in order or all received message.
 	Payload   RTMessagePayload `json:"payload"`
 	TimeStamp time.Time        `json:"timestamp"`
+}
+
+/**
+ * Create New Message.
+ */
+func NewMessage(mType MessageType, data map[string]interface{}) Message {
+	return Message{
+		MessageId: uuid.NewString(),
+		HistoryId: time.Now().UnixMilli(),
+		Payload: RTMessagePayload{
+			Type: mType,
+			Data: data,
+		},
+		TimeStamp: time.Now(),
+	}
 }
 
 /**
@@ -27,7 +45,6 @@ type RTMessagePayload struct {
 type MessageType string
 
 /**
- * Message category type.
- * Multiple message type can be sent to each category.
+ * Event Name for categorizing messages.
  */
-type MessageCategory string
+type EventName string

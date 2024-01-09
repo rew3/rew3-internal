@@ -14,4 +14,10 @@ type ClientConfig struct {
 /**
  * Channel name.
  */
-type ChannelName string 
+type ChannelName string
+
+/**
+ * Route name for message/events being published/consumed. 
+ * Client can use this in order to publish or consume message of particular type.   
+ */
+type MessageRoute string

@@ -33,18 +33,18 @@ func NewRTClient(config config.ClientConfig) (*RTClient, error) {
  * Create new Publisher.
  * Note: every call will initialize and create new publisher.
  */
-func (c *RTClient) Publisher(name config.ChannelName) *types.RTPublisher {
+func (c *RTClient) Publisher(name config.ChannelName) types.RTPublisher {
 	publisher := rtc.NewAblyPublisher(name, c.Connection)
 	logger.Log().Infoln("Publisher created for channel: ", name)
-	return &publisher
+	return publisher
 }
 
 /**
  * Create new Publisher.
  * Note: every call will initialize and create new subscriber.
  */
-func (c *RTClient) Consumer(name config.ChannelName) *types.RTConsumer {
+func (c *RTClient) Consumer(name config.ChannelName) types.RTConsumer {
 	consumer := rtc.NewAblyConsumer(name, c.Connection)
 	logger.Log().Infoln("Consumer created for channel: ", name)
-	return &consumer
+	return consumer
 }
