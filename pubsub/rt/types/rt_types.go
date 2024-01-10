@@ -17,6 +17,13 @@ type RTPublisher interface {
  * Realtime Consumer interface.
  */
 type RTConsumer interface {
-	Subscribe(config.MessageRoute, func(message.Message))
-	SubscribeAll(func(message.Message))
+	Subscribe(config.MessageRoute, func(message.Message)) (Subscription, error)
+	SubscribeAll(func(message.Message)) (Subscription, error)
+}
+
+/**
+ * Subscription.
+ */
+type Subscription struct {
+	Unsubscribe func()
 }

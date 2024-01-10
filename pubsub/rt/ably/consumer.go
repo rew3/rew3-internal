@@ -33,9 +33,9 @@ func NewAblyConsumer(channelName config.ChannelName, connection *AblyConnection)
 /**
  * Subscribe to messages published in given route in this consumer channel.
  */
-func (c *AblyConsumer) Subscribe(route config.MessageRoute, onMessage func(received message.Message)) {
+func (c *AblyConsumer) Subscribe(route config.MessageRoute, onMessage func(received message.Message)) (types.Subscription, error) {
 	channel := c.channel.Channel
-	channel.Subscribe(context.Background(), string(route), func(msg *ably.Message) {
+	unsubscribe, err := channel.Subscribe(context.Background(), string(route), func(msg *ably.Message) {
 		serialized, err := c.serialize(msg.Data)
 		if err != nil {
 			logger.Log().Errorln("Unable to serialize received message.")
@@ -43,14 +43,19 @@ func (c *AblyConsumer) Subscribe(route config.MessageRoute, onMessage func(recei
 		}
 		onMessage(serialized)
 	})
+	if err != nil {
+		logger.Log().Errorln("Unable to subscribe: ", err)
+		return types.Subscription{}, err
+	}
+	return types.Subscription{Unsubscribe: unsubscribe}, nil
 }
 
 /**
  * Subscribe to all messages in this consumer channel.
  */
-func (c *AblyConsumer) SubscribeAll(onMessage func(received message.Message)) {
+func (c *AblyConsumer) SubscribeAll(onMessage func(received message.Message)) (types.Subscription, error) {
 	channel := c.channel.Channel
-	channel.SubscribeAll(context.Background(), func(msg *ably.Message) {
+	unsubscribe, err := channel.SubscribeAll(context.Background(), func(msg *ably.Message) {
 		serialized, err := c.serialize(msg.Data)
 		if err != nil {
 			logger.Log().Errorln("Unable to serialize received message.")
@@ -58,6 +63,11 @@ func (c *AblyConsumer) SubscribeAll(onMessage func(received message.Message)) {
 		}
 		onMessage(serialized)
 	})
+	if err != nil {
+		logger.Log().Errorln("Unable to subscribe: ", err)
+		return types.Subscription{}, err
+	}
+	return types.Subscription{Unsubscribe: unsubscribe}, nil
 }
 
 /**
@@ -67,12 +77,12 @@ func (c *AblyConsumer) serialize(data interface{}) (message.Message, error) {
 	var message message.Message
 	jsonData, err := json.Marshal(data)
 	if err != nil {
-		logger.Log().Errorln("Error converting to JSON: %v\n", err)
+		logger.Log().Errorln("Error converting to JSON: ", err)
 		return message, err
 	}
 	err = json.Unmarshal(jsonData, &message)
 	if err != nil {
-		logger.Log().Errorln("Error converting to Message type: %v\n", err)
+		logger.Log().Errorln("Error converting to Message type: ", err)
 		return message, err
 	}
 	return message, nil
