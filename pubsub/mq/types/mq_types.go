@@ -13,6 +13,7 @@ type Publisher interface {
 	IsAck(DeliveryTag) bool
 	OnAck(DeliveryTag, func())
 	OnError(string, func())
+	Stop()
 }
 
 /**
@@ -20,6 +21,7 @@ type Publisher interface {
  */
 type Consumer interface {
 	Subscribe(int, bool) (<-chan message.Message, chan<- bool) // message channel, ack channel.
+	Stop()
 }
 
 /**
