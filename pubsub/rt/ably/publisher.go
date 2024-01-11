@@ -3,6 +3,7 @@ package rtc
 import (
 	"context"
 
+	"github.com/rew3/rew3-internal/pkg/utils/json"
 	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"github.com/rew3/rew3-internal/pubsub/rt/config"
 	"github.com/rew3/rew3-internal/pubsub/rt/message"
@@ -32,8 +33,13 @@ func NewAblyPublisher(channelName config.ChannelName, connection *AblyConnection
  * Publish message.
  * MessageRoute is a routing to publish this message, client can consume this route in order to receive this message.
  */
-func (p *AblyPublisher) Publish(route config.MessageRoute, message message.Message) error {
-	err := p.channel.Channel.Publish(context.Background(), string(route), message)
+func (p *AblyPublisher) Publish(route config.MessageRoute, msg message.Message) error {
+	data, err := json.TypeToMap[message.Message](msg)
+	if err != nil {
+		logger.Log().Errorln("Unable to serialize message: ", err)
+		return err
+	}
+	err = p.channel.Channel.Publish(context.Background(), string(route), data)
 	if err != nil {
 		logger.Log().Errorln("Error while publishing: ", err)
 		return err
@@ -47,8 +53,13 @@ func (p *AblyPublisher) Publish(route config.MessageRoute, message message.Messa
  * Note: onAck() will be called when message is acknowledge successfully or failed with error.
  * onAck() will be called in goroutine to avoid ably running thread block.
  */
-func (p *AblyPublisher) PublishAsync(route config.MessageRoute, message message.Message, onAck func(error)) error {
-	err := p.channel.Channel.PublishAsync(string(route), message, func(err error) {
+func (p *AblyPublisher) PublishAsync(route config.MessageRoute, msg message.Message, onAck func(error)) error {
+	data, err := json.TypeToMap[message.Message](msg)
+	if err != nil {
+		logger.Log().Errorln("Unable to serialize message: ", err)
+		return err
+	}
+	err = p.channel.Channel.PublishAsync(string(route), data, func(err error) {
 		go onAck(err)
 	})
 	if err != nil {
