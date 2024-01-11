@@ -1,9 +1,8 @@
 package rtc
 
 import (
-	"fmt"
-
 	"github.com/ably/ably-go/ably"
+	"github.com/rew3/rew3-internal/pkg/utils/logger"
 	"github.com/rew3/rew3-internal/pubsub/rt/config"
 )
 
@@ -41,7 +40,7 @@ func NewAblyConnection(config config.ClientConfig) (*AblyConnection, error) {
 	}
 	// Set up connection events handler.
 	client.Connection.OnAll(func(change ably.ConnectionStateChange) {
-		fmt.Printf("Connection event: %s state=%s reason=%s", change.Event, change.Current, change.Reason)
+		logger.Log().Infoln("Connection event:", change.Event, ", state=", change.Current, ", reason=", change.Reason)
 	})
 	return &AblyConnection{client: client}, nil
 }
@@ -72,7 +71,7 @@ func (client *AblyConnection) Close() {
 func (client *AblyConnection) GetChannel(name config.ChannelName) *AblyChannel {
 	channel := client.client.Channels.Get(string(name))
 	channel.OnAll(func(change ably.ChannelStateChange) {
-		fmt.Printf("Channel event event: %s channel=%s state=%s reason=%s", channel.Name, change.Event, change.Current, change.Reason)
+		logger.Log().Infoln("Connection event:", change.Event, "channel=", channel.Name, ", state=", change.Current, ", reason=", change.Reason)
 	})
 	return &AblyChannel{Name: name, Channel: channel}
 }

@@ -3,6 +3,7 @@ package rtc
 import (
 	"context"
 	"encoding/json"
+	"errors"
 
 	"github.com/ably/ably-go/ably"
 	"github.com/rew3/rew3-internal/pkg/utils/logger"
@@ -75,12 +76,12 @@ func (c *AblyConsumer) SubscribeAll(onMessage func(received message.Message)) (t
  */
 func (c *AblyConsumer) serialize(data interface{}) (message.Message, error) {
 	var message message.Message
-	jsonData, err := json.Marshal(data)
-	if err != nil {
-		logger.Log().Errorln("Error converting to JSON: ", err)
-		return message, err
+	jsonString, ok := data.(string)
+	if !ok {
+		logger.Log().Errorln("Invalid data, Unable to serizlie message")
+		return message, errors.New("invalid data, unable to serizlie message")
 	}
-	err = json.Unmarshal(jsonData, &message)
+	err := json.Unmarshal([]byte(jsonString), &message)
 	if err != nil {
 		logger.Log().Errorln("Error converting to Message type: ", err)
 		return message, err
