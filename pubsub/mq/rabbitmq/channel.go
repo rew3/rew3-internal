@@ -19,6 +19,7 @@ import (
  */
 type MQChannel struct {
 	mutex                    sync.Mutex
+	name                     string
 	connection               *MQConnection
 	channel                  *amqp091.Channel
 	isClosed                 bool
@@ -33,9 +34,10 @@ type MQChannel struct {
 /**
  * Create new channel.
  */
-func NewChannel(autoReconnect bool, connection *MQConnection) *MQChannel {
+func NewChannel(name string, autoReconnect bool, connection *MQConnection) *MQChannel {
 	channel := &MQChannel{
 		mutex:                    sync.Mutex{},
+		name:                     name,
 		connection:               connection,
 		channel:                  nil,
 		autoReconnect:            autoReconnect,
@@ -57,13 +59,16 @@ func NewChannel(autoReconnect bool, connection *MQConnection) *MQChannel {
 			if isConnecting {
 				return
 			}
-			logger.Log().Infoln("Connection established, opening the channel...")
+			logger.Log().Infoln("[", name, "]", "Connection established, opening the channel...")
 			if channel.isClosed {
-				logger.Log().Infoln("Channel is already closed, exitting.")
+				logger.Log().Infoln("[", name, "]", "Channel is already closed, exitting.")
 				return
 			}
 			if !channel.IsOpened() {
+				logger.Log().Infoln("[", name, "]", "Channel was closed, opening...")
 				channel.openChannel()
+			} else {
+				logger.Log().Infoln("[", name, "]", "Channel is already open.")
 			}
 		}
 	}()
@@ -84,11 +89,11 @@ func (c *MQChannel) openChannel() {
 	c.mutex.Lock()
 	c.isConnecting = true
 	c.mutex.Unlock()
-	logger.Log().Infoln("Opening channel...")
+	logger.Log().Infoln("[", c.name, "]", "Opening channel...")
 	if c.IsOpened() || !c.connection.IsConnected() {
 		// Channel already opened and running
 		// OR connection is not connected or ready yet.
-		logger.Log().Infoln("Channel already opened.")
+		logger.Log().Infoln("[", c.name, "]", "Channel already opened.")
 		c.mutex.Lock()
 		c.isConnecting = false
 		c.mutex.Unlock()
@@ -100,8 +105,8 @@ func (c *MQChannel) openChannel() {
 	}
 	ch, err := c.connection.Connection().Channel()
 	if err != nil {
-		logger.Log().Errorln("Unable to open channel: ", err)
-		logger.Log().Errorln("Retrying in 15 seconds...")
+		logger.Log().Errorln("[", c.name, "]", "Unable to open channel: ", err)
+		logger.Log().Errorln("[", c.name, "]", "Retrying in 15 seconds...")
 		c.isConnecting = false
 		c.mutex.Unlock()
 		time.AfterFunc(time.Duration(15)*time.Second, func() {
@@ -112,7 +117,7 @@ func (c *MQChannel) openChannel() {
 	c.channel = ch
 	c.isConnecting = false
 	c.mutex.Unlock()
-	logger.Log().Infoln("Channel opened.")
+	logger.Log().Infoln("[", c.name, "]", "Channel opened.")
 	c.internalNotifyOpened <- c.channel // using internal, so autoconnect will listen to this event first.
 	c.NotifyOpened <- c.channel
 }
@@ -125,18 +130,18 @@ func (c *MQChannel) enableAutoReconnect() {
 		go func() {
 			// when channel is opened, handle auto channel open.
 			for ch := range c.internalNotifyOpened {
-				logger.Log().Info("Channel Opened. Listening to channel error...")
+				logger.Log().Info("[", c.name, "]", "Channel Opened. Listening to channel error...")
 				errorChannel := ch.NotifyClose(make(chan *amqp091.Error, 1))
 				err := <-errorChannel
-				logger.Log().Error("Channel closed unexpectedly: ", err)
-				logger.Log().Info("Re-opening channel in 15 seconds...")
+				logger.Log().Error("[", c.name, "]", "Channel closed unexpectedly: ", err)
+				logger.Log().Info("[", c.name, "]", "Re-opening channel in 15 seconds...")
 				go func() {
 					c.NotifyErrorClose <- true
 				}()
 				if !c.connection.IsConnected() {
 					// seems like main connection is closed, dont do anything.
 					// if auto connect enabled in connection, this channel will be initialized again.
-					logger.Log().Errorln("Connection is not available. Unable to open channel.")
+					logger.Log().Errorln("[", c.name, "]", "Connection is not available. Unable to open channel.")
 				} else {
 					time.AfterFunc(time.Duration(15)*time.Second, func() {
 						c.openChannel()
@@ -144,7 +149,7 @@ func (c *MQChannel) enableAutoReconnect() {
 				}
 			}
 
-			logger.Log().Info("Notify open channel closed...")
+			logger.Log().Info("[", c.name, "]", "Notify open channel closed...")
 		}()
 	}
 }
@@ -158,7 +163,7 @@ func (c *MQChannel) EnableConfirm() {
 	defer c.mutex.Unlock()
 	err := c.channel.Confirm(false)
 	if err != nil {
-		logger.Log().Errorln("Unable to enable confirmation ack, retrying")
+		logger.Log().Errorln("[", c.name, "]", "Unable to enable confirmation ack, retrying")
 	}
 }
 
@@ -199,7 +204,7 @@ func (c *MQChannel) Close() {
 	defer close(c.NotifyOpened)
 	defer close(c.internalNotifyOpened)
 	defer close(c.NotifyErrorClose)
-	logger.Log().Errorln("Channel is manually closed")
+	logger.Log().Errorln("[", c.name, "]", "Channel is manually closed")
 }
 
 /**

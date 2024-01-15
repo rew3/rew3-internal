@@ -55,8 +55,8 @@ type MQConsumerGroup struct {
 /*
  * Create new consumer group.
  */
-func NewConsumerGroup(connection *MQConnection) *MQConsumerGroup {
-	channel := NewChannel(true, connection)
+func NewConsumerGroup(name string, connection *MQConnection) *MQConsumerGroup {
+	channel := NewChannel(name, true, connection)
 	return &MQConsumerGroup{
 		mutex:     sync.Mutex{},
 		channel:   channel,
@@ -101,7 +101,7 @@ func (cg *MQConsumerGroup) Cancel() {
  * Create new consumer.
  */
 func NewConsumer(connection *MQConnection, props config.ConsumerProps) types.Consumer {
-	channel := NewChannel(true, connection)
+	channel := NewChannel(props.Name, true, connection)
 	consumer := &MQConsumer{
 		mutex:         sync.Mutex{},
 		channel:       channel,

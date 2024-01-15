@@ -34,7 +34,7 @@ type MQPublisher struct {
  * Create new publisher.
  */
 func NewPublisher(connection *MQConnection, props config.PublisherProps) types.Publisher {
-	channel := NewChannel(true, connection)
+	channel := NewChannel(string(props.ExchangeProps.Name), true, connection)
 	publisher := &MQPublisher{
 		mutex:          sync.Mutex{},
 		channel:        channel,
@@ -177,7 +177,7 @@ func (p *MQPublisher) initListeners() {
 				go p.configureMqSetting(false)
 			}
 
-			// Handle publish failed case.
+			// Handle message publish failed case.
 			go func() {
 				cn := p.channel.GetChannel().NotifyReturn(make(chan amqp091.Return, 1000))
 				for returnErr := range cn {

@@ -35,7 +35,7 @@ func NewRTClient(config config.ClientConfig) (*RTClient, error) {
  */
 func (c *RTClient) Publisher(name config.ChannelName) types.RTPublisher {
 	publisher := rtc.NewAblyPublisher(name, c.Connection)
-	logger.Log().Infoln("Publisher created for channel: ", name)
+	logger.Log().Infoln("RT Publisher created for channel: ", name)
 	return publisher
 }
 
@@ -45,6 +45,6 @@ func (c *RTClient) Publisher(name config.ChannelName) types.RTPublisher {
  */
 func (c *RTClient) Consumer(name config.ChannelName) types.RTConsumer {
 	consumer := rtc.NewAblyConsumer(name, c.Connection)
-	logger.Log().Infoln("Consumer created for channel: ", name)
+	logger.Log().Infoln("RT Consumer created for channel: ", name)
 	return consumer
 }
