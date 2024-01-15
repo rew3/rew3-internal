@@ -13,6 +13,7 @@ type ExchangeProps struct {
  * Properties for publisher.
  */
 type PublisherProps struct {
+	
 	ExchangeProps ExchangeProps
 }
 

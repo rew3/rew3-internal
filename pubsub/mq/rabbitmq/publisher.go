@@ -66,7 +66,7 @@ func (p *MQPublisher) Publish(key config.RoutingKey, message message.Message) (t
 	}
 	body, err := p.codec.Serializer.Serialize(message)
 	if err != nil {
-		logger.Log().Errorln("Unable to serialize message: ", err)
+		logger.Log().Errorln(p.logMsg("Unable to serialize message: "), err)
 		return 0, err
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -85,7 +85,7 @@ func (p *MQPublisher) Publish(key config.RoutingKey, message message.Message) (t
 		},
 	)
 	if err != nil {
-		logger.Log().Errorln("Error while publishing message: ", err)
+		logger.Log().Errorln(p.logMsg("Error while publishing message: "), err)
 		return 0, err
 	}
 	p.processedDT = p.processedDT + 1
@@ -125,12 +125,12 @@ func (p *MQPublisher) OnError(messageId string, callback func()) {
 /**
  * Stop the publisher.
  */
-func (c *MQPublisher) Stop() {
-	c.mutex.Lock()
-	c.channel.Close()
-	c.isStopped = true
-	c.mutex.Unlock()
-	logger.Log().Infoln("Publisher is manually cancelled.")
+func (p *MQPublisher) Stop() {
+	p.mutex.Lock()
+	p.channel.Close()
+	p.isStopped = true
+	p.mutex.Unlock()
+	logger.Log().Infoln(p.logMsg("Publisher is manually cancelled."))
 }
 
 /**
@@ -152,6 +152,7 @@ func (p *MQPublisher) asyncInit() {
  */
 func (p *MQPublisher) reset() {
 	p.mutex.Lock()
+	p.isConfigured = false
 	p.ackCallbacks = make(map[types.DeliveryTag]func())
 	p.errorCallbacks = make(map[string]func())
 	p.processedDT = 0
@@ -163,12 +164,12 @@ func (p *MQPublisher) reset() {
  * Initialize event listeners.
  */
 func (p *MQPublisher) initListeners() {
-	logger.Log().Infoln("Initializing listeners...")
+	logger.Log().Infoln(p.logMsg("Initializing listeners..."))
 	go func() {
 		// when channel connection opened - new or reconnected.
 		for range p.channel.NotifyOpened {
-			logger.Log().Infoln("Channel opened. configuring publisher...")
-			p.reset()
+			logger.Log().Infoln(p.logMsg("Channel opened. configuring publisher..."))
+			//p.reset()
 			p.mutex.Lock()
 			isConfigured := p.isConfigured
 			p.mutex.Unlock()
@@ -211,11 +212,11 @@ func (p *MQPublisher) initListeners() {
 	go func() {
 		// when error in channel, reset publisher.
 		for range p.channel.NotifyErrorClose {
-			logger.Log().Infoln("Channel Closed on error. Resetting publisher...")
+			logger.Log().Infoln(p.logMsg("Channel Closed on error. Resetting publisher..."))
 			p.reset()
 		}
 	}()
-	logger.Log().Infoln("Listener initialized.")
+	logger.Log().Infoln(p.logMsg("Listener initialized."))
 }
 
 /**
@@ -223,30 +224,30 @@ func (p *MQPublisher) initListeners() {
  * Note: if one of the configuration failed, it will try to reattempt in every 15 seconds untill
  * setting is configured. once completed, isConfigured is set true.
  */
-func (c *MQPublisher) configureMqSetting(isExDeclared bool) {
-	logger.Log().Infoln("Configuring message queue settings for publisher...")
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	if c.channel.isClosed {
-		logger.Log().Infoln("Channel is not already closed. Cancelling publisher configuration...")
+func (p *MQPublisher) configureMqSetting(isExDeclared bool) {
+	logger.Log().Infoln(p.logMsg("Configuring message queue settings for publisher..."))
+	p.mutex.Lock()
+	defer p.mutex.Unlock()
+	if p.channel.isClosed {
+		logger.Log().Infoln(p.logMsg("Channel is not already closed. Cancelling publisher configuration..."))
 		return
 	}
-	if !c.channel.IsOpened() {
-		logger.Log().Infoln("Channel is not opened. Cancelling publisher configuration...")
+	if !p.channel.IsOpened() {
+		logger.Log().Infoln(p.logMsg("Channel is not opened. Cancelling publisher configuration..."))
 		return
 	}
-	err := c.declareExchange()
+	err := p.declareExchange()
 	if err != nil {
-		logger.Log().Errorln("Redeclaring exchange in 15 seconds...")
+		logger.Log().Errorln(p.logMsg("Redeclaring exchange in 15 seconds..."))
 		time.AfterFunc(time.Duration(15)*time.Second, func() {
-			c.configureMqSetting(false)
+			p.configureMqSetting(false)
 		})
 		return
 	}
-	c.channel.EnableConfirm()
-	c.isConfigured = true
-	logger.Log().Infoln("Message queue settings configured.")
-	logger.Log().Infoln("Ready to Publish Messages.")
+	p.channel.EnableConfirm()
+	p.isConfigured = true
+	logger.Log().Infoln(p.logMsg("Message queue settings configured."))
+	logger.Log().Infoln(p.logMsg("Ready to Publish Messages."))
 }
 
 /**
@@ -264,8 +265,13 @@ func (p *MQPublisher) declareExchange() error {
 		nil,                                // arguments
 	)
 	if err != nil {
-		logger.Log().Errorln("Unable to declare exchange for publisher: ", err)
+		logger.Log().Errorln(p.logMsg("Unable to declare exchange for publisher: "), err)
 		return err
 	}
 	return nil
+}
+
+// create log message
+func (p *MQPublisher) logMsg(msg string) string {
+	return "[MQ Publisher: " + string(p.props.ExchangeProps.Name) + "] " + msg
 }

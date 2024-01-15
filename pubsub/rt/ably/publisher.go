@@ -36,12 +36,12 @@ func NewAblyPublisher(channelName config.ChannelName, connection *AblyConnection
 func (p *AblyPublisher) Publish(route config.MessageRoute, msg message.Message) error {
 	data, err := json.TypeToMap[message.Message](msg)
 	if err != nil {
-		logger.Log().Errorln("Unable to serialize message: ", err)
+		logger.Log().Errorln(p.logMsg("Unable to serialize message: "), err)
 		return err
 	}
 	err = p.channel.Channel.Publish(context.Background(), string(route), data)
 	if err != nil {
-		logger.Log().Errorln("Error while publishing: ", err)
+		logger.Log().Errorln(p.logMsg("Error while publishing: "), err)
 		return err
 	}
 	return nil
@@ -56,14 +56,21 @@ func (p *AblyPublisher) Publish(route config.MessageRoute, msg message.Message) 
 func (p *AblyPublisher) PublishAsync(route config.MessageRoute, msg message.Message, onAck func(error)) error {
 	data, err := json.TypeToMap[message.Message](msg)
 	if err != nil {
-		logger.Log().Errorln("Unable to serialize message: ", err)
+		logger.Log().Errorln(p.logMsg("Unable to serialize message: "), err)
 		return err
 	}
 	err = p.channel.Channel.PublishAsync(string(route), data, func(err error) {
 		go onAck(err)
 	})
 	if err != nil {
-		logger.Log().Errorln("Error while publishing: ", err)
+		logger.Log().Errorln(p.logMsg("Error while publishing: "), err)
 	}
 	return nil
+}
+
+
+
+// create log message
+func (p *AblyPublisher) logMsg(msg string) string {
+	return "[RT Consumer: " + string(p.channel.Name) + "] " + msg
 }

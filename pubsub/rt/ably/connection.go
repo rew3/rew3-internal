@@ -71,7 +71,7 @@ func (client *AblyConnection) Close() {
 func (client *AblyConnection) GetChannel(name config.ChannelName) *AblyChannel {
 	channel := client.client.Channels.Get(string(name))
 	channel.OnAll(func(change ably.ChannelStateChange) {
-		logger.Log().Infoln("Connection event:", change.Event, "channel=", channel.Name, ", state=", change.Current, ", reason=", change.Reason)
+		logger.Log().Infoln("[RT Connection: ", name, "] Connection event:", change.Event, "channel=", channel.Name, ", state=", change.Current, ", reason=", change.Reason)
 	})
 	return &AblyChannel{Name: name, Channel: channel}
 }

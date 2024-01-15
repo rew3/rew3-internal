@@ -24,7 +24,6 @@ type MQConsumer struct {
 	props         config.ConsumerProps
 	codec         *message.Codec[message.Message, []byte]
 	subscribers   []*subscriber
-	isConfigured  bool
 	isConfiguring bool
 	isCancelled   bool
 	isConsuming   bool
@@ -75,7 +74,6 @@ func (cg *MQConsumerGroup) NewConsumer(props config.ConsumerProps) types.Consume
 		props:         props,
 		codec:         message.DefaultCodec[message.Message](),
 		subscribers:   []*subscriber{},
-		isConfigured:  false,
 		isConfiguring: false,
 		isCancelled:   false,
 		isConsuming:   false,
@@ -110,7 +108,6 @@ func NewConsumer(connection *MQConnection, props config.ConsumerProps) types.Con
 		props:         props,
 		codec:         message.DefaultCodec[message.Message](),
 		subscribers:   []*subscriber{},
-		isConfigured:  false,
 		isConfiguring: false,
 		isCancelled:   false,
 		isConsuming:   false,
@@ -165,14 +162,14 @@ func (c *MQConsumer) Cancel() {
 	}
 	c.subscribers = []*subscriber{}
 	c.mutex.Unlock()
-	logger.Log().Infoln("Consumer is manually cancelled.")
+	logger.Log().Infoln(c.logMsg("Consumer is manually cancelled."))
 }
 
 /**
  * Initialize the consumer asynchrously.
  */
 func (c *MQConsumer) asyncInit() {
-	logger.Log().Infoln("Initializing Consumer...")
+	logger.Log().Infoln(c.logMsg("Initializing Consumer..."))
 	if c.channel.IsOpened() {
 		c.initListeners()
 		go func() { // mocking. for first initialization.
@@ -187,22 +184,22 @@ func (c *MQConsumer) asyncInit() {
  * Initialize listeners for consumer configuration and startup.
  */
 func (c *MQConsumer) initListeners() {
-	logger.Log().Infoln("Setting up Consumer event listeners...")
+	logger.Log().Infoln(c.logMsg("Setting up Consumer event listeners..."))
 	go func() {
 		for range c.channel.NotifyOpened {
-			logger.Log().Infoln("Channel opened event received by Consumer.")
-			c.mutex.Lock()
+			logger.Log().Infoln(c.logMsg("Channel opened event received by Consumer."))
+			/*c.mutex.Lock()
 			isConfigured := c.isConfigured
 			c.mutex.Unlock()
 			if !isConfigured {
-				logger.Log().Infoln("Configuring consumer...")
+				logger.Log().Infoln(c.logMsg("Configuring consumer..."))
 				ch := make(chan bool, 1)
 				c.configureMqSetting(false, false, false, ch)
 				go func() {
 					<-ch // configured.
 					close(ch)
-					logger.Log().Infoln("Consumer configured.")
-					logger.Log().Infoln("Starting consumer...")
+					logger.Log().Infoln(c.logMsg("Consumer configured."))
+					logger.Log().Infoln(c.logMsg("Starting consumer..."))
 
 					c.mutex.Lock() // To avoid: WARNING: DATA RACE
 					isConsuming := c.isConsuming
@@ -212,14 +209,36 @@ func (c *MQConsumer) initListeners() {
 					}
 				}()
 			} else {
-				logger.Log().Infoln("Starting consumer...")
+				logger.Log().Infoln(c.logMsg("Starting consumer..."))
 				c.mutex.Lock() // To avoid: WARNING: DATA RACE
 				isConsuming := c.isConsuming
 				c.mutex.Unlock()
 				if !isConsuming {
 					c.startConsume()
 				}
+			}*/
+			c.mutex.Lock()
+			if c.isCancelled {
+				logger.Log().Infoln(c.logMsg("Consumer is already cancelled."))
+				return
 			}
+			c.mutex.Unlock()
+			logger.Log().Infoln(c.logMsg("Configuring consumer..."))
+			ch := make(chan bool, 1)
+			c.configureMqSetting(false, false, false, ch)
+			go func() {
+				<-ch // configured.
+				close(ch)
+				logger.Log().Infoln(c.logMsg("Consumer configured."))
+				logger.Log().Infoln(c.logMsg("Starting consumer..."))
+
+				c.mutex.Lock() // To avoid: WARNING: DATA RACE
+				isConsuming := c.isConsuming
+				c.mutex.Unlock()
+				if !isConsuming {
+					c.startConsume()
+				}
+			}()
 		}
 	}()
 }
@@ -228,28 +247,28 @@ func (c *MQConsumer) initListeners() {
  * Configure message queue settings.
  * Declare exchange, queue and bind routing keys.
  * Note: if one of the configuration failed, it will try to reattempt in every 15 seconds untill all
- * settings are configured. once completed, isConfigured is set true.
+ * settings are configured.
  */
 func (c *MQConsumer) configureMqSetting(isExDeclared, isQueueDec, isRKBinded bool, ch chan<- bool) {
-	logger.Log().Infoln("Configuring message queue settings for consumer...")
+	logger.Log().Infoln(c.logMsg("Configuring message queue settings for consumer..."))
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	if c.isConfiguring {
-		logger.Log().Infoln("Consumer is being already being configured...")
+		logger.Log().Infoln(c.logMsg("Consumer is being already being configured..."))
 		return
 	}
 	if c.channel.isClosed {
-		logger.Log().Infoln("Channel is not already closed. Cancelling consumer configuration...")
+		logger.Log().Infoln(c.logMsg("Channel is not already closed. Cancelling consumer configuration..."))
 		return
 	}
 	if !c.channel.IsOpened() {
-		logger.Log().Infoln("Channel is not opened. Cancelling consumer configuration...")
+		logger.Log().Infoln(c.logMsg("Channel is not opened. Cancelling consumer configuration..."))
 		return
 	}
 	c.isConfiguring = true
 	err := c.declareExchange()
 	if err != nil {
-		logger.Log().Errorln("Redeclaring exchange in 15 seconds...")
+		logger.Log().Errorln(c.logMsg("Redeclaring exchange in 15 seconds..."))
 		c.isConfiguring = false
 		time.AfterFunc(time.Duration(15)*time.Second, func() {
 			c.configureMqSetting(false, isQueueDec, isRKBinded, ch)
@@ -258,7 +277,7 @@ func (c *MQConsumer) configureMqSetting(isExDeclared, isQueueDec, isRKBinded boo
 	}
 	err = c.declareQueue()
 	if err != nil {
-		logger.Log().Errorln("Redeclaring queue in 15 seconds...")
+		logger.Log().Errorln(c.logMsg("Redeclaring queue in 15 seconds..."))
 		c.isConfiguring = false
 		time.AfterFunc(time.Duration(15)*time.Second, func() {
 			c.configureMqSetting(isExDeclared, false, isRKBinded, ch)
@@ -267,16 +286,15 @@ func (c *MQConsumer) configureMqSetting(isExDeclared, isQueueDec, isRKBinded boo
 	}
 	err = c.bindRoutingKeys()
 	if err != nil {
-		logger.Log().Errorln("Binding routing keys in 15 seconds...")
+		logger.Log().Errorln(c.logMsg("Binding routing keys in 15 seconds..."))
 		c.isConfiguring = false
 		time.AfterFunc(time.Duration(15)*time.Second, func() {
 			c.configureMqSetting(isExDeclared, isQueueDec, false, ch)
 		})
 		return
 	}
-	c.isConfigured = true
 	c.isConfiguring = false
-	logger.Log().Infoln("Configuration of message queue setting completed.")
+	logger.Log().Infoln(c.logMsg("Configuration of message queue setting completed."))
 	ch <- true // all configured, notifying.
 }
 
@@ -285,7 +303,7 @@ func (c *MQConsumer) configureMqSetting(isExDeclared, isQueueDec, isRKBinded boo
  * Note: make sure channel is already opened.
  */
 func (c *MQConsumer) declareExchange() error {
-	logger.Log().Infoln("Declaring exchange...")
+	logger.Log().Infoln(c.logMsg("Declaring exchange..."))
 	err := c.channel.GetChannel().ExchangeDeclare(
 		string(c.props.ExchangeProps.Name), // name
 		string(c.props.ExchangeProps.Type), // type
@@ -296,7 +314,7 @@ func (c *MQConsumer) declareExchange() error {
 		nil,                                // arguments
 	)
 	if err != nil {
-		logger.Log().Errorln("Unable to declare exchange for consumer: ", err)
+		logger.Log().Errorln(c.logMsg("Unable to declare exchange for consumer: "), err)
 		return err
 	}
 	return nil
@@ -307,7 +325,7 @@ func (c *MQConsumer) declareExchange() error {
  * Note: make sure channel is already opened.
  */
 func (c *MQConsumer) declareQueue() error {
-	logger.Log().Infoln("Declaring queue...")
+	logger.Log().Infoln(c.logMsg("Declaring queue..."))
 	_, err := c.channel.GetChannel().QueueDeclare(
 		c.queueName,            // name
 		c.props.IsDurableQueue, // durable
@@ -317,7 +335,7 @@ func (c *MQConsumer) declareQueue() error {
 		nil,                    // arguments
 	)
 	if err != nil {
-		logger.Log().Errorln("Unable to declare queue: ", err)
+		logger.Log().Errorln(c.logMsg("Unable to declare queue: "), err)
 		return err
 	}
 	return nil
@@ -328,7 +346,7 @@ func (c *MQConsumer) declareQueue() error {
  * Note: make sure channel is already opened.
  */
 func (c *MQConsumer) bindRoutingKeys() error {
-	logger.Log().Infoln("Binding routing keys...")
+	logger.Log().Infoln(c.logMsg("Binding routing keys..."))
 	for _, key := range c.props.RoutingKeys {
 		err := c.channel.GetChannel().QueueBind(
 			c.queueName,                        // queue name
@@ -338,7 +356,7 @@ func (c *MQConsumer) bindRoutingKeys() error {
 			nil,
 		)
 		if err != nil {
-			logger.Log().Errorln("Unable to bind keys with queue: ", err)
+			logger.Log().Errorln(c.logMsg("Unable to bind keys with queue: "), err)
 			return err
 		}
 	}
@@ -361,8 +379,8 @@ func (c *MQConsumer) startConsume() {
 		nil,         // args
 	)
 	if err != nil {
-		logger.Log().Errorln("Error, Unable start consuming: ", err)
-		logger.Log().Errorln("Restarting consumer in 15 seconds...")
+		logger.Log().Errorln(c.logMsg("Error, Unable start consuming: "), err)
+		logger.Log().Errorln(c.logMsg("Restarting consumer in 15 seconds..."))
 		c.mutex.Unlock()
 		time.AfterFunc(time.Duration(15)*time.Second, func() {
 			c.startConsume()
@@ -377,7 +395,7 @@ func (c *MQConsumer) startConsume() {
 			msg, err := c.codec.Deserializer.Deserialize(data)
 			if err != nil {
 				// no need to handle, ensure, correct message is published.
-				logger.Log().Errorln("Unable to de-serialize message: ", err)
+				logger.Log().Errorln(c.logMsg("Unable to de-serialize message: "), err)
 			}
 			for _, sc := range c.subscribers {
 				go func(s *subscriber, dv amqp091.Delivery) {
@@ -393,10 +411,15 @@ func (c *MQConsumer) startConsume() {
 			}
 		}
 		// if this is reached, that means, consumer is stopped.
-		logger.Log().Infoln("Consumer stopped receiving message.")
+		logger.Log().Infoln(c.logMsg("Consumer stopped receiving message."))
 		c.mutex.Lock()
 		c.isConsuming = false
 		c.mutex.Unlock()
 	}()
-	logger.Log().Infoln("Consumer Started.")
+	logger.Log().Infoln(c.logMsg("Consumer Started."))
+}
+
+// create log message
+func (c *MQConsumer) logMsg(msg string) string {
+	return "[MQ Consumer: "+ c.props.Name+"] "+ msg
 }
