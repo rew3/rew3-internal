@@ -82,19 +82,19 @@ func (cg *MQConsumerGroup) NewConsumer(props config.ConsumerProps) types.Consume
 	cg.mutex.Lock()
 	cg.consumers = append(cg.consumers, consumer)
 	cg.mutex.Unlock()
-	consumer.asyncInit()
+	go consumer.initConsumer()
 	return consumer
 }
 
 /**
- * Cancel all consumers of this consumer group.
+ * Stop all consumers of this consumer group.
  */
-func (cg *MQConsumerGroup) Cancel() {
-	logger.Log().Infoln("Cancelling all consumers of consuemr group...")
+func (cg *MQConsumerGroup) Stop() {
+	logger.Log().Infoln("[MQ Consumer Group] Cancelling all consumers of consuemr group...")
 	for _, c := range cg.consumers {
-		c.Cancel()
+		c.Stop()
 	}
-	logger.Log().Infoln("All consumer group's consumers are cancelled.")
+	logger.Log().Infoln("[MQ Consumer Group] All consumer group's consumers are cancelled.")
 }
 
 /*
@@ -113,7 +113,7 @@ func NewConsumer(connection *MQConnection, props config.ConsumerProps) types.Con
 		isConsuming:   false,
 		queueName:     props.Name + "_" + uuid.NewString(),
 	}
-	consumer.asyncInit()
+	go consumer.initConsumer()
 	return consumer
 }
 
@@ -148,11 +148,13 @@ func (c *MQConsumer) Subscribe(bufSize int, isAutoAck bool) (<-chan message.Mess
 }
 
 /**
- * Cancel all the subscriptions in this consumer.
- * Cancelled consumer cannot be re-subscribed again. In such case, re-start new consumer and subscribe.
+ * Stop Consumer.
+ * Note: Cancelled consumer cannot be re-subscribed again. In such case, re-start new consumer and subscribe.
  */
-func (c *MQConsumer) Cancel() {
+func (c *MQConsumer) Stop() {
+	logger.Log().Infoln(c.logMsg("Stopping Consumer..."))
 	c.mutex.Lock()
+	defer c.mutex.Unlock()
 	c.channel.Close()
 	c.isCancelled = true
 	c.isConsuming = false
@@ -161,86 +163,54 @@ func (c *MQConsumer) Cancel() {
 		close(s.ackChannel)
 	}
 	c.subscribers = []*subscriber{}
-	c.mutex.Unlock()
-	logger.Log().Infoln(c.logMsg("Consumer is manually cancelled."))
+	logger.Log().Infoln(c.logMsg("Consumer is gracefully stopped."))
 }
 
 /**
- * Initialize the consumer asynchrously.
+ * Initialize the consumer.
  */
-func (c *MQConsumer) asyncInit() {
+func (c *MQConsumer) initConsumer() {
 	logger.Log().Infoln(c.logMsg("Initializing Consumer..."))
-	if c.channel.IsOpened() {
-		c.initListeners()
-		go func() { // mocking. for first initialization.
-			c.channel.NotifyOpened <- c.channel.channel
-		}()
-	} else {
-		c.initListeners()
-	}
-}
-
-/**
- * Initialize listeners for consumer configuration and startup.
- */
-func (c *MQConsumer) initListeners() {
-	logger.Log().Infoln(c.logMsg("Setting up Consumer event listeners..."))
-	go func() {
-		for range c.channel.NotifyOpened {
-			logger.Log().Infoln(c.logMsg("Channel opened event received by Consumer."))
-			/*c.mutex.Lock()
-			isConfigured := c.isConfigured
+	configureFn := func() {
+		c.mutex.Lock()
+		if c.isCancelled {
 			c.mutex.Unlock()
-			if !isConfigured {
-				logger.Log().Infoln(c.logMsg("Configuring consumer..."))
-				ch := make(chan bool, 1)
-				c.configureMqSetting(false, false, false, ch)
-				go func() {
-					<-ch // configured.
-					close(ch)
-					logger.Log().Infoln(c.logMsg("Consumer configured."))
-					logger.Log().Infoln(c.logMsg("Starting consumer..."))
-
-					c.mutex.Lock() // To avoid: WARNING: DATA RACE
-					isConsuming := c.isConsuming
-					c.mutex.Unlock()
-					if !isConsuming {
-						c.startConsume()
-					}
-				}()
-			} else {
-				logger.Log().Infoln(c.logMsg("Starting consumer..."))
-				c.mutex.Lock() // To avoid: WARNING: DATA RACE
-				isConsuming := c.isConsuming
-				c.mutex.Unlock()
-				if !isConsuming {
-					c.startConsume()
-				}
-			}*/
-			c.mutex.Lock()
-			if c.isCancelled {
-				logger.Log().Infoln(c.logMsg("Consumer is already cancelled."))
-				return
+			logger.Log().Infoln(c.logMsg("Unable to initialize. Consumer is already cancelled."))
+			return
+		}
+		if c.isConfiguring {
+			c.mutex.Unlock()
+			logger.Log().Infoln(c.logMsg("Consumer is being already being configured..."))
+			return
+		}
+		c.isConfiguring = true
+		c.mutex.Unlock()
+		logger.Log().Infoln(c.logMsg("Configuring settings..."))
+		ch := make(chan bool, 1)
+		c.configureMqSetting(false, false, false, ch)
+		go func() {
+			<-ch // configured.
+			close(ch)
+			logger.Log().Infoln(c.logMsg("Settings configured."))
+			c.mutex.Lock() // To avoid: WARNING: DATA RACE
+			c.isConfiguring = false
+			isConsuming := c.isConsuming
+			c.mutex.Unlock()
+			if !isConsuming {
+				logger.Log().Infoln(c.logMsg("Starting consuming events..."))
+				c.startConsume()
 			}
-			c.mutex.Unlock()
-			logger.Log().Infoln(c.logMsg("Configuring consumer..."))
-			ch := make(chan bool, 1)
-			c.configureMqSetting(false, false, false, ch)
-			go func() {
-				<-ch // configured.
-				close(ch)
-				logger.Log().Infoln(c.logMsg("Consumer configured."))
-				logger.Log().Infoln(c.logMsg("Starting consumer..."))
-
-				c.mutex.Lock() // To avoid: WARNING: DATA RACE
-				isConsuming := c.isConsuming
-				c.mutex.Unlock()
-				if !isConsuming {
-					c.startConsume()
-				}
-			}()
+		}()
+	}
+	go func() {
+		for range c.channel.NotifyReady(make(chan bool, 1)) {
+			logger.Log().Infoln(c.logMsg("Channel opened. Configuring consumer..."))
+			go configureFn()
 		}
 	}()
+	if c.channel.IsOpened() {
+		go configureFn()
+	}
 }
 
 /**
@@ -251,21 +221,10 @@ func (c *MQConsumer) initListeners() {
  */
 func (c *MQConsumer) configureMqSetting(isExDeclared, isQueueDec, isRKBinded bool, ch chan<- bool) {
 	logger.Log().Infoln(c.logMsg("Configuring message queue settings for consumer..."))
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-	if c.isConfiguring {
-		logger.Log().Infoln(c.logMsg("Consumer is being already being configured..."))
-		return
-	}
-	if c.channel.isClosed {
-		logger.Log().Infoln(c.logMsg("Channel is not already closed. Cancelling consumer configuration..."))
-		return
-	}
 	if !c.channel.IsOpened() {
 		logger.Log().Infoln(c.logMsg("Channel is not opened. Cancelling consumer configuration..."))
 		return
 	}
-	c.isConfiguring = true
 	err := c.declareExchange()
 	if err != nil {
 		logger.Log().Errorln(c.logMsg("Redeclaring exchange in 15 seconds..."))
@@ -293,7 +252,6 @@ func (c *MQConsumer) configureMqSetting(isExDeclared, isQueueDec, isRKBinded boo
 		})
 		return
 	}
-	c.isConfiguring = false
 	logger.Log().Infoln(c.logMsg("Configuration of message queue setting completed."))
 	ch <- true // all configured, notifying.
 }
@@ -365,10 +323,10 @@ func (c *MQConsumer) bindRoutingKeys() error {
 
 /**
  * Start consuming new messages.
- * If there is error will auto start consuming in 15 seconds.
+ * If there is error while calling .consume(), it will be logged only (no retry).
  */
 func (c *MQConsumer) startConsume() {
-	c.mutex.Lock()
+	logger.Log().Errorln(c.logMsg("Starting to consume..."))
 	msgs, err := c.channel.GetChannel().Consume(
 		c.queueName, // queue
 		"",          // consumer
@@ -379,17 +337,15 @@ func (c *MQConsumer) startConsume() {
 		nil,         // args
 	)
 	if err != nil {
-		logger.Log().Errorln(c.logMsg("Error, Unable start consuming: "), err)
-		logger.Log().Errorln(c.logMsg("Restarting consumer in 15 seconds..."))
-		c.mutex.Unlock()
-		time.AfterFunc(time.Duration(15)*time.Second, func() {
-			c.startConsume()
-		})
+		logger.Log().Errorln(c.logMsg("Error, Unable start consuming."))
+		logger.Log().Errorln(c.logMsg("Consuming Failed. Auto-connect will not be attempted. Please, review the error:"), err)
 		return
 	}
+	c.mutex.Lock()
 	c.isConsuming = true
 	c.mutex.Unlock()
 	go func() {
+		logger.Log().Errorln(c.logMsg("Consuming events/messages..."))
 		for d := range msgs {
 			data := d.Body
 			msg, err := c.codec.Deserializer.Deserialize(data)
@@ -411,7 +367,7 @@ func (c *MQConsumer) startConsume() {
 			}
 		}
 		// if this is reached, that means, consumer is stopped.
-		logger.Log().Infoln(c.logMsg("Consumer stopped receiving message."))
+		logger.Log().Infoln(c.logMsg("Consumer has stopped receiving events/messages."))
 		c.mutex.Lock()
 		c.isConsuming = false
 		c.mutex.Unlock()
@@ -421,5 +377,5 @@ func (c *MQConsumer) startConsume() {
 
 // create log message
 func (c *MQConsumer) logMsg(msg string) string {
-	return "[MQ Consumer: "+ c.props.Name+"] "+ msg
+	return "[MQ Consumer: " + c.props.Name + "] " + msg
 }

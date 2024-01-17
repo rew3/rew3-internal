@@ -14,18 +14,20 @@ import (
  * in case of network faliure or disgraceful disconnect.
  */
 type MQConnection struct {
-	mutex           sync.Mutex
-	URL             string
-	connection      *amqp091.Connection
-	notifyConnected chan bool // Use this channel to get notified when connection is connected.
+	mutex      sync.Mutex
+	RetryTime  int //retry time in secondss
+	URL        string
+	connection *amqp091.Connection
+	onReady    []chan bool // list of callback, to call when connection is ready/connected.
 }
 
 func NewConnection(url string) *MQConnection {
 	return &MQConnection{
-		mutex:           sync.Mutex{},
-		URL:             url,
-		connection:      nil,
-		notifyConnected: make(chan bool, 50),
+		mutex:      sync.Mutex{},
+		RetryTime:  15,
+		URL:        url,
+		connection: nil,
+		onReady:    []chan bool{},
 	}
 }
 
@@ -36,16 +38,18 @@ func NewConnection(url string) *MQConnection {
  * go channel.
  */
 func (c *MQConnection) Connect() {
+	logger.Log().Info("[MQ Connection] ", "Connecting...")
 	if c.IsConnected() {
+		logger.Log().Info("[MQ Connection] ", "Already Connected.")
 		return // connection is already connected.
 	}
 	c.mutex.Lock()
 	connection, err := amqp091.Dial(c.URL)
 	c.mutex.Unlock()
 	if err != nil {
-		logger.Log().Error("Unable to establish MQ Connection: ", c.URL)
-		logger.Log().Info("Retrying to establish connection in 15 seconds...")
-		time.AfterFunc(time.Duration(15)*time.Second, func() {
+		logger.Log().Error("[MQ Connection] ", "Unable to establish MQ Connection: ", c.URL)
+		logger.Log().Info("[MQ Connection] ", "Retrying to establish connection in ", c.RetryTime, " seconds...")
+		time.AfterFunc(time.Duration(c.RetryTime)*time.Second, func() {
 			c.Connect()
 		})
 		return
@@ -53,16 +57,21 @@ func (c *MQConnection) Connect() {
 	c.mutex.Lock()
 	c.connection = connection
 	c.mutex.Unlock()
-	logger.Log().Info("Connection establish successful")
-	c.notifyConnected <- true
-	logger.Log().Info("Connection establish notified")
-
+	logger.Log().Info("[MQ Connection] ", "Connection established successful")
+	go func() {
+		logger.Log().Info("[MQ Connection] ", "Notifying to registered callbacks...")
+		for _, cb := range c.onReady {
+			go func() {
+				cb <- true
+			}()
+		}
+	}()
 	errorChannel := c.connection.NotifyClose(make(chan *amqp091.Error))
 	go func() {
 		err := <-errorChannel
-		logger.Log().Error("Connection closed unexpectedly: ", err)
-		logger.Log().Info("Reconnecting connection in 15 seconds...")
-		time.AfterFunc(time.Duration(15)*time.Second, func() {
+		logger.Log().Error("[MQ Connection] ", "Connection closed unexpectedly: ", err)
+		logger.Log().Info("[MQ Connection] ", "Retrying to establish connection in ", c.RetryTime, " seconds...")
+		time.AfterFunc(time.Duration(c.RetryTime)*time.Second, func() {
 			c.Connect()
 		})
 	}()
@@ -70,10 +79,8 @@ func (c *MQConnection) Connect() {
 
 /**
  * Get connection.
- * If not connected, return nil. Note, listen to NotifyConnected channel, to get
- * notified when connection is established, and calling this will have valid connection
- * instance.If there is connection error, connection is retried to re-established and
- * when connected, is notified with NotifyConnected.
+ * If not connected, return nil. Note, listen to NotifyReady channel, to get
+ * notified when connection is established, and call Connection() again to get connection instance.
  */
 func (c *MQConnection) Connection() *amqp091.Connection {
 	return c.connection
@@ -82,8 +89,11 @@ func (c *MQConnection) Connection() *amqp091.Connection {
 /**
  * Use this channel to get notified when connection is connected.
  */
-func (c *MQConnection) NotifyConnected() <-chan bool {
-	return c.notifyConnected
+func (c *MQConnection) NotifyReady(ch chan bool) <-chan bool {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	c.onReady = append(c.onReady, ch)
+	return ch
 }
 
 /**
@@ -101,5 +111,10 @@ func (c *MQConnection) Stop() {
 	if c.connection != nil {
 		c.connection.Close()
 	}
-	close(c.notifyConnected)
+	c.mutex.Lock()
+	for _, ch := range c.onReady {
+		close(ch)
+	}
+	c.onReady = []chan bool{}
+	c.mutex.Unlock()
 }

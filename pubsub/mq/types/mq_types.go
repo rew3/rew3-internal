@@ -30,6 +30,7 @@ type Consumer interface {
  */
 type ConsumerGroup interface {
 	NewConsumer(props config.ConsumerProps) Consumer
+	Stop()
 }
 
 /**
