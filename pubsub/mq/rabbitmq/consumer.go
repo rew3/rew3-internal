@@ -188,19 +188,18 @@ func (c *MQConsumer) initConsumer() {
 		logger.Log().Infoln(c.logMsg("Configuring settings..."))
 		ch := make(chan bool, 1)
 		c.configureMqSetting(false, false, false, ch)
-		go func() {
-			<-ch // configured.
-			close(ch)
-			logger.Log().Infoln(c.logMsg("Settings configured."))
-			c.mutex.Lock() // To avoid: WARNING: DATA RACE
-			c.isConfiguring = false
-			isConsuming := c.isConsuming
-			c.mutex.Unlock()
-			if !isConsuming {
-				logger.Log().Infoln(c.logMsg("Starting consuming events..."))
-				c.startConsume()
-			}
-		}()
+
+		<-ch // configured.
+		close(ch)
+		logger.Log().Infoln(c.logMsg("Settings configured."))
+		c.mutex.Lock() // To avoid: WARNING: DATA RACE
+		c.isConfiguring = false
+		isConsuming := c.isConsuming
+		c.mutex.Unlock()
+		if !isConsuming {
+			logger.Log().Infoln(c.logMsg("Starting consuming events..."))
+			c.startConsume()
+		}
 	}
 	go func() {
 		for range c.channel.NotifyReady(make(chan bool, 1)) {
@@ -326,7 +325,7 @@ func (c *MQConsumer) bindRoutingKeys() error {
  * If there is error while calling .consume(), it will be logged only (no retry).
  */
 func (c *MQConsumer) startConsume() {
-	logger.Log().Errorln(c.logMsg("Starting to consume..."))
+	logger.Log().Infoln(c.logMsg("Starting to consume..."))
 	msgs, err := c.channel.GetChannel().Consume(
 		c.queueName, // queue
 		"",          // consumer
@@ -345,7 +344,7 @@ func (c *MQConsumer) startConsume() {
 	c.isConsuming = true
 	c.mutex.Unlock()
 	go func() {
-		logger.Log().Errorln(c.logMsg("Consuming events/messages..."))
+		logger.Log().Infoln(c.logMsg("Consuming events/messages..."))
 		for d := range msgs {
 			data := d.Body
 			msg, err := c.codec.Deserializer.Deserialize(data)

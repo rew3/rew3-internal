@@ -170,10 +170,11 @@ func (p *MQPublisher) initializePublisher() {
 			p.mutex.Unlock()
 			return
 		}
+		p.isConfiguring = true
 		p.mutex.Unlock()
 		logger.Log().Infoln(p.logMsg("Configuring settings..."))
-		p.configureMqSetting(false)
-		logger.Log().Infoln(p.logMsg("Settings configured."))
+		notifyChannel := make(chan bool, 1)
+		p.configureMqSetting(false, notifyChannel)
 		go func() {
 			logger.Log().Infoln(p.logMsg("Enabling publish failed messages handling..."))
 			// Handle message publish failed case.
@@ -205,6 +206,13 @@ func (p *MQPublisher) initializePublisher() {
 				p.mutex.Unlock()
 			}
 		}()
+		<-notifyChannel
+		close(notifyChannel)
+		p.mutex.Lock()
+		p.isConfiguring = false
+		p.isConfigured = true
+		p.mutex.Unlock()
+		logger.Log().Infoln(p.logMsg("Settings configured."))
 	}
 	go func() {
 		for range p.channel.NotifyReady(make(chan bool, 1)) {
@@ -222,7 +230,7 @@ func (p *MQPublisher) initializePublisher() {
  * Note: if one of the configuration failed, it will try to reattempt in every 15 seconds untill
  * setting is configured. once completed, isConfigured is set true.
  */
-func (p *MQPublisher) configureMqSetting(isExDeclared bool) {
+func (p *MQPublisher) configureMqSetting(isExDeclared bool, notifyConfigured chan bool) {
 	logger.Log().Infoln(p.logMsg("Configuring message queue settings for publisher..."))
 	if !p.channel.IsOpened() {
 		logger.Log().Infoln(p.logMsg("Channel is not opened. Cancelling publisher configuration..."))
@@ -232,12 +240,13 @@ func (p *MQPublisher) configureMqSetting(isExDeclared bool) {
 	if err != nil {
 		logger.Log().Errorln(p.logMsg("Redeclaring exchange in 15 seconds..."))
 		time.AfterFunc(time.Duration(15)*time.Second, func() {
-			p.configureMqSetting(false)
+			p.configureMqSetting(false, notifyConfigured)
 		})
 		return
 	}
 	p.channel.EnableConfirm()
 	logger.Log().Infoln(p.logMsg("Configuration of message queue setting completed."))
+	notifyConfigured <- true
 }
 
 /**
