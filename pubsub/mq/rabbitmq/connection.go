@@ -61,9 +61,9 @@ func (c *MQConnection) Connect() {
 	go func() {
 		logger.Log().Info("[MQ Connection] ", "Notifying to registered callbacks...")
 		for _, cb := range c.onReady {
-			go func() {
-				cb <- true
-			}()
+			go func(callback chan<- bool) {
+				callback <- true
+			}(cb)
 		}
 	}()
 	errorChannel := c.connection.NotifyClose(make(chan *amqp091.Error))
@@ -108,6 +108,7 @@ func (c *MQConnection) IsConnected() bool {
  * Note: must be accessed from same goroutine where connection is created.
  */
 func (c *MQConnection) Stop() {
+	logger.Log().Info("[MQ Connection] ", "Stopping connection...")
 	if c.connection != nil {
 		c.connection.Close()
 	}
@@ -117,4 +118,5 @@ func (c *MQConnection) Stop() {
 	}
 	c.onReady = []chan bool{}
 	c.mutex.Unlock()
+	logger.Log().Info("[MQ Connection] ", "Connection Stopped.")
 }

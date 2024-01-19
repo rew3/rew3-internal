@@ -122,9 +122,9 @@ func (c *MQChannel) openChannel() {
 	go func() {
 		logger.Log().Info("[MQ Channel: ", c.name, "]", "Notifying channel opened event to registered callbacks...")
 		for _, cb := range c.onReady {
-			go func() {
-				cb <- true
-			}()
+			go func(callback chan<- bool) {
+				callback <- true
+			}(cb)
 		}
 	}()
 }
@@ -140,9 +140,9 @@ func (c *MQChannel) listenToChannelError(ch *amqp091.Channel) {
 	go func() {
 		logger.Log().Info("[MQ Channel: ", c.name, "]", "Notifying error to registered callbacks...")
 		for _, cb := range c.onErrorClose {
-			go func() {
-				cb <- true
-			}()
+			go func(callback chan<- bool) {
+				callback <- true
+			}(cb)
 		}
 	}()
 	if c.autoReconnect {

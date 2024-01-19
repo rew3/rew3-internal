@@ -343,9 +343,9 @@ func (c *MQConsumer) startConsume() {
 	c.mutex.Lock()
 	c.isConsuming = true
 	c.mutex.Unlock()
-	go func() {
+	go func(ch <-chan amqp091.Delivery) {
 		logger.Log().Infoln(c.logMsg("Consuming events/messages..."))
-		for d := range msgs {
+		for d := range ch {
 			data := d.Body
 			msg, err := c.codec.Deserializer.Deserialize(data)
 			if err != nil {
@@ -370,7 +370,7 @@ func (c *MQConsumer) startConsume() {
 		c.mutex.Lock()
 		c.isConsuming = false
 		c.mutex.Unlock()
-	}()
+	}(msgs)
 	logger.Log().Infoln(c.logMsg("Consumer Started."))
 }
 
