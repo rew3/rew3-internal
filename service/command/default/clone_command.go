@@ -28,6 +28,7 @@ type CloneCommandHandlerContext[M common.Model, C command.Command] struct {
 	SetOwner       func(*M, account.MiniUser)
 	SetVisibility  func(*M, account.RecordVisibility)
 	EmptyReference func(*M)
+	EmptyFavorite  func(*M)
 }
 
 /**
@@ -56,6 +57,9 @@ func (ch *CloneCommandHandler[M, C]) clone(ctx context.Context, id string, hCont
 	if record := ch.Repository.FindById(ctx, id); record != nil {
 		hContext.SetOwner(record, requestContext.User)
 		hContext.EmptyReference(record)
+		if hContext.EmptyFavorite != nil {
+			hContext.EmptyFavorite(record)
+		}
 		visibility := account.RecordVisibility{}
 		visibility.VisibilityType = constants.PRIVATE
 		hContext.SetVisibility(record, visibility)
