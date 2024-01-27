@@ -105,7 +105,6 @@ func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPa
 				API:           api.APIOperation(response.ApiOperation),
 				StatusMessage: response.StatusMessage,
 				Status:        status,
-				DataMeta:      grpc.DataMeta{Type: resolveDataType(response.DataMeta.Type)},
 			}
 		}
 	}
