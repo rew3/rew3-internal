@@ -10,9 +10,9 @@ type Repository[Entity any] interface {
 	/* Writes */
 	Insert(ctx context.Context, data *Entity) (*Entity, error)
 	Update(ctx context.Context, id string, data *Entity) (*Entity, error)
-	UpdateDataOnly(ctx context.Context, id string, data *Entity) (bool, error)
-	FindAndUpdate(ctx context.Context, selector bson.D, data *Entity) (bool, error)
-	UpdateWithRawData(ctx context.Context, selector bson.D, data bson.D) (bool, error)
+	UpdateOnly(ctx context.Context, id string, data *Entity) (bool, error)
+	FindAndUpdate(ctx context.Context, selector bson.D, data *Entity, updateMany bool) (bool, error)
+	FindAndUpdateBson(ctx context.Context, selector bson.D, data bson.D, updateMany bool) (bool, error)
 	UnsetFields(ctx context.Context, selector bson.D, fields []string, multipleDoc bool) (bool, error)
 	Archive(ctx context.Context, id string) (bool, error)
 	UnArchive(ctx context.Context, id string) (bool, error)
