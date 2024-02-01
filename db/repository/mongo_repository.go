@@ -92,7 +92,7 @@ func (repo *MongoRepository[Entity]) Update(ctx context.Context, id string, data
  * Update record.
  * Note: Meta information is not updated.
  */
-func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id string, data *Entity) (bool, error) {
+func (repo *MongoRepository[Entity]) UpdateOnly(ctx context.Context, id string, data *Entity) (bool, error) {
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		objectID, err := primitive.ObjectIDFromHex(id)
 		if err != nil {
@@ -121,7 +121,7 @@ func (repo *MongoRepository[Entity]) UpdateDataOnly(ctx context.Context, id stri
 	})
 }
 
-func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector bson.D, data *Entity) (bool, error) {
+func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector bson.D, data *Entity, updateMany bool) (bool, error) {
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		doc, err := mongoUtility.EntityToBsonD(data, false, true)
 		if err != nil {
@@ -132,7 +132,11 @@ func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector
 		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
 		update := bson.M{"$set": doc, "$inc": bson.M{"meta._version": 1}}
 		// TODO apply security.
-		_, err = repo.Collection.UpdateOne(ctx, selector, update)
+		if updateMany {
+			_, err = repo.Collection.UpdateMany(ctx, selector, update)
+		} else {
+			_, err = repo.Collection.UpdateOne(ctx, selector, update)
+		}
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				logger.Log().Error("Record not found with provided selector")
@@ -145,13 +149,22 @@ func (repo *MongoRepository[Entity]) FindAndUpdate(ctx context.Context, selector
 	})
 }
 
-func (repo *MongoRepository[Entity]) UpdateWithRawData(ctx context.Context, selector bson.D, data bson.D) (bool, error) {
+func (repo *MongoRepository[Entity]) FindAndUpdateBson(ctx context.Context, selector bson.D, data bson.D, updateMany bool) (bool, error) {
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		doc := removeInternalFields(data)
 		doc = repo.RepositoryContext.MetaDataWriter.WriteUpdateMeta(doc, &rc)
 		update := bson.M{"$set": doc, "$inc": bson.M{"meta._version": 1}}
 		// TODO apply security.
-		_, err := repo.Collection.UpdateOne(ctx, selector, update)
+		updateCall := func(isUpdateMany bool) error {
+			if isUpdateMany {
+				_, err := repo.Collection.UpdateMany(ctx, selector, update)
+				return err
+			} else {
+				_, err := repo.Collection.UpdateOne(ctx, selector, update)
+				return err
+			}
+		}
+		err := updateCall(updateMany)
 		if err != nil {
 			if err == mongo.ErrNoDocuments {
 				logger.Log().Error("Record not found with provided selector")
