@@ -89,7 +89,7 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 				}
 				criteriaForAND = append(criteriaForAND, res)
 			}
-			f := bson.D{{Key: string(AND), Value: bson.A{criteriaForAND}}}
+			f := bson.D{{Key: string(AND), Value: criteriaForAND}}
 			doc = append(doc, f...)
 		case dsl.ORLogicalDSL:
 			criteriaForOR := []bson.D{}
@@ -100,7 +100,7 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 				}
 				criteriaForOR = append(criteriaForOR, res)
 			}
-			f := bson.D{{Key: string(OR), Value: bson.A{criteriaForOR}}}
+			f := bson.D{{Key: string(OR), Value: criteriaForOR}}
 			doc = append(doc, f...)
 		case dsl.NOTLogicalDSL:
 			res, err := builder.generateMongoQuery([]dsl.BaseDSL{q.Query})
