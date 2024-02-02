@@ -272,9 +272,9 @@ func (repo *MongoRepository[Entity]) BulkInsert(ctx context.Context, data []*Ent
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		bsonDocuments := []*bson.D{}
 		for _, entity := range data {
-			doc, err := mongoUtility.EntityToBsonD(&entity, true, true)
+			doc, err := mongoUtility.EntityToBsonD(&entity, false, true)
 			if err != nil {
-				return false, fmt.Errorf("invalid entity data:", doc)
+				return false, err
 			}
 			doc = removeInternalFields(doc)
 			id, doc := mongoUtility.WriteObjectID(doc)
