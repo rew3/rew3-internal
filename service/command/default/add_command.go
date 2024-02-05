@@ -59,10 +59,10 @@ func (ch *AddCommandHandler[M, C]) add(ctx context.Context, model *M, hContext A
 	if !isEcAvailable {
 		return nil, c.FORBIDDEN, errors.New("request context is not available")
 	}
-	if hContext.GetOwner(model).Id == "" {
+	if hContext.GetOwner != nil && hContext.GetOwner(model).Id == "" {
 		hContext.SetOwner(model, requestContext.User)
 	}
-	if hContext.GetVisibility(model).VisibilityType == "" {
+	if hContext.GetVisibility != nil && hContext.GetVisibility(model).VisibilityType == "" {
 		visibility := account.RecordVisibility{}
 		visibility.VisibilityType = constants.PRIVATE
 		hContext.SetVisibility(model, visibility)
