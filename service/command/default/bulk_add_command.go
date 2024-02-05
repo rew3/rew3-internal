@@ -61,10 +61,10 @@ func (ch *BulkAddCommandHandler[M, C]) bulkAdd(ctx context.Context, data []M, hC
 	}
 	var models []*M
 	for _, model := range data {
-		if hContext.GetOwner(&model).Id == "" {
+		if hContext.GetOwner != nil && hContext.GetOwner(&model).Id == "" {
 			hContext.SetOwner(&model, requestContext.User)
 		}
-		if hContext.GetVisibility(&model).VisibilityType == "" {
+		if hContext.GetVisibility != nil && hContext.GetVisibility(&model).VisibilityType == "" {
 			visibility := account.RecordVisibility{}
 			visibility.VisibilityType = constants.PRIVATE
 			hContext.SetVisibility(&model, visibility)
