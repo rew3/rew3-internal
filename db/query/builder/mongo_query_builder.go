@@ -52,15 +52,19 @@ func (qb *MongoQueryBuilder) Regular(key string, value interface{}) bson.D {
  * {$not: {first_name: value}}
  */
 func (qb *MongoQueryBuilder) RegularNot(key string, value interface{}) bson.D {
-	query := bson.M{key: value}
-	return bson.D{{Key: "$not", Value: query}}
+	//query := bson.M{key: value}
+	return bson.D{
+		{Key: key, Value: bson.D{
+			{Key: "$not", Value: value},
+		}},
+	}
 }
 
 /**
  * Create query for Comparison operator.
  */
 func (qb *MongoQueryBuilder) Comparison(op ComparisonOperator, key string, value interface{}) bson.D {
-	query := bson.D{{Key: key, Value: bson.M{string(op): value} }}
+	query := bson.D{{Key: key, Value: bson.M{string(op): value}}}
 	return query
 }
 
@@ -68,8 +72,15 @@ func (qb *MongoQueryBuilder) Comparison(op ComparisonOperator, key string, value
  * Create query for Comparison operator with Negation i.e. $not.
  */
 func (qb *MongoQueryBuilder) ComparisonNot(op ComparisonOperator, key string, value interface{}) bson.D {
-	query := bson.M{key: bson.M{ string(op): value } }
-	return bson.D{{Key: "$not", Value: query}}
+	//query := bson.M{key: bson.M{string(op): value}}
+	//return bson.D{{Key: "$not", Value: query}}
+	return bson.D{
+		{Key: key, Value: bson.D{
+			{Key: "$not", Value: bson.D{
+				{Key: string(op), Value: value},
+			}},
+		}},
+	}
 }
 
 /**
@@ -114,7 +125,7 @@ func (qb *MongoQueryBuilder) EvaluationRegex(key string, pattern string, caseInS
 			},
 		}}
 		if isNegation {
-			return bson.D{{Key: "$not", Value: query}}
+			return bson.D{{Key: "$nor", Value: bson.A{query}}}
 		} else {
 			return query
 		}
@@ -124,7 +135,7 @@ func (qb *MongoQueryBuilder) EvaluationRegex(key string, pattern string, caseInS
 			Value: bson.M{string(REGEX): pattern},
 		}}
 		if isNegation {
-			return bson.D{{Key: "$not", Value: query}}
+			return bson.D{{Key: "$nor", Value: bson.A{query}}}
 		} else {
 			return query
 		}
