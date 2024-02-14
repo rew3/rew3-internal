@@ -228,10 +228,18 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 			case dsl.RANGE:
 				switch v := q.Value.(type) {
 				case dsl.RangeValue:
-					gt := comparisonQuery(GTE, q.Field, dsl.ResolveScalarValue(v.Start))
-					lt := comparisonQuery(LTE, q.Field, dsl.ResolveScalarValue(v.End))
-					f := bson.D{{Key: string(AND), Value: bson.A{gt, lt}}}
-					doc = append(doc, f...)
+					if q.Field.IsNegation {
+						q.Field.IsNegation = false
+						gt := comparisonQuery(LTE, q.Field, dsl.ResolveScalarValue(v.Start))
+						lt := comparisonQuery(GTE, q.Field, dsl.ResolveScalarValue(v.End))
+						f := bson.D{{Key: string(OR), Value: bson.A{gt, lt}}}
+						doc = append(doc, f...)
+					} else {
+						gt := comparisonQuery(GTE, q.Field, dsl.ResolveScalarValue(v.Start))
+						lt := comparisonQuery(LTE, q.Field, dsl.ResolveScalarValue(v.End))
+						f := bson.D{{Key: string(AND), Value: bson.A{gt, lt}}}
+						doc = append(doc, f...)
+					}
 				default:
 					err := fmt.Errorf("query error: DSL operator `RANGE` require start and end value for field: %s", q.Field.Name)
 					return nil, err
