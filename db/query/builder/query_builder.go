@@ -39,7 +39,7 @@ func (builder *QueryBuilder) Mongo() (bson.D, error) {
  */
 func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, error) {
 	// Generate a comparison query for given criteria.
-	comparisonQuery := func(op ComparisonOperator, field dsl.FieldDSL, value dsl.ValueType) bson.E {
+	comparisonQuery := func(op ComparisonOperator, field dsl.FieldDSL, value dsl.ValueType) bson.D {
 		if field.IsNegation {
 			return builder.mongoBuilder.ComparisonNot(op, field.Name, value)
 		} else {
@@ -47,7 +47,7 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 		}
 	}
 	// Generate a regex query. throw error if value is not string type. i.e. it will only works with string values.
-	regexQuery := func(field dsl.FieldDSL, value dsl.ValueType, regex func(string) string, opName string) (bson.E, error) {
+	regexQuery := func(field dsl.FieldDSL, value dsl.ValueType, regex func(string) string, opName string) (bson.D, error) {
 		switch v := value.(type) {
 		case dsl.StringValue:
 			if field.IsNegation {
@@ -57,7 +57,7 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 			}
 		default:
 			err := fmt.Errorf("query error: DSL operator `%s` require string value type for field: %s", opName, field.Name)
-			return bson.E{}, err
+			return bson.D{}, err
 		}
 	}
 	doc := bson.D{}
@@ -89,7 +89,8 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 				}
 				criteriaForAND = append(criteriaForAND, res)
 			}
-			f := bson.D{{Key: string(AND), Value: criteriaForAND}}
+			//f := bson.D{{Key: string(AND), Value: criteriaForAND}}
+			f := builder.mongoBuilder.Logical(AND, criteriaForAND...)
 			doc = append(doc, f...)
 		case dsl.ORLogicalDSL:
 			criteriaForOR := []bson.D{}
@@ -100,14 +101,16 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 				}
 				criteriaForOR = append(criteriaForOR, res)
 			}
-			f := bson.D{{Key: string(OR), Value: criteriaForOR}}
+			//f := bson.D{{Key: string(OR), Value: criteriaForOR}}
+			f := builder.mongoBuilder.Logical(OR, criteriaForOR...)
 			doc = append(doc, f...)
 		case dsl.NOTLogicalDSL:
 			res, err := builder.generateMongoQuery([]dsl.BaseDSL{q.Query})
 			if err != nil {
 				return nil, err
 			}
-			f := bson.D{{Key: string(OR), Value: res}}
+			//f := bson.D{{Key: string(NOT), Value: res}}
+			f := builder.mongoBuilder.Logical(NOT, res)
 			doc = append(doc, f...)
 		case dsl.CriteriaDSL:
 			// Check for scalar value end execute callback if value is scalar.
@@ -123,9 +126,11 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 			case dsl.UNKNOWN:
 				err := checkScalarValueAndThen(func() {
 					if q.Field.IsNegation {
-						doc = append(doc, builder.mongoBuilder.RegularNot(q.Field.Name, dsl.ResolveScalarValue(q.Value)))
+						f := builder.mongoBuilder.RegularNot(q.Field.Name, dsl.ResolveScalarValue(q.Value))
+						doc = append(doc, f...)
 					} else {
-						doc = append(doc, builder.mongoBuilder.Regular(q.Field.Name, dsl.ResolveScalarValue(q.Value)))
+						f := builder.mongoBuilder.Regular(q.Field.Name, dsl.ResolveScalarValue(q.Value))
+						doc = append(doc, f...)
 					}
 				})
 				if err != nil {
@@ -134,9 +139,11 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 			case dsl.EQUAL:
 				err := checkScalarValueAndThen(func() {
 					if q.Field.IsNegation {
-						doc = append(doc, builder.mongoBuilder.Comparison(NE, q.Field.Name, dsl.ResolveScalarValue(q.Value)))
+						f := builder.mongoBuilder.Comparison(NE, q.Field.Name, dsl.ResolveScalarValue(q.Value))
+						doc = append(doc, f...)
 					} else {
-						doc = append(doc, builder.mongoBuilder.Comparison(EQ, q.Field.Name, dsl.ResolveScalarValue(q.Value)))
+						f := builder.mongoBuilder.Comparison(EQ, q.Field.Name, dsl.ResolveScalarValue(q.Value))
+						doc = append(doc, f...)
 					}
 				})
 				if err != nil {
@@ -144,52 +151,58 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 				}
 			case dsl.EMPTY:
 				if q.Field.IsNegation {
-					doc = append(doc, builder.mongoBuilder.ElementExists(q.Field.Name, false))
+					f := builder.mongoBuilder.ElementExists(q.Field.Name, false)
+					doc = append(doc, f...)
 				} else {
-					doc = append(doc, builder.mongoBuilder.ElementExists(q.Field.Name, true))
+					f := builder.mongoBuilder.ElementExists(q.Field.Name, true)
+					doc = append(doc, f...)
 				}
 			case dsl.MATCHES:
 				res, err := regexQuery(q.Field, q.Value, func(str string) string { return ".*" + str + ".*" }, "MATCHES")
 				if err != nil {
 					return nil, err
 				}
-				doc = append(doc, res)
+				doc = append(doc, res...)
 			case dsl.STARTS_WITH:
 				res, err := regexQuery(q.Field, q.Value, func(str string) string { return "^" + str + ".*" }, "STARTS_WITH")
 				if err != nil {
 					return nil, err
 				}
-				doc = append(doc, res)
+				doc = append(doc, res...)
 			case dsl.ENDS_WITH:
 				res, err := regexQuery(q.Field, q.Value, func(str string) string { return ".*" + str + "$" }, "ENDS_WITH")
 				if err != nil {
 					return nil, err
 				}
-				doc = append(doc, res)
+				doc = append(doc, res...)
 			case dsl.LESS_THAN:
 				err := checkScalarValueAndThen(func() {
-					doc = append(doc, comparisonQuery(LT, q.Field, dsl.ResolveScalarValue(q.Value)))
+					f := comparisonQuery(LT, q.Field, dsl.ResolveScalarValue(q.Value))
+					doc = append(doc, f...)
 				})
 				if err != nil {
 					return nil, err
 				}
 			case dsl.LESS_THAN_EQUAL:
 				err := checkScalarValueAndThen(func() {
-					doc = append(doc, comparisonQuery(LTE, q.Field, dsl.ResolveScalarValue(q.Value)))
+					f := comparisonQuery(LTE, q.Field, dsl.ResolveScalarValue(q.Value))
+					doc = append(doc, f...)
 				})
 				if err != nil {
 					return nil, err
 				}
 			case dsl.GREATER_THAN:
 				err := checkScalarValueAndThen(func() {
-					doc = append(doc, comparisonQuery(GT, q.Field, dsl.ResolveScalarValue(q.Value)))
+					f := comparisonQuery(GT, q.Field, dsl.ResolveScalarValue(q.Value))
+					doc = append(doc, f...)
 				})
 				if err != nil {
 					return nil, err
 				}
 			case dsl.GREATER_THAN_EQUAL:
 				err := checkScalarValueAndThen(func() {
-					doc = append(doc, comparisonQuery(GTE, q.Field, dsl.ResolveScalarValue(q.Value)))
+					f := comparisonQuery(GTE, q.Field, dsl.ResolveScalarValue(q.Value))
+					doc = append(doc, f...)
 				})
 				if err != nil {
 					return nil, err
@@ -202,9 +215,11 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 						items = append(items, dsl.ResolveScalarValue(i))
 					}
 					if q.Field.IsNegation {
-						doc = append(doc, builder.mongoBuilder.Comparison(NIN, q.Field.Name, items))
+						f := builder.mongoBuilder.Comparison(NIN, q.Field.Name, items)
+						doc = append(doc, f...)
 					} else {
-						doc = append(doc, builder.mongoBuilder.Comparison(IN, q.Field.Name, items))
+						f := builder.mongoBuilder.Comparison(IN, q.Field.Name, items)
+						doc = append(doc, f...)
 					}
 				default:
 					err := fmt.Errorf("query error: DSL operator `IN` require list value type for field: %s", q.Field.Name)
@@ -215,7 +230,8 @@ func (builder *QueryBuilder) generateMongoQuery(queries []dsl.BaseDSL) (bson.D, 
 				case dsl.RangeValue:
 					gt := comparisonQuery(GTE, q.Field, dsl.ResolveScalarValue(v.Start))
 					lt := comparisonQuery(LTE, q.Field, dsl.ResolveScalarValue(v.End))
-					doc = append(doc, bson.E{Key: string(AND), Value: bson.A{gt, lt}})
+					f := bson.D{{Key: string(AND), Value: bson.A{gt, lt}}}
+					doc = append(doc, f...)
 				default:
 					err := fmt.Errorf("query error: DSL operator `RANGE` require start and end value for field: %s", q.Field.Name)
 					return nil, err

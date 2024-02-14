@@ -20,10 +20,12 @@ const (
 	NONE FilterOperator = ""
 
 	// For All Data Types.
-	EQ        FilterOperator = "-eq"
-	NOT_EQ    FilterOperator = "-not-eq"
+	IS        FilterOperator = "-is"
+	IS_NOT    FilterOperator = "-is-not"
 	EMPTY     FilterOperator = "-empty"
 	NOT_EMPTY FilterOperator = "-not-empty"
+	IN        FilterOperator = "-in"
+	NOT_IN    FilterOperator = "-not-in"
 
 	// For String.
 	CONTAINS        FilterOperator = "-contains"
@@ -33,7 +35,9 @@ const (
 	ENDS_WITH       FilterOperator = "-ends-with"
 	NOT_ENDS_WITH   FilterOperator = "-not-ends-with"
 
-	// For String and Numbers.
+	// For Numbers and Date (applicable to String too)
+	EQ                     FilterOperator = "-eq"
+	NOT_EQ                 FilterOperator = "-not-eq"
 	LESS_THAN              FilterOperator = "-lt"
 	NOT_LESS_THAN          FilterOperator = "-not-lt"
 	LESS_THAN_EQUAL        FilterOperator = "-lt-eq"
@@ -42,10 +46,10 @@ const (
 	NOT_GREATER_THAN       FilterOperator = "-not-gt"
 	GREATER_THAN_EQUAL     FilterOperator = "-gt-eq"
 	NOT_GREATER_THAN_EQUAL FilterOperator = "-not-gt-eq"
-	IN                     FilterOperator = "-in"
-	NOT_IN                 FilterOperator = "-not-in"
-	RANGE                  FilterOperator = "-range"
-	NOT_IN_RANGE           FilterOperator = "-not-in-range"
+
+	// For Number, Date.
+	RANGE        FilterOperator = "-range"
+	NOT_IN_RANGE FilterOperator = "-not-in-range"
 )
 
 type Filter struct {
@@ -58,7 +62,7 @@ type Filter struct {
  * Parse filter parameter.
  */
 func ParseFilterParams(param request.RequestParam) ([]Filter, error) {
-	if(param.Filters == "") {
+	if param.Filters == "" {
 		return []Filter{}, nil
 	}
 	filters := param.Filters
@@ -139,14 +143,18 @@ func parseFieldAndOperator(key string) (string, FilterOperator) {
 	fieldName := key[:index]
 	operator := key[index:]
 	switch operator {
-	case string(EQ):
-		return fieldName, EQ
-	case string(NOT_EQ):
-		return fieldName, NOT_EQ
+	case string(IS):
+		return fieldName, IS
+	case string(IS_NOT):
+		return fieldName, IS_NOT
 	case string(EMPTY):
 		return fieldName, EMPTY
 	case string(NOT_EMPTY):
 		return fieldName, NOT_EMPTY
+	case string(IN):
+		return fieldName, IN
+	case string(NOT_IN):
+		return fieldName, NOT_IN
 	case string(CONTAINS):
 		return fieldName, CONTAINS
 	case string(NOT_CONTAINS):
@@ -159,6 +167,10 @@ func parseFieldAndOperator(key string) (string, FilterOperator) {
 		return fieldName, ENDS_WITH
 	case string(NOT_ENDS_WITH):
 		return fieldName, NOT_ENDS_WITH
+	case string(EQ):
+		return fieldName, EQ
+	case string(NOT_EQ):
+		return fieldName, NOT_EQ
 	case string(LESS_THAN):
 		return fieldName, LESS_THAN
 	case string(NOT_LESS_THAN):
@@ -175,10 +187,6 @@ func parseFieldAndOperator(key string) (string, FilterOperator) {
 		return fieldName, GREATER_THAN_EQUAL
 	case string(NOT_GREATER_THAN_EQUAL):
 		return fieldName, NOT_GREATER_THAN_EQUAL
-	case string(IN):
-		return fieldName, IN
-	case string(NOT_IN):
-		return fieldName, NOT_IN
 	case string(RANGE):
 		return fieldName, RANGE
 	case string(NOT_IN_RANGE):
@@ -279,6 +287,11 @@ func parsePrimitiveValue(value string) interface{} {
 	bigIntValue := new(big.Int)
 	if _, success := bigIntValue.SetString(value, 10); success {
 		return bigIntValue
+	}
+
+	// Try parsing as time.Time
+	if date, err := time.Parse(time.RFC3339, value); err == nil {
+		return date
 	}
 
 	// Assume it as string if no match is found
