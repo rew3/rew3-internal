@@ -152,12 +152,12 @@ func parseFieldAndOperator(key string) (FilterValueType, string, FilterOperator)
 		remaining = parts[1]
 	}
 	index := strings.Index(remaining, "-")
-	if index < 0 || key[:index] == "" {
+	if index < 0 || remaining[:index] == "" {
 		// No filter operator type applied.
 		return dateType, remaining, NONE
 	}
-	fieldName := key[:index]
-	operator := key[index:]
+	fieldName := remaining[:index]
+	operator := remaining[index:]
 	switch operator {
 	case string(IS):
 		return dateType, fieldName, IS
