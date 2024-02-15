@@ -257,12 +257,19 @@ func (repo *MongoRepository[Entity]) Delete(ctx context.Context, id string) (boo
 	})
 }
 
-func (repo *MongoRepository[Entity]) FindAndDelete(ctx context.Context, selector bson.D) (bool, error) {
+func (repo *MongoRepository[Entity]) FindAndDelete(ctx context.Context, selector bson.D, multipleDoc bool) (bool, error) {
 	return handleWrite(ctx, func(rc service.RequestContext) (bool, error) {
 		// TODO - add security filter.
-		if _, err := repo.Collection.DeleteOne(ctx, selector); err != nil {
-			logger.Log().Error("Error deleting contact:", err)
-			return false, err
+		if multipleDoc {
+			if _, err := repo.Collection.DeleteMany(ctx, selector); err != nil {
+				logger.Log().Error("Error deleting contact:", err)
+				return false, err
+			}
+		} else {
+			if _, err := repo.Collection.DeleteOne(ctx, selector); err != nil {
+				logger.Log().Error("Error deleting contact:", err)
+				return false, err
+			}
 		}
 		return true, nil
 	})
@@ -500,12 +507,22 @@ func (repo *MongoRepository[Entity]) Count(ctx context.Context, filters bson.D) 
 	}, 0)
 }
 
-func (repo *MongoRepository[Entity]) Aggregate(ctx context.Context) []*Entity {
-	return nil
-}
-
-func (repo *MongoRepository[Entity]) AggregateWithLookupJoin(ctx context.Context) []*Entity {
-	return nil
+func (repo *MongoRepository[Entity]) Aggregate(ctx context.Context, pipelines []bson.D) []*bson.D {
+	return handleRead(ctx, func(rc service.RequestContext) []*bson.D {
+		results := []*bson.D{}
+		// TODO re-generate filter using seucrity check.
+		cur, err := repo.Collection.Aggregate(ctx, pipelines)
+		if err != nil {
+			logger.Log().Error("Error listing documents:", err)
+			return results
+		}
+		defer cur.Close(ctx)
+		if err := cur.All(ctx, &results); err != nil {
+			logger.Log().Error("Error decoding document:", err)
+			return nil
+		}
+		return results
+	}, []*bson.D{})
 }
 
 func (repo *MongoRepository[Entity]) FindByIdPublic(ctx context.Context, id string) *Entity {

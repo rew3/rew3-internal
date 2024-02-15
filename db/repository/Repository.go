@@ -17,7 +17,7 @@ type Repository[Entity any] interface {
 	Archive(ctx context.Context, id string) (bool, error)
 	UnArchive(ctx context.Context, id string) (bool, error)
 	Delete(ctx context.Context, id string) (bool, error)
-	FindAndDelete(ctx context.Context, selector bson.D) (bool, error)
+	FindAndDelete(ctx context.Context, selector bson.D, multipleDoc bool) (bool, error)
 	BulkInsert(ctx context.Context, data []*Entity) (bool, error)
 	BulkUpdate(ctx context.Context, data map[string]*Entity) (bool, error)
 	BulkDelete(ctx context.Context, ids []string) (bool, error)
@@ -28,8 +28,7 @@ type Repository[Entity any] interface {
 	FindById(ctx context.Context, id string) *Entity
 	Find(ctx context.Context, filters bson.D, offset int64, limit int64, sort bson.D) []*Entity
 	Count(ctx context.Context, filters bson.D) int64
-	Aggregate(ctx context.Context) []*Entity
-	AggregateWithLookupJoin(ctx context.Context) []*Entity
+	Aggregate(ctx context.Context, pipelines []bson.D) []*Entity
 
 	/*Public Reads*/
 	FindByIdPublic(ctx context.Context, id string) *Entity
