@@ -9,6 +9,7 @@ const (
 	DELETE_REQUEST       api.APIOperation = "rms_deleteRequest"
 	CLONE_REQUEST        api.APIOperation = "rms_cloneRequest"
 	CHANGE_REQUEST_OWNER api.APIOperation = "rms_changeRequestOwner"
+	SET_REQUEST_FAVORITE api.APIOperation = "crm_setRequestFavorite"
 
 	// READ Operations.
 	LIST_REQUESTS     api.APIOperation = "rms_listRequests"

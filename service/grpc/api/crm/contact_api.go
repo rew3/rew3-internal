@@ -6,12 +6,12 @@ import (
 
 const (
 	// WRITE Operations.
-	ADD_CONTACT                    api.APIOperation = "crm_addContact"
-	UPDATE_CONTACT                 api.APIOperation = "crm_updateContact"
-	DELETE_CONTACT                 api.APIOperation = "crm_deleteContact"
-	CLONE_CONTACT                  api.APIOperation = "crm_cloneContact"
-	CHANGE_CONTACT_OWNER           api.APIOperation = "crm_changeContactOwner"
-	CHANGE_CONTACT_FAVORITE_STATUS api.APIOperation = "crm_changeContactFavoriteStatus"
+	ADD_CONTACT          api.APIOperation = "crm_addContact"
+	UPDATE_CONTACT       api.APIOperation = "crm_updateContact"
+	DELETE_CONTACT       api.APIOperation = "crm_deleteContact"
+	CLONE_CONTACT        api.APIOperation = "crm_cloneContact"
+	CHANGE_CONTACT_OWNER api.APIOperation = "crm_changeContactOwner"
+	SET_CONTACT_FAVORITE api.APIOperation = "crm_setContactFavorite"
 
 	// READ Operations.
 	LIST_CONTACTS     api.APIOperation = "crm_listContacts"

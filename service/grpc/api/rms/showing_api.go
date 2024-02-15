@@ -9,6 +9,7 @@ const (
 	DELETE_SHOWING       api.APIOperation = "rms_deleteShowing"
 	CLONE_SHOWING        api.APIOperation = "rms_cloneShowing"
 	CHANGE_SHOWING_OWNER api.APIOperation = "rms_changeShowingOwner"
+	SET_SHOWING_FAVORITE api.APIOperation = "crm_setShowingFavorite"
 
 	// READ Operations.
 	LIST_SHOWINGS     api.APIOperation = "rms_listShowings"

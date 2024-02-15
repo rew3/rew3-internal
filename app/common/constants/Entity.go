@@ -221,9 +221,10 @@ const (
 	ACTIVITY_HISTORY_LOG      Entity = "activity_history_log"
 
 	// Customization
-	CUSTOMIZATION_LIST_VIEW       Entity = "customization_listview"
-	CUSTOMIZATION_VIEW_PREFERENCE Entity = "customization_view_preference"
-	CUSTOMIZATION_TAGS            Entity = "customization_tags"
+	CUSTOMIZATION_LIST_VIEW           Entity = "customization_listview"
+	CUSTOMIZATION_VIEW_PREFERENCE     Entity = "customization_view_preference"
+	CUSTOMIZATION_TAGS                Entity = "customization_tags"
+	CUSTOMIZATION_ENTITY_RELATIONSHIP Entity = "customization_entity_relationship"
 
 	// Notifications.
 	NOTIFICATION_NOTIFICATIONS Entity = "notification_notifications"

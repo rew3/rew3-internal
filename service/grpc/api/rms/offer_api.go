@@ -9,6 +9,7 @@ const (
 	DELETE_OFFER       api.APIOperation = "rms_deleteOffer"
 	CLONE_OFFER        api.APIOperation = "rms_cloneOffer"
 	CHANGE_OFFER_OWNER api.APIOperation = "rms_changeOfferOwner"
+	SET_OFFER_FAVORITE api.APIOperation = "crm_setOfferFavorite"
 
 	// READ Operations.
 	LIST_OFFERS     api.APIOperation = "rms_listOffers"

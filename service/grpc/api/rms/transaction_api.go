@@ -9,6 +9,7 @@ const (
 	DELETE_TRANSACTION       api.APIOperation = "rms_deleteTransaction"
 	CLONE_TRANSACTION        api.APIOperation = "rms_cloneTransaction"
 	CHANGE_TRANSACTION_OWNER api.APIOperation = "rms_changeTransactionOwner"
+	SET_TRANSACTION_FAVORITE api.APIOperation = "crm_setTransactionFavorite"
 
 	// READ Operations.
 	LIST_TRANSACTIONS     api.APIOperation = "rms_listTransactions"

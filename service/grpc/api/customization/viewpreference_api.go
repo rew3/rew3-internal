@@ -6,13 +6,8 @@ const (
 	// API for ViewPreference
 	// ----------------------------------------------------
 	// WRITE APIs.
-	ADD_VIEWPREFERENCE    api.APIOperation = "customization_addViewPreference"
 	UPDATE_VIEWPREFERENCE api.APIOperation = "customization_updateViewPreference"
-	DELETE_VIEWPREFERENCE api.APIOperation = "customization_deleteViewPreference"
 
 	// READ APIs.
-	LIST_VIEWPREFERENCES         api.APIOperation = "customization_listViewPreferences"
-	COUNT_VIEWPREFERENCES        api.APIOperation = "customization_countViewPreferences"
-	GET_VIEWPREFERENCE_BY_ID     api.APIOperation = "ccustomization_getViewPreferenceById"
 	GET_VIEWPREFERENCE_BY_ENTITY api.APIOperation = "ccustomization_getViewPreferenceByEntity"
 )

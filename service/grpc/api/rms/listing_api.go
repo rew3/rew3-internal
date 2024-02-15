@@ -9,6 +9,7 @@ const (
 	DELETE_LISTING       api.APIOperation = "rms_deleteListing"
 	CLONE_LISTING        api.APIOperation = "rms_cloneListing"
 	CHANGE_LISTING_OWNER api.APIOperation = "rms_changeListingOwner"
+	SET_LISTING_FAVORITE api.APIOperation = "crm_setListingFavorite"
 
 	// READ Operations.
 	LIST_LISTINGS     api.APIOperation = "rms_listListings"
