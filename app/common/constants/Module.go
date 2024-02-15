@@ -19,5 +19,6 @@ const (
 	ACCOUNT Module = "accountService"
 	UTILITY Module = "utility"
 
-	CHAT Module = "chat"
+	CHAT         Module = "chat"
+	NOTIFICATION Module = "notification"
 )
