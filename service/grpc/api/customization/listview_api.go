@@ -6,9 +6,11 @@ const (
 	// API for ListView
 	// ----------------------------------------------------
 	// WRITE APIs.
-	ADD_LISTVIEW    api.APIOperation = "customization_addListView"
-	UPDATE_LISTVIEW api.APIOperation = "customization_updateListView"
-	DELETE_LISTVIEW api.APIOperation = "customization_deleteListView"
+	ADD_LISTVIEW            api.APIOperation = "customization_addListView"
+	UPDATE_LISTVIEW         api.APIOperation = "customization_updateListView"
+	DELETE_LISTVIEW         api.APIOperation = "customization_deleteListView"
+	UPDATE_LISTVIEW_FILTERS api.APIOperation = "customization_updateListViewFilters"
+	SET_LISTVIEW_ACTIVE     api.APIOperation = "customization_setListViewActive"
 
 	// READ APIs.
 	LIST_LISTVIEWS     api.APIOperation = "customization_listListViews"
