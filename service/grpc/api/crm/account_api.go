@@ -4,12 +4,12 @@ import "github.com/rew3/rew3-internal/service/grpc/api"
 
 const (
 	// WRITE Operations.
-	ADD_ACCOUNT                    api.APIOperation = "crm_addAccount"
-	UPDATE_ACCOUNT                 api.APIOperation = "crm_updateAccount"
-	DELETE_ACCOUNT                 api.APIOperation = "crm_deleteAccount"
-	CLONE_ACCOUNT                  api.APIOperation = "crm_cloneAccount"
-	CHANGE_ACCOUNT_OWNER           api.APIOperation = "crm_changeAccountOwner"
-	CHANGE_ACCOUNT_FAVORITE_STATUS api.APIOperation = "crm_changeAccountFavoriteStatus"
+	ADD_ACCOUNT          api.APIOperation = "crm_addAccount"
+	UPDATE_ACCOUNT       api.APIOperation = "crm_updateAccount"
+	DELETE_ACCOUNT       api.APIOperation = "crm_deleteAccount"
+	CLONE_ACCOUNT        api.APIOperation = "crm_cloneAccount"
+	CHANGE_ACCOUNT_OWNER api.APIOperation = "crm_changeAccountOwner"
+	SET_ACCOUNT_FAVORITE api.APIOperation = "crm_setAccountFavorite"
 
 	// READ Operations.
 	LIST_ACCOUNTS     api.APIOperation = "crm_listAccounts"

@@ -9,6 +9,7 @@ const (
 	DELETE_PROPERTY       api.APIOperation = "rms_deleteProperty"
 	CLONE_PROPERTY        api.APIOperation = "rms_cloneProperty"
 	CHANGE_PROPERTY_OWNER api.APIOperation = "rms_changePropertyOwner"
+	SET_PROPERTY_FAVORITE api.APIOperation = "crm_setPropertyFavorite"
 
 	// READ Operations.
 	LIST_PROPERTIES    api.APIOperation = "rms_listProperties"
