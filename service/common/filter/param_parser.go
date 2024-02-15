@@ -15,6 +15,7 @@ import (
  */
 
 type FilterOperator string
+type FilterValueType string
 
 const (
 	NONE FilterOperator = ""
@@ -50,6 +51,16 @@ const (
 	// For Number, Date.
 	RANGE        FilterOperator = "-range"
 	NOT_IN_RANGE FilterOperator = "-not-in-range"
+
+	// Date Type.
+	INTEGER FilterValueType = "integer"
+	LONG    FilterValueType = "long"
+	FLOAT   FilterValueType = "float"
+	DOUBLE  FilterValueType = "double"
+	BOOLEAN FilterValueType = "boolean"
+	STRING  FilterValueType = "string"
+	ISODATE FilterValueType = "iso_date"
+	UNKNOWN FilterValueType = "unknown"
 )
 
 type Filter struct {
@@ -86,9 +97,9 @@ func parseFilter(filter string) (Filter, error) {
 	if len(splits) == 2 {
 		key := splits[0]
 		value := splits[1]
-		fieldName, op := parseFieldAndOperator(key)
+		dataType, fieldName, op := parseFieldAndOperator(key)
 		if op == RANGE || op == NOT_IN_RANGE {
-			parsedValue, err := parseRangeValue(value)
+			parsedValue, err := parseRangeValue(dataType, value)
 			if err != nil {
 				return Filter{}, fmt.Errorf("request parameter error. invalid range value `%s` is provided for parameter `%s`", value, key)
 			}
@@ -98,7 +109,7 @@ func parseFilter(filter string) (Filter, error) {
 				Operator: op,
 			}, nil
 		} else if op == IN || op == NOT_IN {
-			parsedValue, err := parseListValue(value)
+			parsedValue, err := parseListValue(dataType, value)
 			if err != nil {
 				return Filter{}, fmt.Errorf("request parameter error. invalid list value `%s` is provided for parameter `%s`", value, key)
 			}
@@ -110,13 +121,13 @@ func parseFilter(filter string) (Filter, error) {
 		} else {
 			return Filter{
 				Field:    fieldName,
-				Value:    parseValue(value),
+				Value:    parseValue(dataType, value),
 				Operator: op,
 			}, nil
 		}
 	} else {
 		key := splits[0]
-		fieldName, op := parseFieldAndOperator(key)
+		_, fieldName, op := parseFieldAndOperator(key)
 		if op == EMPTY || op == NOT_EMPTY {
 			return Filter{
 				Field:    fieldName,
@@ -132,85 +143,94 @@ func parseFilter(filter string) (Filter, error) {
 /**
  * Parse Field and Operator.
  */
-func parseFieldAndOperator(key string) (string, FilterOperator) {
-	index := strings.Index(key, "-")
-	if index < 0 {
+func parseFieldAndOperator(key string) (FilterValueType, string, FilterOperator) {
+	dateType := UNKNOWN
+	remaining := key
+	parts := strings.Split(key, ":")
+	if len(parts) == 2 {
+		dateType = FilterValueType(parts[0])
+		remaining = parts[1]
+	}
+	index := strings.Index(remaining, "-")
+	if index < 0 || key[:index] == "" {
 		// No filter operator type applied.
-		return key, NONE
-	} else if key[:index] == "" {
-		return key, NONE
+		return dateType, remaining, NONE
 	}
 	fieldName := key[:index]
 	operator := key[index:]
 	switch operator {
 	case string(IS):
-		return fieldName, IS
+		return dateType, fieldName, IS
 	case string(IS_NOT):
-		return fieldName, IS_NOT
+		return dateType, fieldName, IS_NOT
 	case string(EMPTY):
-		return fieldName, EMPTY
+		return dateType, fieldName, EMPTY
 	case string(NOT_EMPTY):
-		return fieldName, NOT_EMPTY
+		return dateType, fieldName, NOT_EMPTY
 	case string(IN):
-		return fieldName, IN
+		return dateType, fieldName, IN
 	case string(NOT_IN):
-		return fieldName, NOT_IN
+		return dateType, fieldName, NOT_IN
 	case string(CONTAINS):
-		return fieldName, CONTAINS
+		return dateType, fieldName, CONTAINS
 	case string(NOT_CONTAINS):
-		return fieldName, NOT_CONTAINS
+		return dateType, fieldName, NOT_CONTAINS
 	case string(STARTS_WITH):
-		return fieldName, STARTS_WITH
+		return dateType, fieldName, STARTS_WITH
 	case string(NOT_STARTS_WITH):
-		return fieldName, NOT_STARTS_WITH
+		return dateType, fieldName, NOT_STARTS_WITH
 	case string(ENDS_WITH):
-		return fieldName, ENDS_WITH
+		return dateType, fieldName, ENDS_WITH
 	case string(NOT_ENDS_WITH):
-		return fieldName, NOT_ENDS_WITH
+		return dateType, fieldName, NOT_ENDS_WITH
 	case string(EQ):
-		return fieldName, EQ
+		return dateType, fieldName, EQ
 	case string(NOT_EQ):
-		return fieldName, NOT_EQ
+		return dateType, fieldName, NOT_EQ
 	case string(LESS_THAN):
-		return fieldName, LESS_THAN
+		return dateType, fieldName, LESS_THAN
 	case string(NOT_LESS_THAN):
-		return fieldName, NOT_LESS_THAN
+		return dateType, fieldName, NOT_LESS_THAN
 	case string(LESS_THAN_EQUAL):
-		return fieldName, LESS_THAN_EQUAL
+		return dateType, fieldName, LESS_THAN_EQUAL
 	case string(NOT_LESS_THAN_EQUAL):
-		return fieldName, NOT_LESS_THAN_EQUAL
+		return dateType, fieldName, NOT_LESS_THAN_EQUAL
 	case string(GREATER_THAN):
-		return fieldName, GREATER_THAN
+		return dateType, fieldName, GREATER_THAN
 	case string(NOT_GREATER_THAN):
-		return fieldName, NOT_GREATER_THAN
+		return dateType, fieldName, NOT_GREATER_THAN
 	case string(GREATER_THAN_EQUAL):
-		return fieldName, GREATER_THAN_EQUAL
+		return dateType, fieldName, GREATER_THAN_EQUAL
 	case string(NOT_GREATER_THAN_EQUAL):
-		return fieldName, NOT_GREATER_THAN_EQUAL
+		return dateType, fieldName, NOT_GREATER_THAN_EQUAL
 	case string(RANGE):
-		return fieldName, RANGE
+		return dateType, fieldName, RANGE
 	case string(NOT_IN_RANGE):
-		return fieldName, NOT_IN_RANGE
+		return dateType, fieldName, NOT_IN_RANGE
 	default:
-		return fieldName, NONE
+		return dateType, fieldName, NONE
 	}
 }
 
 /**
  * Parse Value to appropriate data type.
  */
-func parseValue(value string) interface{} {
-	if parsed, err := parseDateTimeValue(value); err == nil {
-		return parsed
+func parseValue(dataType FilterValueType, value string) interface{} {
+	if dataType == UNKNOWN {
+		if parsed, err := parseDateTimeValue(value); err == nil {
+			return parsed
+		} else {
+			return parsePrimitiveValue(value)
+		}
 	} else {
-		return parsePrimitiveValue(value)
+		return parsePrimitiveValueToType(dataType, value)
 	}
 }
 
 /**
  * Parse range value.
  */
-func parseRangeValue(tupleStr string) ([2]interface{}, error) {
+func parseRangeValue(dataType FilterValueType, tupleStr string) ([2]interface{}, error) {
 	tupleStr = strings.Trim(tupleStr, "[]")
 	elements := strings.Split(tupleStr, ",")
 	if len(elements) != 2 {
@@ -219,7 +239,11 @@ func parseRangeValue(tupleStr string) ([2]interface{}, error) {
 	var parsedElements [2]interface{}
 	for i, element := range elements {
 		element = strings.TrimSpace(element)
-		parsedElements[i] = parsePrimitiveValue(element)
+		if dataType == UNKNOWN {
+			parsedElements[i] = parsePrimitiveValue(element)
+		} else {
+			parsedElements[i] = parsePrimitiveValueToType(dataType, element)
+		}
 	}
 	return parsedElements, nil
 }
@@ -227,13 +251,17 @@ func parseRangeValue(tupleStr string) ([2]interface{}, error) {
 /**
  * Parse list value.
  */
-func parseListValue(listStr string) ([]interface{}, error) {
+func parseListValue(dataType FilterValueType, listStr string) ([]interface{}, error) {
 	listStr = strings.Trim(listStr, "[]")
 	items := strings.Split(listStr, ",")
 	var parsedItems []interface{}
 	for _, item := range items {
 		item = strings.TrimSpace(item)
-		parsedItems = append(parsedItems, parsePrimitiveValue(item))
+		if dataType == UNKNOWN {
+			parsedItems = append(parsedItems, parsePrimitiveValue(item))
+		} else {
+			parsedItems = append(parsedItems, parsePrimitiveValueToType(dataType, item))
+		}
 	}
 	return parsedItems, nil
 }
@@ -250,7 +278,7 @@ func parseDateTimeValue(dateStr string) (time.Time, error) {
 }
 
 /**
- * Parse primitive value.
+ * Parse primitive value with auto type inference.
  */
 func parsePrimitiveValue(value string) interface{} {
 	// Try parsing as bool
@@ -295,5 +323,46 @@ func parsePrimitiveValue(value string) interface{} {
 	}
 
 	// Assume it as string if no match is found
+	return value
+}
+
+/**
+ * Parse primitive value to given data type.
+ */
+func parsePrimitiveValueToType(dataType FilterValueType, value string) interface{} {
+	switch dataType {
+	case INTEGER:
+		// Try parsing as int32
+		if parsedValue, err := strconv.ParseInt(value, 10, 32); err == nil {
+			return int32(parsedValue)
+		}
+	case LONG:
+		// Try parsing as int64
+		if parsedValue, err := strconv.ParseInt(value, 10, 64); err == nil {
+			return parsedValue
+		}
+	case FLOAT:
+		// Try parsing as float32
+		if parsedValue, err := strconv.ParseFloat(value, 32); err == nil {
+			return float32(parsedValue)
+		}
+	case DOUBLE:
+		// Try parsing as float64
+		if parsedValue, err := strconv.ParseFloat(value, 64); err == nil {
+			return parsedValue
+		}
+	case BOOLEAN:
+		// Try parsing as bool
+		if parsedValue, err := strconv.ParseBool(value); err == nil {
+			return parsedValue
+		}
+	case ISODATE:
+		// Try parsing as time.Time
+		if date, err := time.Parse(time.RFC3339, value); err == nil {
+			return date
+		}
+	default:
+		return value
+	}
 	return value
 }
