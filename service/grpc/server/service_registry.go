@@ -3,15 +3,15 @@ package server
 import (
 	"context"
 
-	"github.com/rew3/rew3-internal/service/common/request"
-	"github.com/rew3/rew3-internal/service/executor"
+	"github.com/rew3/rew3-internal/service/cqrs/executor"
 	"github.com/rew3/rew3-internal/service/grpc"
 	"github.com/rew3/rew3-internal/service/grpc/api"
+	"github.com/rew3/rew3-internal/service/shared/request"
 
-	ctxUtil "github.com/rew3/rew3-internal/pkg/context"
-	baseCommand "github.com/rew3/rew3-internal/service/command"
-	s "github.com/rew3/rew3-internal/service/common/response"
-	baseQuery "github.com/rew3/rew3-internal/service/query"
+	baseCommand "github.com/rew3/rew3-internal/service/cqrs/command"
+	baseQuery "github.com/rew3/rew3-internal/service/cqrs/query"
+	s "github.com/rew3/rew3-internal/service/shared/response"
+	ctxUtil "github.com/rew3/rew3-internal/service/utils/context"
 )
 
 /*
@@ -71,7 +71,7 @@ func AddQueryService[Input any, Output any](bc *MappingContext, api api.APIOpera
 
 /*
  * Create new Service - with mapping of given API to its respective service handler.
- * You can use created service method and add to registry. 
+ * You can use created service method and add to registry.
  * Output - output response type returned by query handler.
  */
 func CreateService[Output any](api api.APIOperation, callback func(interface{}, context.Context) *s.ExecutionResult[Output], responseMeta grpc.DataType) *ServiceMethod {

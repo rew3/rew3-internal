@@ -3,9 +3,9 @@ package server
 import (
 	"context"
 
-	"github.com/rew3/rew3-internal/service/common/request"
 	"github.com/rew3/rew3-internal/service/grpc"
 	"github.com/rew3/rew3-internal/service/grpc/api"
+	"github.com/rew3/rew3-internal/service/shared/request"
 )
 
 /**

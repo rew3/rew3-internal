@@ -1,7 +1,7 @@
 package filter
 
 import (
-	s "github.com/rew3/rew3-internal/service/common/request"
+	s "github.com/rew3/rew3-internal/service/shared/request"
 	"go.mongodb.org/mongo-driver/bson"
 )
 
