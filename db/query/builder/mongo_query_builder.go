@@ -87,7 +87,7 @@ func (qb *MongoQueryBuilder) ComparisonNot(op ComparisonOperator, key string, va
  * Create query for Logical operator.
  */
 func (qb *MongoQueryBuilder) Logical(op LogicalOperator, queries ...bson.D) bson.D {
-	query := bson.D{{Key: string(op), Value: bson.A{queries}}}
+	query := bson.D{{Key: string(op), Value: queries}}
 	return query
 }
 
