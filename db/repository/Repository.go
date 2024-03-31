@@ -27,6 +27,7 @@ type Repository[Entity any] interface {
 	/* Reads */
 	FindById(ctx context.Context, id string) *Entity
 	Find(ctx context.Context, filters bson.D, offset int64, limit int64, sort bson.D) []*Entity
+	FindWithProjection(ctx context.Context, filters bson.D, projection []string, offset int64, limit int64, sort bson.D) []*Entity
 	Count(ctx context.Context, filters bson.D) int64
 	Aggregate(ctx context.Context, pipelines []bson.D) []*bson.D
 

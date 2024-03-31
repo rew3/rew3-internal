@@ -460,6 +460,10 @@ func (repo *MongoRepository[Entity]) FindById(ctx context.Context, id string) *E
 }
 
 func (repo *MongoRepository[Entity]) Find(ctx context.Context, filters bson.D, offset int64, limit int64, sort bson.D) []*Entity {
+	return repo.FindWithProjection(ctx, filters, []string{}, offset, limit, sort)
+}
+
+func (repo *MongoRepository[Entity]) FindWithProjection(ctx context.Context, filters bson.D, projection []string, offset int64, limit int64, sort bson.D) []*Entity {
 	return handleRead(ctx, func(rc service.RequestContext) []*Entity {
 		results := []*Entity{}
 		if sort == nil {
@@ -472,6 +476,13 @@ func (repo *MongoRepository[Entity]) Find(ctx context.Context, filters bson.D, o
 			Skip:  &offset,
 			Limit: &limit,
 			Sort:  sort,
+		}
+		if len(projection) > 0 {
+			pMap := bson.M{}
+			for _, i := range projection {
+				pMap[i] = 1
+			}
+			options.SetProjection(pMap)
 		}
 		// TODO re-generate filter using seucrity check.
 		cur, err := repo.Collection.Find(ctx, filters, options)
