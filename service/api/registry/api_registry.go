@@ -53,7 +53,7 @@ type MappingContext struct {
 }
 
 /*
- * Add Command Service - map given API to its respective command executor.
+ * Add Command Service API - map given API to its respective command executor.
  * Input - type for payload data to parse as input i.e. Command. Note: payload must be valid structure as its command.
  * Output - output response type returned by command handler.
  */
@@ -75,7 +75,7 @@ func BindCommandAPI[Input any, Output any](bc *CQRSMappingContext, api endpoints
 }
 
 /*
- * Add Query Service - map given API to its respective query executor.
+ * Add Query Service API - map given API to its respective query executor.
  * Input - type for payload data to parse as input i.e. Query. Note: payload must be valid structure as its query.
  * Output - output response type returned by query handler.
  */

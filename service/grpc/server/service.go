@@ -28,6 +28,16 @@ func NewService(registry *ServiceMethodRegistry) *Service {
 	return &Service{serviceMethodRegistry: registry}
 }
 
+// server - controller/http -> app
+// server - grpc -> app
+
+// controller -> call command/query handler. 
+// [entry-API,registry, handlerAPI -> call command/query handler]
+
+// controller ->
+// 					-> registry -> service_callback.
+// entry-API -> 
+
 /**
  * Register this GRPC Service to Server.
  */

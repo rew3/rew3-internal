@@ -4,7 +4,7 @@ import (
 	"context"
 
 	"github.com/rew3/rew3-internal/service/api/endpoints"
-	"github.com/rew3/rew3-internal/service/grpc"
+	grpc "github.com/rew3/rew3-internal/service/grpc/payload"
 	"github.com/rew3/rew3-internal/service/shared/request"
 	"github.com/rew3/rew3-internal/service/shared/response"
 )
@@ -21,7 +21,7 @@ type ServiceAPI struct {
 /**
  * New instance of Service Method.
  */
-func NewServiceMethod(api endpoints.Endpoint) *ServiceAPI {
+func NewServiceAPI(api endpoints.Endpoint) *ServiceAPI {
 	return &ServiceAPI{api: api}
 }
 
