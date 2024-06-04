@@ -22,3 +22,13 @@ func GetRequestContext(ctx context.Context) (s.RequestContext, bool) {
 	reqContext, status := ctx.Value(requestContextKey).(s.RequestContext)
 	return reqContext, status
 }
+
+// Retrieve the Context user id, return empty if not available.
+func GetContextUserId(ctx context.Context) string {
+	rc, hasValue := ctx.Value(requestContextKey).(s.RequestContext)
+	if hasValue {
+		return rc.User.Id
+	} else {
+		return ""
+	}
+}

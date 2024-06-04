@@ -87,7 +87,7 @@ func (qb *MongoQueryBuilder) ComparisonNot(op ComparisonOperator, key string, va
  * Create query for Logical operator.
  */
 func (qb *MongoQueryBuilder) Logical(op LogicalOperator, queries ...bson.D) bson.D {
-	query := bson.D{{Key: string(op), Value: bson.A{queries}}}
+	query := bson.D{{Key: string(op), Value: queries}}
 	return query
 }
 
@@ -96,19 +96,23 @@ func (qb *MongoQueryBuilder) Logical(op LogicalOperator, queries ...bson.D) bson
  */
 func (qb *MongoQueryBuilder) ElementExists(key string, value bool) bson.D {
 	if value {
-		return bson.D{{
-			Key: "$or", Value: []bson.M{
-				{key: bson.M{string(EXISTS): false}},
-				{key: nil},
-			},
-		}}
+		return bson.D{
+			{Key: "$or", Value: bson.A{
+				bson.D{{Key: key, Value: bson.M{string(EXISTS): false}}},
+				bson.D{{Key: key, Value: bson.D{{Key: "$eq", Value: nil}}}},
+				bson.D{{Key: key, Value: bson.D{{Key: "$eq", Value: ""}}}},
+				bson.D{{Key: key, Value: bson.D{{Key: "$eq", Value: 0}}}},
+			}},
+		}
 	} else {
-		return bson.D{{
-			Key: key, Value: bson.M{
-				string(EXISTS): true,
-				"$ne":          nil,
-			},
-		}}
+		return bson.D{
+			{Key: key, Value: bson.M{string(EXISTS): true}},
+			{Key: "$or", Value: bson.A{
+				bson.D{{Key: key, Value: bson.D{{Key: "$ne", Value: nil}}}},
+				bson.D{{Key: key, Value: bson.D{{Key: "$ne", Value: ""}}}},
+				bson.D{{Key: key, Value: bson.D{{Key: "$ne", Value: 0}}}},
+			}},
+		}
 	}
 }
 
