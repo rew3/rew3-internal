@@ -9,7 +9,3 @@ func NewResponse[T any](action string) Response[T] {
 		Action: action,
 	}
 }
-
-func (r *Response[T]) Ok(message string, data T) ExecutionResult[T]{
-
-}

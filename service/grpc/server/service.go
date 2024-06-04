@@ -6,8 +6,8 @@ import (
 	pAny "github.com/golang/protobuf/ptypes/any"
 	"github.com/rew3/rew3-internal/app/account"
 	"github.com/rew3/rew3-internal/pkg/utils/logger"
-	api "github.com/rew3/rew3-internal/service/api/endpoints"
-	"github.com/rew3/rew3-internal/service/grpc"
+	api "github.com/rew3/rew3-internal/service/api"
+	"github.com/rew3/rew3-internal/service/grpc/payload"
 	"github.com/rew3/rew3-internal/service/grpc/proto/pb"
 	"github.com/rew3/rew3-internal/service/shared/request"
 	"github.com/rew3/rew3-internal/service/shared/response/constants"
@@ -21,22 +21,12 @@ import (
  */
 type Service struct {
 	pb.UnimplementedServiceProtoServer
-	serviceMethodRegistry *ServiceMethodRegistry
+	serviceMethodRegistry *api.APIRegistry
 }
 
-func NewService(registry *ServiceMethodRegistry) *Service {
+func NewService(registry *api.APIRegistry) *Service {
 	return &Service{serviceMethodRegistry: registry}
 }
-
-// server - controller/http -> app
-// server - grpc -> app
-
-// controller -> call command/query handler. 
-// [entry-API,registry, handlerAPI -> call command/query handler]
-
-// controller ->
-// 					-> registry -> service_callback.
-// entry-API -> 
 
 /**
  * Register this GRPC Service to Server.
@@ -57,10 +47,19 @@ func (service *Service) ExecuteRequest(ctx context.Context, request *pb.RequestP
 		}, nil
 	}
 	requestPayload := service.requestPayload(request)
-	isExists, method := service.serviceMethodRegistry.GetServiceMethod(requestPayload.API)
+	isExists, method := service.serviceMethodRegistry.GetServiceAPI(requestPayload.API)
 	if isExists {
-		response := method.call(ctx, requestPayload)
-		return service.responsePayloadProto(response), nil
+		input, err := payload.ToType[map[string]interface{}](requestPayload.Data)
+		if err != nil {
+			return &pb.ResponsePayloadProto{
+				ApiOperation:  string(requestPayload.API),
+				StatusType:    pb.StatusTypeProto_SERVICE_UNAVAILABLE,
+				StatusMessage: "Unable to parse request - " + err.Error(),
+			}, nil
+		}
+		response := method.Call(ctx, requestPayload.Context, input)
+		resPayload := payload.ToResponsePayload(requestPayload.API, response.Status, response.Message, response.Data)
+		return service.responsePayloadProto(resPayload), nil
 	} else {
 		return &pb.ResponsePayloadProto{
 			ApiOperation:  string(requestPayload.API),
@@ -73,9 +72,9 @@ func (service *Service) ExecuteRequest(ctx context.Context, request *pb.RequestP
 /**
  * Convert proto input to Request Payload.
  */
-func (service *Service) requestPayload(request *pb.RequestPayloadProto) grpc.RequestPayload {
-	return grpc.RequestPayload{
-		API:     api.ResolveOperation(request.ApiOperation),
+func (service *Service) requestPayload(request *pb.RequestPayloadProto) payload.RequestPayload {
+	return payload.RequestPayload{
+		API:     api.ResolveEndpoint(request.ApiOperation),
 		Context: service.requestContext(request.RequestContext),
 		Data:    request.Data.Value,
 	}
@@ -84,8 +83,8 @@ func (service *Service) requestPayload(request *pb.RequestPayloadProto) grpc.Req
 /**
  * Convert to proto response from Response Payload.
  */
-func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb.ResponsePayloadProto {
-	dataBytes, err := grpc.ToJson(response.Data)
+func (service *Service) responsePayloadProto(response *payload.ResponsePayload) *pb.ResponsePayloadProto {
+	dataBytes, err := payload.ToJson(response.Data)
 	if err != nil {
 		logger.Log().Error("Error marshaling raw data from ResponsePayload to proto:", err)
 		return &pb.ResponsePayloadProto{
@@ -94,15 +93,6 @@ func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb
 			StatusMessage: "Error marshaling raw data from ResponsePayload to proto:: " + err.Error(),
 		}
 	}
-	/*dataMetaTypeBytes, err := json.Marshal(response.DataMeta.Type)
-	if err != nil {
-		logger.Log().Error("Error marshaling raw data from ResponsePayload to proto:", err)
-		return &pb.ResponsePayloadProto{
-			ApiOperation:  string(response.API),
-			StatusType:    pb.StatusTypeProto_INTERNAL_SERVER_ERROR,
-			StatusMessage: "Error marshaling raw data from ResponsePayload to proto:: " + err.Error(),
-		}
-	}*/
 	statusMap := map[constants.StatusType]pb.StatusTypeProto{
 		constants.OK:                    pb.StatusTypeProto_OK,
 		constants.CREATED:               pb.StatusTypeProto_CREATED,
@@ -125,40 +115,6 @@ func (service *Service) responsePayloadProto(response *grpc.ResponsePayload) *pb
 			TypeUrl: "json_data", // Provide a type URL to identify the data type
 			Value:   dataBytes,   // The byte array containing the JSON data
 		},
-		DataMeta: &pb.DataMeta{
-			Type: resolveDataType(response.DataMeta.Type),
-		},
-	}
-}
-
-func resolveDataType(dataType grpc.DataType) *pb.DataType {
-	switch t := dataType.GetType().(type) {
-	case grpc.Empty:
-		return &pb.DataType{DataType: pb.DataTypeEnum_EMPTY}
-	case grpc.Binary:
-		return &pb.DataType{DataType: pb.DataTypeEnum_BINARY}
-	case grpc.List:
-		return &pb.DataType{DataType: pb.DataTypeEnum_LIST, TypeMeta: &pAny.Any{
-			TypeUrl: "json_data",
-			Value:   []byte(t.Type),
-		}}
-	case grpc.ScalarList:
-		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR_LIST, TypeMeta: &pAny.Any{
-			TypeUrl: "json_data",
-			Value:   []byte(t.Type),
-		}}
-	case grpc.Object:
-		return &pb.DataType{DataType: pb.DataTypeEnum_OBJECT, TypeMeta: &pAny.Any{
-			TypeUrl: "json_data",
-			Value:   []byte(t.Type),
-		}}
-	case grpc.Scalar:
-		return &pb.DataType{DataType: pb.DataTypeEnum_SCALAR, TypeMeta: &pAny.Any{
-			TypeUrl: "json_data",
-			Value:   []byte(t.Type),
-		}}
-	default:
-		return nil
 	}
 }
 

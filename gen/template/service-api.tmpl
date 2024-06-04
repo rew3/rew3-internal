@@ -1,0 +1,23 @@
+package {{.PackageName}}
+
+import (
+    "github.com/rew3/rew3-internal/service/api"
+    {{- range .GetImports}}
+	{{.code}}
+    {{- end }}
+)
+
+/**
+ * Register {{.Entity}} APIs. 
+ */
+func Register(binder api.CQRSAPIBinder) {
+    // Read APIs
+    {{- range .CommandAPIs}}
+	{{.Code}}
+    {{- end }}
+
+    // Write APIs
+    {{- range .QueryAPIs}}
+	{{.Code}}
+    {{- end }}
+}

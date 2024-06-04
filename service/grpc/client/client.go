@@ -5,10 +5,9 @@ import (
 	"encoding/json"
 
 	"github.com/golang/protobuf/ptypes/any"
-	bConst "github.com/rew3/rew3-internal/app/common/constants"
 	"github.com/rew3/rew3-internal/pkg/utils/logger"
-	api "github.com/rew3/rew3-internal/service/api/endpoints"
-	"github.com/rew3/rew3-internal/service/grpc"
+	api "github.com/rew3/rew3-internal/service/api"
+	payload "github.com/rew3/rew3-internal/service/grpc/payload"
 	"github.com/rew3/rew3-internal/service/grpc/proto/pb"
 	"github.com/rew3/rew3-internal/service/shared/request"
 	"github.com/rew3/rew3-internal/service/shared/response/constants"
@@ -54,7 +53,7 @@ func (client *Client) init() {
 /**
  * Execute Request.
  */
-func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPayload) grpc.ResponsePayload {
+func (client *Client) ExecuteRequest(ctx context.Context, request payload.RequestPayload) payload.ResponsePayload {
 	if client.grpcClient == nil {
 		client.init()
 	}
@@ -75,13 +74,13 @@ func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPa
 	if err != nil {
 		if grpcErr, ok := status.FromError(err); ok {
 			code := grpcErr.Code()
-			return grpc.ResponsePayload{
+			return payload.ResponsePayload{
 				API:           request.API,
 				StatusMessage: client.serviceName + " Error: " + grpcErr.Message(),
 				Status:        getErrorStatusFromGrpcCode(code),
 			}
 		}
-		return grpc.ResponsePayload{
+		return payload.ResponsePayload{
 			API:           request.API,
 			StatusMessage: client.serviceName + " Error: " + err.Error(),
 			Status:        constants.INTERNAL_SERVER_ERROR,
@@ -92,40 +91,20 @@ func (client *Client) ExecuteRequest(ctx context.Context, request grpc.RequestPa
 			status = constants.StatusType(response.StatusType.String())
 		}
 		if response.Data != nil {
-			data, _ := grpc.ToType[interface{}](response.Data.Value)
-			return grpc.ResponsePayload{
-				API:           api.APIOperation(response.ApiOperation),
+			data, _ := payload.ToType[interface{}](response.Data.Value)
+			return payload.ResponsePayload{
+				API:           api.Endpoint(response.ApiOperation),
 				StatusMessage: response.StatusMessage,
 				Status:        status,
 				Data:          data,
-				DataMeta:      grpc.DataMeta{Type: resolveDataType(response.DataMeta.Type)},
 			}
 		} else {
-			return grpc.ResponsePayload{
-				API:           api.APIOperation(response.ApiOperation),
+			return payload.ResponsePayload{
+				API:           api.Endpoint(response.ApiOperation),
 				StatusMessage: response.StatusMessage,
 				Status:        status,
 			}
 		}
-	}
-}
-
-func resolveDataType(dType *pb.DataType) grpc.DataType {
-	switch dType.DataType {
-	case pb.DataTypeEnum_EMPTY:
-		return grpc.Empty{}
-	case pb.DataTypeEnum_BINARY:
-		return grpc.Binary{}
-	case pb.DataTypeEnum_LIST:
-		return grpc.List{Type: bConst.Entity(string(dType.TypeMeta.Value))}
-	case pb.DataTypeEnum_SCALAR_LIST:
-		return grpc.ScalarList{Type: grpc.ScalarType(string(dType.TypeMeta.Value))}
-	case pb.DataTypeEnum_OBJECT:
-		return grpc.Object{Type: bConst.Entity(string(dType.TypeMeta.Value))}
-	case pb.DataTypeEnum_SCALAR:
-		return grpc.Scalar{Type: grpc.ScalarType(string(dType.TypeMeta.Value))}
-	default:
-		return grpc.Empty{}
 	}
 }
 

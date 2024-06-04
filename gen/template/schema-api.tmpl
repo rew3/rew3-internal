@@ -1,0 +1,11 @@
+extend type Query {
+    {{- range .SchemaQueries}}
+	{{.Code}}
+    {{- end }}
+}
+
+extend type Mutation {
+    {{- range .SchemaMutations}}
+	{{.Code}}
+    {{- end }}
+}
