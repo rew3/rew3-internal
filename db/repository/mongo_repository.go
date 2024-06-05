@@ -24,7 +24,7 @@ import (
  */
 type MongoRepository[Entity any] struct {
 	Collection        *mongo.Collection
-	RepositoryContext *internal.RepositoryContext
+	RepositoryContext *RepositoryContext
 }
 
 /*

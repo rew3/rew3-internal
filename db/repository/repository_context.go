@@ -1,4 +1,4 @@
-package internal
+package repository
 
 import (
 	m "github.com/rew3/rew3-internal/db/meta"
