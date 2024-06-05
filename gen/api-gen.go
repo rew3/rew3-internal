@@ -7,6 +7,8 @@ import (
 
 	"github.com/rew3/rew3-internal/gen/schema"
 	"github.com/rew3/rew3-internal/gen/template"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 /**
@@ -33,14 +35,15 @@ func (gen *APIGenerator) GenerateClientGrpcAPI() {
 	config := gen.config
 	for _, entity := range config.Entities {
 		apiCodes := ClientGRPCAPICodes{}
-		for _, rAPI := range entity.ReadAPIs {
-			apiCodes.ServiceReadAPIs = append(apiCodes.ServiceReadAPIs, ServiceAPI{APIName: rAPI.Name})
+		c := cases.Title(language.English) // capitalize.
+		for _, rAPI := range entity.GetReadAPIs() {
+			apiCodes.ServiceReadAPIs = append(apiCodes.ServiceReadAPIs, ServiceAPI{APIName: c.String(rAPI.Name)})
 		}
-		for _, wAPI := range entity.WriteAPIs {
-			apiCodes.ServiceReadAPIs = append(apiCodes.ServiceReadAPIs, ServiceAPI{APIName: wAPI.Name})
+		for _, wAPI := range entity.GetWriteAPIs() {
+			apiCodes.ServiceReadAPIs = append(apiCodes.ServiceReadAPIs, ServiceAPI{APIName: c.String(wAPI.Name)})
 		}
 		apiCodes.PackageName = entity.Directory.ClientGrpcAPIPackage
-		outputPath := entity.Directory.ClientGrpcAPIDir + "/" + entity.Entity + "_client_api.go"
+		outputPath := entity.Directory.ClientGrpcAPIDir + "/" + strings.ToLower(entity.Entity) + "_client_api.go"
 		template.GenerateFromTemplate(template.TemplateConfig{
 			TemplatePath:  "gen/template/client-grpc-api.tmpl",
 			OutputPath:    outputPath,
@@ -72,12 +75,12 @@ func (gen *APIGenerator) GenerateServiceAPI() {
 			code := fmt.Sprintf("[%s, %s](binder, api.ResolveEndpoint(%s))", inputTypeName, outputTypeName, rAPI.Name)
 			return Code{Code: code}
 		}
-		for _, rAPI := range entity.ReadAPIs {
+		for _, rAPI := range entity.GetReadAPIs() {
 			code := generate(rAPI)
 			code.Code = "api.BindQueryAPI" + code.Code
 			apiCodes.QueryAPIs = append(apiCodes.QueryAPIs, code)
 		}
-		for _, wAPI := range entity.WriteAPIs {
+		for _, wAPI := range entity.GetWriteAPIs() {
 			code := generate(wAPI)
 			code.Code = "api.BindCommandAPI" + code.Code
 			apiCodes.CommandAPIs = append(apiCodes.CommandAPIs, code)
@@ -88,7 +91,7 @@ func (gen *APIGenerator) GenerateServiceAPI() {
 		}
 		apiCodes.PackageName = entity.Directory.ServiceAPIPackage
 
-		outputPath := entity.Directory.ServiceAPIDir + "/" + entity.Entity + "_apis.go"
+		outputPath := entity.Directory.ServiceAPIDir + "/" + strings.ToLower(entity.Entity) + "_apis.go"
 		template.GenerateFromTemplate(template.TemplateConfig{
 			TemplatePath:  "gen/template/service-api.tmpl",
 			OutputPath:    outputPath,
@@ -130,16 +133,16 @@ func (gen *APIGenerator) generateSchemaAPI(config Config) {
 			code = code + ": " + outputTypeName
 			return Code{Code: code}
 		}
-		for _, rAPI := range entity.ReadAPIs {
+		for _, rAPI := range entity.GetReadAPIs() {
 			code := generate(rAPI)
 			schemaAPICodes.SchemaQueries = append(schemaAPICodes.SchemaQueries, code)
 		}
-		for _, wAPI := range entity.WriteAPIs {
+		for _, wAPI := range entity.GetWriteAPIs() {
 			code := generate(wAPI)
 			schemaAPICodes.SchemaMutations = append(schemaAPICodes.SchemaQueries, code)
 		}
 
-		outputPath := entity.Directory.SchemaDir + "/" + config.Module + "_" + entity.Entity + "_schema.graphql"
+		outputPath := entity.Directory.SchemaDir + "/" + config.Module + "_" + strings.ToLower(entity.Entity) + "_schema.graphql"
 		template.GenerateFromTemplate(template.TemplateConfig{
 			TemplatePath:  "gen/template/schema-api.tmpl",
 			OutputPath:    outputPath,
@@ -186,17 +189,17 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 				})
 			}
 		}
-		for _, api := range entity.ReadAPIs {
+		for _, api := range entity.GetReadAPIs() {
 			generateTypeCode(api)
 		}
-		for _, api := range entity.WriteAPIs {
+		for _, api := range entity.GetWriteAPIs() {
 			generateTypeCode(api)
 		}
 	}
 	coreTypeCodes := SchemaTypeCodes{}
 	for _, tb := range typeBases {
 		entityTypeCodes, sharedTypeCodes := gen.generateSchemaTypesCodes(tb, coreTypeCodes)
-		outputPath := tb.Directory.SchemaDir + "/" + tb.Module + "_" + tb.Entity + "_types.graphql"
+		outputPath := tb.Directory.SchemaDir + "/" + tb.Module + "_" + strings.ToLower(tb.Entity) + "_types.graphql"
 		template.GenerateFromTemplate(template.TemplateConfig{
 			TemplatePath:  "gen/template/schema-type.tmpl",
 			OutputPath:    outputPath,
