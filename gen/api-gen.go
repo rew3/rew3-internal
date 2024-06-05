@@ -62,8 +62,12 @@ func (gen *APIGenerator) GenerateServiceAPI() {
 		apiCodes := ClientCQRSAPICodes{}
 		imports := make(map[string]string)
 		generate := func(rAPI API) Code {
-			imports[rAPI.Input.ImportUrl] = rAPI.Input.ImportAlias
-			imports[rAPI.Output.ImportUrl] = rAPI.Output.ImportAlias
+			if (rAPI.Input.ImportUrl != "") {
+				imports[rAPI.Input.ImportUrl] = rAPI.Input.ImportAlias
+			}
+			if rAPI.Output.ImportUrl != "" {
+				imports[rAPI.Output.ImportUrl] = rAPI.Output.ImportAlias
+			}
 			inputTypeName := rAPI.Input.ImportAlias + "." + reflect.TypeOf(rAPI.Input.Data).Name()
 			outputTypeName := rAPI.Output.ImportAlias + "." + reflect.TypeOf(rAPI.Output.Data).Name()
 			if rAPI.Input.IsList {
