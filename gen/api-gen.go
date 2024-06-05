@@ -36,10 +36,10 @@ func (gen *APIGenerator) GenerateClientGrpcAPI() {
 	for _, entity := range config.Entities {
 		apiCodes := ClientGRPCAPICodes{}
 		c := cases.Title(language.English) // capitalize.
-		for _, rAPI := range entity.GetReadAPIs() {
+		for _, rAPI := range entity.ReadAPIs {
 			apiCodes.ServiceReadAPIs = append(apiCodes.ServiceReadAPIs, ServiceAPI{APIName: c.String(rAPI.Name)})
 		}
-		for _, wAPI := range entity.GetWriteAPIs() {
+		for _, wAPI := range entity.WriteAPIs {
 			apiCodes.ServiceReadAPIs = append(apiCodes.ServiceReadAPIs, ServiceAPI{APIName: c.String(wAPI.Name)})
 		}
 		apiCodes.PackageName = entity.Directory.ClientGrpcAPIPackage
@@ -61,7 +61,7 @@ func (gen *APIGenerator) GenerateServiceAPI() {
 	for _, entity := range config.Entities {
 		apiCodes := ClientCQRSAPICodes{}
 		imports := make(map[string]string)
-		generate := func(rAPI API[interface{}, interface{}]) Code {
+		generate := func(rAPI API) Code {
 			imports[rAPI.Input.ImportUrl] = rAPI.Input.ImportAlias
 			imports[rAPI.Output.ImportUrl] = rAPI.Output.ImportAlias
 			inputTypeName := rAPI.Input.ImportAlias + "." + reflect.TypeOf(rAPI.Input.Data).Name()
@@ -75,12 +75,12 @@ func (gen *APIGenerator) GenerateServiceAPI() {
 			code := fmt.Sprintf("[%s, %s](binder, api.ResolveEndpoint(%s))", inputTypeName, outputTypeName, rAPI.Name)
 			return Code{Code: code}
 		}
-		for _, rAPI := range entity.GetReadAPIs() {
+		for _, rAPI := range entity.ReadAPIs {
 			code := generate(rAPI)
 			code.Code = "api.BindQueryAPI" + code.Code
 			apiCodes.QueryAPIs = append(apiCodes.QueryAPIs, code)
 		}
-		for _, wAPI := range entity.GetWriteAPIs() {
+		for _, wAPI := range entity.WriteAPIs {
 			code := generate(wAPI)
 			code.Code = "api.BindCommandAPI" + code.Code
 			apiCodes.CommandAPIs = append(apiCodes.CommandAPIs, code)
@@ -115,7 +115,7 @@ func (gen *APIGenerator) GenerateSchema() {
 func (gen *APIGenerator) generateSchemaAPI(config Config) {
 	for _, entity := range config.Entities {
 		schemaAPICodes := SchemaAPICodes{}
-		generate := func(rAPI API[interface{}, interface{}]) Code {
+		generate := func(rAPI API) Code {
 			code := rAPI.Name
 			if !rAPI.Input.IsNull {
 				code = "(data: " + reflect.TypeOf(rAPI.Input.Data).Name() + "Input)"
@@ -133,11 +133,11 @@ func (gen *APIGenerator) generateSchemaAPI(config Config) {
 			code = code + ": " + outputTypeName
 			return Code{Code: code}
 		}
-		for _, rAPI := range entity.GetReadAPIs() {
+		for _, rAPI := range entity.ReadAPIs {
 			code := generate(rAPI)
 			schemaAPICodes.SchemaQueries = append(schemaAPICodes.SchemaQueries, code)
 		}
-		for _, wAPI := range entity.GetWriteAPIs() {
+		for _, wAPI := range entity.WriteAPIs {
 			code := generate(wAPI)
 			schemaAPICodes.SchemaMutations = append(schemaAPICodes.SchemaQueries, code)
 		}
@@ -165,7 +165,7 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 			BasePackage: entity.BasePackage,
 		}
 		typeBases = append(typeBases, tBase)
-		generateTypeCode := func(api API[interface{}, interface{}]) {
+		generateTypeCode := func(api API) {
 			gen.schemaGenerator.ClearResult()
 			gen.schemaGenerator.GenerateGraphQLSchemaInputType(api.Input.Data)
 			generatedInput := gen.schemaGenerator.GetGeneratedTypes()
@@ -189,10 +189,10 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 				})
 			}
 		}
-		for _, api := range entity.GetReadAPIs() {
+		for _, api := range entity.ReadAPIs {
 			generateTypeCode(api)
 		}
-		for _, api := range entity.GetWriteAPIs() {
+		for _, api := range entity.WriteAPIs {
 			generateTypeCode(api)
 		}
 	}
@@ -380,7 +380,7 @@ type SchemaTypeBase struct {
 type SchemaTypeContext struct {
 	GenerateWrapper bool
 	WrapperName     string
-	RawType         DataType[interface{}]
+	RawType         DataType
 	Type            reflect.Type
 	Code            string
 }

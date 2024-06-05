@@ -8,32 +8,10 @@ type Config struct {
 
 type EntityConfig struct {
 	Directory   Directory
-	Entity      string        // Note entity must be unique (no duplicate within same application, otherwise undesired things can happen)
-	BasePackage string        // base package for this entity/model in the project. in / notation for directory.
-	ReadAPIs    []interface{} // must be list of API[interface{}, interface{}]
-	WriteAPIs   []interface{} // must be list of API[interface{}, interface{}]
-}
-
-func (c *EntityConfig) GetReadAPIs() []API[interface{}, interface{}] {
-	list := []API[interface{}, interface{}]{}
-	for _, item := range c.ReadAPIs {
-		switch v := item.(type) {
-		case API[interface{}, interface{}]:
-			list = append(list, v)
-		}
-	}
-	return list
-}
-
-func (c *EntityConfig) GetWriteAPIs() []API[interface{}, interface{}] {
-	list := []API[interface{}, interface{}]{}
-	for _, item := range c.WriteAPIs {
-		switch v := item.(type) {
-		case API[interface{}, interface{}]:
-			list = append(list, v)
-		}
-	}
-	return list
+	Entity      string // Note entity must be unique (no duplicate within same application, otherwise undesired things can happen)
+	BasePackage string // base package for this entity/model in the project. in / notation for directory.
+	ReadAPIs    []API
+	WriteAPIs   []API
 }
 
 type Directory struct {
@@ -44,17 +22,17 @@ type Directory struct {
 	ClientGrpcAPIPackage string
 }
 
-type API[I any, O any] struct {
+type API struct {
 	Name           string
-	Input          DataType[I]
-	Output         DataType[O]
+	Input          DataType
+	Output         DataType
 	WrapOutput     bool   // Wrap to execution result.
 	WrapOutputName string // this is for schema output type name.
 }
 
-type DataType[T any] struct {
+type DataType struct {
+	Data        interface{}
 	IsNull      bool // use null if no input need to define. but this should not happen, every command/query has type.
-	Data        T
 	IsRequired  bool
 	IsList      bool
 	ImportUrl   string
