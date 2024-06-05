@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 )
 
 /**
@@ -66,8 +67,18 @@ func IsFileAlreadyExists(filename string) bool {
  * Delete given path directory.
  */
 func DeleteDirectory(dirPath string) {
+	// Check if the directory exists
+	_, err := os.Stat(dirPath)
+	if os.IsNotExist(err) {
+		// The directory does not exist, so do nothing
+		fmt.Println("Directory does not exist.")
+		return
+	} else if err != nil {
+		// An error occurred, so panic
+		panic(err)
+	}
 	// Walk through the directory and delete each file and subdirectory
-	err := filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -93,58 +104,56 @@ func DeleteDirectory(dirPath string) {
 }
 
 /**
- * Copy all content of source path directory to given destination path directory.
+ * Copy given module files to destination files.
+ * Note: destination file will be created if not exists.
+ * Source shoule include version too, such as github.com/projectname@version/path, it will be downloaded and copied.
  */
-func CopyModuleFiles(sourcePath, dstPath string) error {
-	// Download and cache the module files
-	cmd := exec.Command("go", "mod", "download", sourcePath)
+func CopyModuleFiles(modulePath, dstPath string) {
+	cmd := exec.Command("go", "mod", "download")
 	if err := cmd.Run(); err != nil {
-		return err
+		panic(err)
 	}
 	// Get the path to the module cache
-	cacheDir, _ := os.UserCacheDir()
-	cacheDir = filepath.Join(cacheDir, "go-build")
-	// Find the module directory in the cache
-	moduleDir := ""
-	err := filepath.Walk(cacheDir, func(path string, info os.FileInfo, err error) error {
+	var cacheDir string
+	if runtime.GOOS == "windows" {
+		cacheDir = os.Getenv("USERPROFILE")
+	} else {
+		cacheDir = os.Getenv("HOME")
+	}
+	cacheDir = filepath.Join(cacheDir, "go", "pkg", "mod")
+	cacheDir = cacheDir + "/" + modulePath
+	CopyDirectory(cacheDir, dstPath)
+}
+
+/**
+ * Copy Directory files from source directoty to destination directory.
+ */
+func CopyDirectory(srcPath string, dstPath string) {
+	// Create the destination folder if it doesn't exist
+	err := os.MkdirAll(dstPath, 0755)
+	if err != nil {
+		panic(err)
+	}
+	// Walk through the source folder and copy each file
+	err = filepath.Walk(srcPath, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-		if info.IsDir() && filepath.Base(path) == sourcePath {
-			moduleDir = path
-			return filepath.SkipDir
-		}
-		return nil
-	})
-	if err != nil {
-		return err
-	}
-	if moduleDir == "" {
-		return os.ErrNotExist
-	}
-	// Create the destination directory if it doesn't exist
-	err = os.MkdirAll(dstPath, 0755)
-	if err != nil {
-		return err
-	}
-	// Walk through the module directory and copy each file
-	return filepath.Walk(moduleDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		// Skip this if it's the module directory itself
-		if path == moduleDir {
+		// Skip this if it's the source folder itself
+		if path == srcPath {
 			return nil
 		}
 		// The relative path of the file or directory
-		relPath, _ := filepath.Rel(moduleDir, path)
+		relPath, _ := filepath.Rel(srcPath, path)
+
 		// The destination file or directory path
 		dstFile := filepath.Join(dstPath, relPath)
-		// If it's a directory, create it in the destination directory
+
+		// If it's a directory, create it in the destination folder
 		if info.IsDir() {
 			return os.MkdirAll(dstFile, 0755)
 		}
-		// If it's a file, copy it to the destination directory
+		// If it's a file, copy it to the destination folder
 		srcFile, err := os.Open(path)
 		if err != nil {
 			return err
@@ -158,4 +167,18 @@ func CopyModuleFiles(sourcePath, dstPath string) error {
 		_, err = io.Copy(file, srcFile)
 		return err
 	})
+	if err != nil {
+		panic(err)
+	}
+}
+
+/**
+ * Delete Given path file.
+ */
+func DeleteFile(filePath string) {
+	err := os.Remove(filePath)
+	if err != nil {
+		fmt.Printf("Error deleting file: %v\n", err)
+		return
+	}
 }

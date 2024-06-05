@@ -7,6 +7,7 @@ import (
 
 	"github.com/rew3/rew3-internal/gen/schema"
 	"github.com/rew3/rew3-internal/gen/template"
+	"github.com/rew3/rew3-internal/gen/utils"
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 )
@@ -26,6 +27,15 @@ func NewGenerator(config Config) *APIGenerator {
 	overrides["Time"] = "String"
 	sGen := schema.NewSchemaTypeGenerator(overrides, schemaConfig)
 	return &APIGenerator{sGen, config}
+}
+
+/**
+ * Will load required templated to running project folder.
+ * Note: project folder for generation must be in `gen` in base directory.
+ */
+func (gen *APIGenerator) LoadTemplates(internalVersion string) {
+	utils.CopyModuleFiles("github.com/rew3/rew3-internal@"+internalVersion+"/gen/templates", "gen/template")
+	utils.DeleteFile("gen/template/template-gen.go")
 }
 
 /**
@@ -62,7 +72,7 @@ func (gen *APIGenerator) GenerateServiceAPI() {
 		apiCodes := ClientCQRSAPICodes{}
 		imports := make(map[string]string)
 		generate := func(rAPI API) Code {
-			if (rAPI.Input.ImportUrl != "") {
+			if rAPI.Input.ImportUrl != "" {
 				imports[rAPI.Input.ImportUrl] = rAPI.Input.ImportAlias
 			}
 			if rAPI.Output.ImportUrl != "" {
