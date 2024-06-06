@@ -11,8 +11,16 @@ import (
 
 /**
  * Create a new file for given file path.
+ * Note: if parent directory dont exists, it will be created.
  */
 func CreateFile(path string) (*os.File, error) {
+	// Ensure the parent directory exists
+	dir := filepath.Dir(path)
+	err := os.MkdirAll(dir, os.ModePerm)
+	if err != nil {
+		fmt.Printf("Error creating directories: %v\n", err)
+		return nil, err
+	}
 	outputFile, err := os.Create(path)
 	if err != nil {
 		fmt.Println("Error creating output file:", err)
@@ -66,41 +74,39 @@ func IsFileAlreadyExists(filename string) bool {
 /**
  * Delete given path directory.
  */
-func DeleteDirectory(dirPath string) {
-	// Check if the directory exists
-	_, err := os.Stat(dirPath)
-	if os.IsNotExist(err) {
-		// The directory does not exist, so do nothing
-		fmt.Println("Directory does not exist.")
-		return
-	} else if err != nil {
-		// An error occurred, so panic
-		panic(err)
-	}
-	// Walk through the directory and delete each file and subdirectory
-	err = filepath.Walk(dirPath, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-		// Skip this if it's the directory itself
-		if path == dirPath {
-			return nil
-		}
-		// If it's a directory, delete it and its contents
-		if info.IsDir() {
-			return os.RemoveAll(path)
-		}
-		// If it's a file, delete it
-		return os.Remove(path)
-	})
+func DeleteDirectory(dir string) error {
+	// Open directory
+	d, err := os.Open(dir)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	// Delete the directory itself
-	err = os.Remove(dirPath)
+	defer d.Close()
+	// List files and directories in the directory
+	files, err := d.Readdir(-1)
 	if err != nil {
-		panic(err)
+		return err
 	}
+	// Delete files and directories
+	for _, file := range files {
+		filePath := filepath.Join(dir, file.Name())
+
+		// If directory, recursively delete
+		if file.IsDir() {
+			if err := DeleteDirectory(filePath); err != nil {
+				return err
+			}
+		} else {
+			// Delete file
+			if err := os.Remove(filePath); err != nil {
+				return err
+			}
+		}
+	}
+	// Finally, delete the directory itself
+	if err := os.Remove(dir); err != nil {
+		return err
+	}
+	return nil
 }
 
 /**

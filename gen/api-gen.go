@@ -8,8 +8,6 @@ import (
 	"github.com/rew3/rew3-internal/gen/schema"
 	"github.com/rew3/rew3-internal/gen/template"
 	"github.com/rew3/rew3-internal/gen/utils"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 /**
@@ -21,11 +19,10 @@ type APIGenerator struct {
 	config          Config
 }
 
-func NewGenerator(config Config) *APIGenerator {
+func NewGenerator(config Config, typeOverrides map[string]string) *APIGenerator {
 	schemaConfig := schema.SchemaConfig{JsonTagFieldName: true, EnableRequiredField: true}
-	overrides := make(map[string]string)
-	overrides["Time"] = "String"
-	sGen := schema.NewSchemaTypeGenerator(overrides, schemaConfig)
+	typeOverrides["Time"] = "String"
+	sGen := schema.NewSchemaTypeGenerator(typeOverrides, schemaConfig)
 	return &APIGenerator{sGen, config}
 }
 
@@ -34,7 +31,8 @@ func NewGenerator(config Config) *APIGenerator {
  * Note: project folder for generation must be in `gen` in base directory.
  */
 func (gen *APIGenerator) LoadTemplates(internalVersion string) {
-	utils.CopyModuleFiles("github.com/rew3/rew3-internal@"+internalVersion+"/gen/templates", "gen/template")
+	utils.DeleteDirectory("gen/template")
+	utils.CopyModuleFiles("github.com/rew3/rew3-internal@"+internalVersion+"/gen/template", "gen/template")
 	utils.DeleteFile("gen/template/template-gen.go")
 }
 
@@ -44,13 +42,12 @@ func (gen *APIGenerator) LoadTemplates(internalVersion string) {
 func (gen *APIGenerator) GenerateClientGrpcAPI() {
 	config := gen.config
 	for _, entity := range config.Entities {
-		apiCodes := ClientGRPCAPICodes{}
-		c := cases.Title(language.English) // capitalize.
+		apiCodes := ClientGRPCAPICodes{Entity: entity.Entity}
 		for _, rAPI := range entity.ReadAPIs {
-			apiCodes.ServiceReadAPIs = append(apiCodes.ServiceReadAPIs, ServiceAPI{APIName: c.String(rAPI.Name)})
+			apiCodes.ServiceReadAPIs = append(apiCodes.ServiceReadAPIs, ServiceAPI{MethodName: utils.CapitalizeFirst(rAPI.Name), APIName: rAPI.Name})
 		}
 		for _, wAPI := range entity.WriteAPIs {
-			apiCodes.ServiceReadAPIs = append(apiCodes.ServiceReadAPIs, ServiceAPI{APIName: c.String(wAPI.Name)})
+			apiCodes.ServiceReadAPIs = append(apiCodes.ServiceReadAPIs, ServiceAPI{MethodName: utils.CapitalizeFirst(wAPI.Name), APIName: wAPI.Name})
 		}
 		apiCodes.PackageName = entity.Directory.ClientGrpcAPIPackage
 		outputPath := entity.Directory.ClientGrpcAPIDir + "/" + strings.ToLower(entity.Entity) + "_client_api.go"
@@ -69,24 +66,26 @@ func (gen *APIGenerator) GenerateClientGrpcAPI() {
 func (gen *APIGenerator) GenerateServiceAPI() {
 	config := gen.config
 	for _, entity := range config.Entities {
-		apiCodes := ClientCQRSAPICodes{}
+		apiCodes := ClientCQRSAPICodes{Entity: entity.Entity}
 		imports := make(map[string]string)
 		generate := func(rAPI API) Code {
-			if rAPI.Input.ImportUrl != "" {
-				imports[rAPI.Input.ImportUrl] = rAPI.Input.ImportAlias
+			inputTypeName := reflect.TypeOf(rAPI.Input.Data).Name()
+			outputTypeName := reflect.TypeOf(rAPI.Output.Data).Name()
+			if rAPI.Input.Import != nil {
+				imports[rAPI.Input.Import.ImportUrl] = rAPI.Input.Import.ImportAlias
+				inputTypeName = rAPI.Input.Import.ImportAlias + "." + inputTypeName
 			}
-			if rAPI.Output.ImportUrl != "" {
-				imports[rAPI.Output.ImportUrl] = rAPI.Output.ImportAlias
+			if rAPI.Output.Import != nil {
+				imports[rAPI.Output.Import.ImportUrl] = rAPI.Output.Import.ImportAlias
+				outputTypeName = rAPI.Output.Import.ImportAlias + "." + outputTypeName
 			}
-			inputTypeName := rAPI.Input.ImportAlias + "." + reflect.TypeOf(rAPI.Input.Data).Name()
-			outputTypeName := rAPI.Output.ImportAlias + "." + reflect.TypeOf(rAPI.Output.Data).Name()
 			if rAPI.Input.IsList {
 				inputTypeName = "[]" + inputTypeName
 			}
 			if rAPI.Output.IsList {
 				outputTypeName = "[]" + outputTypeName
 			}
-			code := fmt.Sprintf("[%s, %s](binder, api.ResolveEndpoint(%s))", inputTypeName, outputTypeName, rAPI.Name)
+			code := fmt.Sprintf("[%s, %s](binder, api.ResolveEndpoint(%s))", inputTypeName, outputTypeName, "\""+rAPI.Name+"\"")
 			return Code{Code: code}
 		}
 		for _, rAPI := range entity.ReadAPIs {
@@ -132,9 +131,22 @@ func (gen *APIGenerator) generateSchemaAPI(config Config) {
 		generate := func(rAPI API) Code {
 			code := rAPI.Name
 			if !rAPI.Input.IsNull {
-				code = "(data: " + reflect.TypeOf(rAPI.Input.Data).Name() + "Input)"
+				inputType := ""
+				tpe := reflect.TypeOf(rAPI.Input.Data)
+				if tpe.Kind() != reflect.Struct {
+					inputType = gen.schemaGenerator.GetGraphQLType(tpe)
+				} else {
+					inputType = tpe.Name() + "Input" // this is input type.
+				}
+				code = code + "(data: " + inputType + ")"
 			}
-			outputTypeName := reflect.TypeOf(rAPI.Output.Data).Name()
+			outputTypeName := ""
+			oTpe := reflect.TypeOf(rAPI.Output.Data)
+			if oTpe.Kind() != reflect.Struct {
+				outputTypeName = gen.schemaGenerator.GetGraphQLType(oTpe)
+			} else {
+				outputTypeName = oTpe.Name()
+			}
 			if rAPI.Output.IsList {
 				outputTypeName = "[" + outputTypeName + "]"
 			}
@@ -153,7 +165,7 @@ func (gen *APIGenerator) generateSchemaAPI(config Config) {
 		}
 		for _, wAPI := range entity.WriteAPIs {
 			code := generate(wAPI)
-			schemaAPICodes.SchemaMutations = append(schemaAPICodes.SchemaQueries, code)
+			schemaAPICodes.SchemaMutations = append(schemaAPICodes.SchemaMutations, code)
 		}
 
 		outputPath := entity.Directory.SchemaDir + "/" + config.Module + "_" + strings.ToLower(entity.Entity) + "_schema.graphql"
@@ -170,66 +182,51 @@ func (gen *APIGenerator) generateSchemaAPI(config Config) {
  * Generate Schema Type Codes.
  */
 func (gen *APIGenerator) generateSchemaTypes(config Config) {
-	typeBases := []SchemaTypeBase{}
+	types := []SchemaType{}
+	// extracting all schema types (input, output, model etc.)
 	for _, entity := range config.Entities {
-		tBase := SchemaTypeBase{
-			Directory:   entity.Directory,
-			Module:      config.Module,
-			Entity:      entity.Entity,
-			BasePackage: entity.BasePackage,
-		}
-		typeBases = append(typeBases, tBase)
+		// read input, output type of api, and append to tBase (schema typebase)
 		generateTypeCode := func(api API) {
 			gen.schemaGenerator.ClearResult()
 			gen.schemaGenerator.GenerateGraphQLSchemaInputType(api.Input.Data)
 			generatedInput := gen.schemaGenerator.GetGeneratedTypes()
-			for gtype, code := range generatedInput {
-				tBase.InputTypes = append(tBase.InputTypes, SchemaTypeContext{
-					GenerateWrapper: false,
-					RawType:         api.Input,
-					Type:            gtype,
-					Code:            code,
-				})
+			prepareSchemaType := func(isInputType bool, tCtx SchemaTypeContext) SchemaType {
+				return SchemaType{
+					Entity:      entity.Entity,
+					BasePackage: entity.BasePackage,
+					SchemaDir:   entity.Directory.SchemaDir,
+					Type:        tCtx,
+					IsInputType: true,
+				}
 			}
+			for gtype, code := range generatedInput {
+				types = append(types, prepareSchemaType(true,
+					SchemaTypeContext{GenerateWrapper: false, RawType: api.Input, Type: gtype, Code: code}))
+			}
+			gen.schemaGenerator.ClearResult()
 			gen.schemaGenerator.GenerateGraphQLSchemaType(api.Output.Data)
 			generated := gen.schemaGenerator.GetGeneratedTypes()
 			for gtype, code := range generated {
-				tBase.Types = append(tBase.Types, SchemaTypeContext{
-					GenerateWrapper: api.WrapOutput,
-					WrapperName:     api.WrapOutputName,
-					RawType:         api.Output,
-					Type:            gtype,
-					Code:            code,
-				})
+				types = append(types, prepareSchemaType(false,
+					SchemaTypeContext{GenerateWrapper: api.WrapOutput, WrapperName: api.WrapOutputName, RawType: api.Output, Type: gtype, Code: code}))
 			}
+			gen.schemaGenerator.ClearResult()
 		}
+		// generate schema type for types in all read apis of this entity
 		for _, api := range entity.ReadAPIs {
 			generateTypeCode(api)
 		}
+		// generate schema type for types in all write apis of this entity
 		for _, api := range entity.WriteAPIs {
 			generateTypeCode(api)
 		}
 	}
-	coreTypeCodes := SchemaTypeCodes{}
-	for _, tb := range typeBases {
-		entityTypeCodes, sharedTypeCodes := gen.generateSchemaTypesCodes(tb, coreTypeCodes)
-		outputPath := tb.Directory.SchemaDir + "/" + tb.Module + "_" + strings.ToLower(tb.Entity) + "_types.graphql"
-		template.GenerateFromTemplate(template.TemplateConfig{
-			TemplatePath:  "gen/template/schema-type.tmpl",
-			OutputPath:    outputPath,
-			Data:          entityTypeCodes,
-			DeleteIfExist: true,
-		})
-		if !sharedTypeCodes.IsEmpty() {
-			outputPath := config.BaseSchemaDir + "/shared/" + "shared_types.graphql"
-			template.GenerateFromTemplate(template.TemplateConfig{
-				TemplatePath:  "gen/template/schema-type.tmpl",
-				OutputPath:    outputPath,
-				Data:          entityTypeCodes,
-				DeleteIfExist: true,
-			})
-		}
-	}
+	distinct := gen.makeDistinctSchemaTypes(types)
+	coreTypes, sharedTypes, entityTypeMaps := gen.filterSchemaTypes(distinct)
+
+	coreTypeCodes := gen.prepareSchemaTypesCodes(coreTypes)
+	sharedTypeCodes := gen.prepareSchemaTypesCodes(sharedTypes)
+
 	if !coreTypeCodes.IsEmpty() {
 		outputPath := config.BaseSchemaDir + "/core/" + "core_types.graphql"
 		template.GenerateFromTemplate(template.TemplateConfig{
@@ -239,92 +236,143 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 			DeleteIfExist: true,
 		})
 	}
+	if !sharedTypeCodes.IsEmpty() {
+		outputPath := config.BaseSchemaDir + "/shared/" + "shared_types.graphql"
+		template.GenerateFromTemplate(template.TemplateConfig{
+			TemplatePath:  "gen/template/schema-type.tmpl",
+			OutputPath:    outputPath,
+			Data:          sharedTypeCodes,
+			DeleteIfExist: true,
+		})
+	}
+	for entity, v := range entityTypeMaps {
+		if len(v) != 0 {
+			schemaDir := v[0].SchemaDir
+			entityTypeCodes := gen.prepareSchemaTypesCodes(v)
+			outputPath := schemaDir + "/" + config.Module + "_" + strings.ToLower(entity) + "_types.graphql"
+			template.GenerateFromTemplate(template.TemplateConfig{
+				TemplatePath:  "gen/template/schema-type.tmpl",
+				OutputPath:    outputPath,
+				Data:          entityTypeCodes,
+				DeleteIfExist: true,
+			})
+		}
+	}
 }
 
-// return pair of (entityTypeCodes, sharedTypeCodes)
-func (gen *APIGenerator) generateSchemaTypesCodes(schemaTypeBase SchemaTypeBase, coreTypeCodes SchemaTypeCodes) (SchemaTypeCodes, SchemaTypeCodes) {
-	// Seperating core platform/internal types.
-	coreTypes := []SchemaTypeContext{}
-	coreInputTypes := []SchemaTypeContext{}
-	remainingTypes := []SchemaTypeContext{}
-	remainingInputTypes := []SchemaTypeContext{}
-	for _, i := range schemaTypeBase.Types {
-		if strings.Contains(i.Type.PkgPath(), "github.com/rew3/rew3-internal") {
-			coreTypes = append(coreTypes, i)
-		} else {
-			remainingTypes = append(remainingTypes, i)
-		}
-	}
-	for _, i := range schemaTypeBase.InputTypes {
-		if strings.Contains(i.Type.PkgPath(), "github.com/rew3/rew3-internal") {
-			coreInputTypes = append(coreInputTypes, i)
-		} else {
-			remainingInputTypes = append(remainingInputTypes, i)
-		}
-	}
-	// Removing duplicate types.
+/**
+ * Filter and make given list of schema types unique/distinct.
+ */
+func (gen *APIGenerator) makeDistinctSchemaTypes(types []SchemaType) []SchemaType {
 	seen := make(map[string]bool)
-	unique := []SchemaTypeContext{}
-	uniqueInputs := []SchemaTypeContext{}
-	for _, tc := range remainingTypes {
-		typeName := tc.Type.PkgPath() + "/" + tc.Type.Name()
+	unique := []SchemaType{}
+	for _, tc := range types {
+		typeName := tc.Type.Type.PkgPath() + "/" + tc.Type.Type.Name()
 		if !seen[typeName] {
 			seen[typeName] = true
 			unique = append(unique, tc)
 		}
 	}
-	for _, tc := range remainingInputTypes {
-		typeName := tc.Type.PkgPath() + "/" + tc.Type.Name()
-		if !seen[typeName] {
-			seen[typeName] = true
-			uniqueInputs = append(uniqueInputs, tc)
-		}
-	}
-	// Separating types.
-	sharedTypes := []SchemaTypeContext{}
-	sharedInputTypes := []SchemaTypeContext{}
-	entityTypes := []SchemaTypeContext{}
-	entityInputTypes := []SchemaTypeContext{}
-	for _, t := range unique {
-		if strings.Contains(t.Type.PkgPath(), schemaTypeBase.BasePackage) {
-			entityTypes = append(entityTypes, t)
-		} else {
-			sharedTypes = append(sharedTypes, t)
-		}
-	}
-	for _, t := range uniqueInputs {
-		if strings.Contains(t.Type.PkgPath(), schemaTypeBase.BasePackage) {
-			entityInputTypes = append(entityInputTypes, t)
-		} else {
-			sharedInputTypes = append(sharedInputTypes, t)
-		}
-	}
-	entityTypeCodes := SchemaTypeCodes{}
-	sharedTypeCodes := SchemaTypeCodes{}
-	entityTypeCodes.generate(entityTypes, entityInputTypes)
-	sharedTypeCodes.generate(sharedTypes, sharedInputTypes)
-	coreTypeCodes.generate(coreTypes, coreInputTypes) // for core.
+	return unique
+}
 
-	return entityTypeCodes, sharedTypeCodes
+/**
+ * From given list of schema types, seperate input and non input types.
+ * return - (input types, nonInput types)
+ */
+func (gen *APIGenerator) seperateInputSchemaTypes(types []SchemaType) ([]SchemaType, []SchemaType) {
+	nonInputs := []SchemaType{}
+	inputs := []SchemaType{}
+	for _, i := range types {
+		if i.IsInputType {
+			inputs = append(inputs, i)
+		} else {
+			nonInputs = append(nonInputs, i)
+		}
+	}
+	return inputs, nonInputs
+}
+
+/**
+ * Filter schema types.
+ * Seperate core, shared and entity specific schema types.
+ * Note: core schema types are - rew3-internal/platform core types, shared are types that dont belongs to any entity base packages.
+ * Return - (core schemastypes, shared schemastypes, entity/Schematype-list Map  )
+ */
+func (gen *APIGenerator) filterSchemaTypes(types []SchemaType) ([]SchemaType, []SchemaType, map[string][]SchemaType) {
+	coreTypes := []SchemaType{}
+	sharedTypes := []SchemaType{}
+	entityTypes := []SchemaType{}
+
+	allEntityBasePackages := []string{}
+	for _, i := range gen.config.Entities {
+		allEntityBasePackages = append(allEntityBasePackages, i.BasePackage)
+	}
+	for _, i := range types {
+		isEntityType := false
+		for _, bp := range allEntityBasePackages {
+			if strings.Contains(i.Type.Type.PkgPath(), bp) {
+				isEntityType = true
+			}
+		}
+		if strings.Contains(i.Type.Type.PkgPath(), "github.com/rew3/rew3-internal") {
+			coreTypes = append(coreTypes, i)
+		} else if isEntityType {
+			entityTypes = append(entityTypes, i)
+		} else {
+			sharedTypes = append(sharedTypes, i)
+		}
+	}
+	entityTypeMap := make(map[string][]SchemaType)
+	for _, i := range entityTypes {
+		list := entityTypeMap[i.Entity]
+		if list == nil {
+			entityTypeMap[i.Entity] = []SchemaType{i}
+		} else {
+			list = append(list, i)
+		}
+	}
+	return coreTypes, sharedTypes, entityTypeMap
+}
+
+/**
+ * From given list of schema types, generate schema type codes.
+ */
+func (gen *APIGenerator) prepareSchemaTypesCodes(types []SchemaType) SchemaTypeCodes {
+	inputs, nonInputs := gen.seperateInputSchemaTypes(types)
+	typeCodes := SchemaTypeCodes{}
+	inputCtx := []SchemaTypeContext{}
+	nonInputCtx := []SchemaTypeContext{}
+	for _, i := range inputs {
+		inputCtx = append(inputCtx, i.Type)
+	}
+	for _, i := range nonInputs {
+		nonInputCtx = append(nonInputCtx, i.Type)
+	}
+	typeCodes.generate(nonInputCtx, inputCtx)
+	return typeCodes
 }
 
 /**
  * Client GRPC API codes.
  */
 type ClientGRPCAPICodes struct {
+	Entity           string
 	PackageName      string
 	ServiceReadAPIs  []ServiceAPI
 	ServiceWriteAPIs []ServiceAPI
 }
 
 type ServiceAPI struct {
-	APIName string
+	MethodName string
+	APIName    string
 }
 
 /**
  * Service API codes for CQRS.
  */
 type ClientCQRSAPICodes struct {
+	Entity      string
 	PackageName string
 	Imports     []Code
 	CommandAPIs []Code
@@ -352,18 +400,25 @@ func (sc *SchemaTypeCodes) IsEmpty() bool {
 	return len(sc.Inputs) == 0 && len(sc.Models) == 0 && len(sc.Outputs) == 0
 }
 
+/**
+ * From given input and non input types, generate code for Inputs, Models and Output types.
+ */
 func (sc *SchemaTypeCodes) generate(types []SchemaTypeContext, inputTypes []SchemaTypeContext) {
 	for _, i := range inputTypes {
 		sc.Inputs = append(sc.Inputs, Code{Code: i.Code})
 	}
 	for _, i := range types {
-		sc.Inputs = append(sc.Models, Code{Code: i.Code})
 		if i.GenerateWrapper {
 			sc.generateWrapperSchemaType(i)
+		} else {
+			sc.Models = append(sc.Models, Code{Code: i.Code})
 		}
 	}
 }
 
+/**
+ * Generate the wrapped schema type (i.e. Execution Result type - which is also called output e.g. AddContactOutput)
+ */
 func (sc *SchemaTypeCodes) generateWrapperSchemaType(typeContext SchemaTypeContext) {
 	tName := typeContext.WrapperName
 	dtName := typeContext.Type.Name()
@@ -374,21 +429,21 @@ func (sc *SchemaTypeCodes) generateWrapperSchemaType(typeContext SchemaTypeConte
 		dtName = dtName + "!"
 	}
 	str := fmt.Sprintf(`type %s {
-		action: String!
-		message: String!
-		status: PlatformStatusEnum!
-		data: %s
-	}`, tName, dtName)
+	action: String!
+	message: String!
+	status: PlatformStatusEnum!
+	data: %s
+}`, tName, dtName)
 	sc.Outputs = append(sc.Outputs, Code{Code: str})
 }
 
-type SchemaTypeBase struct {
-	Directory   Directory
+type SchemaType struct {
 	Module      string
 	Entity      string
 	BasePackage string
-	Types       []SchemaTypeContext
-	InputTypes  []SchemaTypeContext
+	SchemaDir   string
+	Type        SchemaTypeContext
+	IsInputType bool
 }
 
 type SchemaTypeContext struct {

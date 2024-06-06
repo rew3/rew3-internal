@@ -60,7 +60,10 @@ func (gen *SchemaTypeGenerator) generateType(typ reflect.Type, isInputType bool)
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
 	}
-
+	// for non struct type, e.g. primitive type, return.
+	if typ.Kind() != reflect.Struct {
+		return gen.GetGraphQLType(typ)
+	}
 	schemaType := "type"
 	schemaName := typ.Name()
 	if isInputType {
@@ -117,12 +120,12 @@ func (gen *SchemaTypeGenerator) generateType(typ reflect.Type, isInputType bool)
 				} else if fieldType.Kind() == reflect.String && fieldType.Name() != "" { // List value type is scalar type.
 					fieldTypeStr = fieldTypeName + requiredString
 				} else { // List value type is scalar type.
-					fieldTypeStr = "[" + gen.getGraphQLType(fieldType) + requiredString + "]"
+					fieldTypeStr = "[" + gen.GetGraphQLType(fieldType) + requiredString + "]"
 				}
 			} else if fieldType.Kind() == reflect.Struct {
 				fieldTypeStr = gen.generateType(fieldType, isInputType) + requiredString
 			} else {
-				fieldTypeStr = gen.getGraphQLType(fieldType) + requiredString
+				fieldTypeStr = gen.GetGraphQLType(fieldType) + requiredString
 			}
 		}
 		sb.WriteString(fmt.Sprintf("\t%s: %s\n", fieldName, fieldTypeStr))
@@ -154,7 +157,7 @@ func (gen *SchemaTypeGenerator) readFieldJsonTag(field reflect.StructField) (str
 	return fieldName, isRequired
 }
 
-func (gen *SchemaTypeGenerator) getGraphQLType(typ reflect.Type) string {
+func (gen *SchemaTypeGenerator) GetGraphQLType(typ reflect.Type) string {
 	switch typ.Kind() {
 	case reflect.String:
 		return "String"

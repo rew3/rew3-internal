@@ -1,50 +1,52 @@
 package {{.PackageName}}
 
 import (
-    "github.com/rew3/rew3-internal/service/api"
-    "github.com/rew3/rew3-internal/service/grpc/client"
-    "github.com/rew3/rew3-internal/service/grpc/payload"
+	"context"
+
+	"github.com/rew3/rew3-internal/service/grpc/client"
+	"github.com/rew3/rew3-internal/service/grpc/payload"
+	"github.com/rew3/rew3-internal/service/shared/request"
 )
 
 /**
  * THIS IS GENERATED CODES. 
- * DO NOT MODIFY. ANY CHANGES WILL BE REPLACES. 
+ * DO NOT MODIFY. ANY CHANGES WILL BE REPLACED. 
  */ 
-
 {{ $entity := .Entity }}
+// GRPC Client API for {{$entity}}
 type {{$entity}}ClientAPI struct {
     client *client.Client
 }
-
+{{ "" }}
 {{- range .ServiceReadAPIs}}
 /**
  * Client Read API: {{.APIName}}
  */
-func (api *{{$entity}}ClientAPI) {{.APIName}}(ctx context.Context, rCtx request.RequestContext, input map[string]interface{}) payload.ResponsePayload {
+func (api *{{$entity}}ClientAPI) {{.MethodName}}(ctx context.Context, rCtx request.RequestContext, input map[string]interface{}) payload.ResponsePayload {
     jsonData, err := payload.ToJson[map[string]interface{}](input)
     if err != nil {
         return payload.InvalidRequestResponsePayload("{{.APIName}}", err.Error())
     }
     requestPayload := payload.RequestPayload{API: "{{.APIName}}", Context: rCtx, Data: jsonData}
-    response := client.ExecuteRequest(ctx, requestPayload)
+    response := api.client.ExecuteRequest(ctx, requestPayload)
     return response
 }
-
+{{ "" }}
 {{- end }}
 
 {{- range .ServiceWriteAPIs}}
 /**
  * Client Write API: {{.APIName}}
  */
-func (api *{{$entity}}ClientAPI) {{.APIName}}(ctx context.Context, rCtx request.RequestContext, input map[string]interface{}) payload.ResponsePayload {
+func (api *{{$entity}}ClientAPI) {{.MethodName}}(ctx context.Context, rCtx request.RequestContext, input map[string]interface{}) payload.ResponsePayload {
     jsonData, err := payload.ToJson[map[string]interface{}](input)
     if err != nil {
         return payload.InvalidRequestResponsePayload("{{.APIName}}", err.Error())
     }
     requestPayload := payload.RequestPayload{API: "{{.APIName}}", Context: rCtx, Data: jsonData}
-    response := client.ExecuteRequest(ctx, requestPayload)
+    response := api.client.ExecuteRequest(ctx, requestPayload)
     return response
 }
-
+{{ "" }}
 {{- end }}
 
