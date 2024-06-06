@@ -39,8 +39,8 @@ func ToResponsePayload(api api.Endpoint, status constants.StatusType, statusMess
 /**
  * Invalid Request Payload builder.
  */
-func InvalidRequestResponsePayload(api api.Endpoint, err string) *ResponsePayload {
-	return &ResponsePayload{
+func InvalidRequestResponsePayload(api api.Endpoint, err string) ResponsePayload {
+	return ResponsePayload{
 		API:           api,
 		Status:        constants.BAD_REQUEST,
 		StatusMessage: err,

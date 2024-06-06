@@ -196,19 +196,30 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 					BasePackage: entity.BasePackage,
 					SchemaDir:   entity.Directory.SchemaDir,
 					Type:        tCtx,
-					IsInputType: true,
+					IsInputType: isInputType,
 				}
 			}
-			for gtype, code := range generatedInput {
-				types = append(types, prepareSchemaType(true,
-					SchemaTypeContext{GenerateWrapper: false, RawType: api.Input, Type: gtype, Code: code}))
+			for _, code := range generatedInput {
+				fmt.Println("Input: ", code)
+				if reflect.TypeOf(api.Input.Data) == code.Type {
+					types = append(types, prepareSchemaType(true, SchemaTypeContext{RawType: &api.Input, Type: code.Type, Code: code.Code}))
+				} else {
+					types = append(types, prepareSchemaType(true, SchemaTypeContext{Type: code.Type, Code: code.Code}))
+				}
 			}
 			gen.schemaGenerator.ClearResult()
 			gen.schemaGenerator.GenerateGraphQLSchemaType(api.Output.Data)
 			generated := gen.schemaGenerator.GetGeneratedTypes()
-			for gtype, code := range generated {
-				types = append(types, prepareSchemaType(false,
-					SchemaTypeContext{GenerateWrapper: api.WrapOutput, WrapperName: api.WrapOutputName, RawType: api.Output, Type: gtype, Code: code}))
+			for _, code := range generated {
+				fmt.Println("Regular: ", code.Type.Name())
+				if reflect.TypeOf(api.Output.Data) == code.Type {
+					types = append(types, prepareSchemaType(false,
+						SchemaTypeContext{GenerateWrapper: api.WrapOutput,
+							WrapperName: api.WrapOutputName, RawType: &api.Output, Type: code.Type, Code: code.Code}))
+				} else {
+					types = append(types, prepareSchemaType(false,
+						SchemaTypeContext{GenerateWrapper: api.WrapOutput, WrapperName: api.WrapOutputName, Type: code.Type, Code: code.Code}))
+				}
 			}
 			gen.schemaGenerator.ClearResult()
 		}
@@ -246,6 +257,7 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 		})
 	}
 	for entity, v := range entityTypeMaps {
+		fmt.Println("Entity Types: ", len(v), " : ", entity)
 		if len(v) != 0 {
 			schemaDir := v[0].SchemaDir
 			entityTypeCodes := gen.prepareSchemaTypesCodes(v)
@@ -330,6 +342,7 @@ func (gen *APIGenerator) filterSchemaTypes(types []SchemaType) ([]SchemaType, []
 			entityTypeMap[i.Entity] = []SchemaType{i}
 		} else {
 			list = append(list, i)
+			entityTypeMap[i.Entity] = list
 		}
 	}
 	return coreTypes, sharedTypes, entityTypeMap
@@ -422,10 +435,10 @@ func (sc *SchemaTypeCodes) generate(types []SchemaTypeContext, inputTypes []Sche
 func (sc *SchemaTypeCodes) generateWrapperSchemaType(typeContext SchemaTypeContext) {
 	tName := typeContext.WrapperName
 	dtName := typeContext.Type.Name()
-	if typeContext.RawType.IsList {
+	if typeContext.RawType != nil && typeContext.RawType.IsList {
 		dtName = "[" + dtName + "]"
 	}
-	if typeContext.RawType.IsRequired {
+	if typeContext.RawType != nil && typeContext.RawType.IsRequired {
 		dtName = dtName + "!"
 	}
 	str := fmt.Sprintf(`type %s {
@@ -449,7 +462,7 @@ type SchemaType struct {
 type SchemaTypeContext struct {
 	GenerateWrapper bool
 	WrapperName     string
-	RawType         DataType
+	RawType         *DataType
 	Type            reflect.Type
 	Code            string
 }

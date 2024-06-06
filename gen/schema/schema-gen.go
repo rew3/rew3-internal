@@ -3,6 +3,7 @@ package schema
 import (
 	"fmt"
 	"reflect"
+	"sort"
 	"strings"
 	"time"
 
@@ -10,11 +11,18 @@ import (
 )
 
 type SchemaTypeGenerator struct {
+	index          int
 	generated      []string
 	overrides      map[string]string
 	processedTypes map[reflect.Type]bool
-	typeAndCodes   map[reflect.Type]string
+	typeAndCodes   []GeneratedTypeCode
 	config         SchemaConfig
+}
+
+type GeneratedTypeCode struct {
+	Index int
+	Code  string
+	Type  reflect.Type
 }
 
 type SchemaConfig struct {
@@ -25,22 +33,32 @@ type SchemaConfig struct {
 func NewSchemaTypeGenerator(overrides map[string]string, config SchemaConfig) *SchemaTypeGenerator {
 	v1 := []string{}
 	v2 := make(map[reflect.Type]bool)
-	return &SchemaTypeGenerator{v1, overrides, v2, make(map[reflect.Type]string), config}
+	return &SchemaTypeGenerator{0, v1, overrides, v2, []GeneratedTypeCode{}, config}
 }
 
-func (gen *SchemaTypeGenerator) GetGeneratedTypes() map[reflect.Type]string {
+func (gen *SchemaTypeGenerator) GetGeneratedTypes() []GeneratedTypeCode {
+	sort.Slice(gen.typeAndCodes, func(i, j int) bool {
+		return gen.typeAndCodes[i].Index < gen.typeAndCodes[j].Index
+	})
 	return gen.typeAndCodes
 }
 
 func (gen *SchemaTypeGenerator) GetResult() []string {
-	gen.reverseList(gen.generated)
-	return gen.generated
+	sort.Slice(gen.typeAndCodes, func(i, j int) bool {
+		return gen.typeAndCodes[i].Index < gen.typeAndCodes[j].Index
+	})
+	list := []string{}
+	for _, i := range gen.typeAndCodes {
+		list = append(list, i.Code)
+	}
+	return list
 }
 
 func (gen *SchemaTypeGenerator) ClearResult() {
+	gen.index = 0
 	gen.generated = []string{}
 	gen.processedTypes = make(map[reflect.Type]bool)
-	gen.typeAndCodes = make(map[reflect.Type]string)
+	gen.typeAndCodes = []GeneratedTypeCode{}
 }
 
 // GenerateGraphQLSchema generates GraphQL schema types from a Go type.
@@ -79,10 +97,27 @@ func (gen *SchemaTypeGenerator) generateType(typ reflect.Type, isInputType bool)
 	// mark this type as generated type.
 	gen.processedTypes[typ] = true
 
-	var sb strings.Builder
+	var sbb strings.Builder
+	sb := &sbb
 	sb.WriteString(fmt.Sprintf("%s %s {\n", schemaType, schemaName))
+	gen.readFields(sb, typ, isInputType)
+	sb.WriteString("}\n")
+	gen.generated = append(gen.generated, sb.String())
+	gen.typeAndCodes = append(gen.typeAndCodes, GeneratedTypeCode{gen.index, sb.String(), typ})
+	gen.index = gen.index + 1
+	return schemaName
+}
+
+func (gen *SchemaTypeGenerator) readFields(sb *strings.Builder, typ reflect.Type, isInputType bool) {
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
+		if gen.isInlineField(field) {
+			gen.readFields(sb, field.Type, isInputType)
+			continue
+		}
+		if !gen.hasJsonTag(field) || gen.isIgnoredField(field) { // ignore fields that dont have json tag.
+			continue
+		}
 		fieldName := field.Name
 		fieldType := field.Type
 
@@ -97,8 +132,6 @@ func (gen *SchemaTypeGenerator) generateType(typ reflect.Type, isInputType bool)
 		}
 
 		var fieldTypeStr string
-
-		fmt.Println("FieldName: ", fieldName, ", Type: ", fieldType.Name())
 
 		fieldTypeName := fieldType.String()
 		if fieldType.Kind() == reflect.Struct {
@@ -130,10 +163,24 @@ func (gen *SchemaTypeGenerator) generateType(typ reflect.Type, isInputType bool)
 		}
 		sb.WriteString(fmt.Sprintf("\t%s: %s\n", fieldName, fieldTypeStr))
 	}
-	sb.WriteString("}\n")
-	gen.generated = append(gen.generated, sb.String())
-	gen.typeAndCodes[typ] = sb.String()
-	return typ.Name()
+}
+
+// Check if given field has `json` tag name or not.
+func (gen *SchemaTypeGenerator) hasJsonTag(field reflect.StructField) bool {
+	tags := field.Tag.Get("json")
+	return tags != ""
+}
+
+// Check if given field has tag has ignored json field.
+func (gen *SchemaTypeGenerator) isIgnoredField(field reflect.StructField) bool {
+	tags := field.Tag.Get("json")
+	return tags == "-"
+}
+
+// Check if given field has tag has inline json field.
+func (gen *SchemaTypeGenerator) isInlineField(field reflect.StructField) bool {
+	tags := field.Tag.Get("json")
+	return strings.Contains(tags, "inline")
 }
 
 func (gen *SchemaTypeGenerator) readFieldJsonTag(field reflect.StructField) (string, bool) {
