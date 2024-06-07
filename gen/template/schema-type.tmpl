@@ -1,20 +1,27 @@
 # THIS IS GENERATED CODES. 
 # DO NOT MODIFY. ANY CHANGES WILL BE REPLACED. 
 
+{{ "" }}
+{{- if .HasModels -}}
 # Model Types
 # -----------------------------------------------------------------
+{{- end }}
 {{- range .Models}}
 {{.Code}}
 {{- end }}
-
+{{ "" }}
+{{- if .HasInputs -}}
 # Input Types
 # -----------------------------------------------------------------
+{{- end }}
 {{- range .Inputs}}
 {{.Code}}
 {{- end }}
-
+{{ "" }}
+{{- if .HasOutputs -}}
 # Output Types
 # -----------------------------------------------------------------
+{{- end }}
 {{- range .Outputs}}
 {{.Code}}
 {{- end }}

@@ -11,7 +11,6 @@ import (
 )
 
 type SchemaTypeGenerator struct {
-	index          int
 	generated      []string
 	overrides      map[string]string
 	processedTypes map[reflect.Type]bool
@@ -33,7 +32,7 @@ type SchemaConfig struct {
 func NewSchemaTypeGenerator(overrides map[string]string, config SchemaConfig) *SchemaTypeGenerator {
 	v1 := []string{}
 	v2 := make(map[reflect.Type]bool)
-	return &SchemaTypeGenerator{0, v1, overrides, v2, []GeneratedTypeCode{}, config}
+	return &SchemaTypeGenerator{v1, overrides, v2, []GeneratedTypeCode{}, config}
 }
 
 func (gen *SchemaTypeGenerator) GetGeneratedTypes() []GeneratedTypeCode {
@@ -51,11 +50,11 @@ func (gen *SchemaTypeGenerator) GetResult() []string {
 	for _, i := range gen.typeAndCodes {
 		list = append(list, i.Code)
 	}
+	gen.reverseList(list)
 	return list
 }
 
 func (gen *SchemaTypeGenerator) ClearResult() {
-	gen.index = 0
 	gen.generated = []string{}
 	gen.processedTypes = make(map[reflect.Type]bool)
 	gen.typeAndCodes = []GeneratedTypeCode{}
@@ -64,16 +63,16 @@ func (gen *SchemaTypeGenerator) ClearResult() {
 // GenerateGraphQLSchema generates GraphQL schema types from a Go type.
 func (gen *SchemaTypeGenerator) GenerateGraphQLSchemaType(model interface{}) string {
 	typ := reflect.TypeOf(model)
-	return gen.generateType(typ, false)
+	return gen.generateType(0, typ, false)
 }
 
 // GenerateGraphQLSchema generates GraphQL schema input types from a Go type.
 func (gen *SchemaTypeGenerator) GenerateGraphQLSchemaInputType(model interface{}) string {
 	typ := reflect.TypeOf(model)
-	return gen.generateType(typ, true)
+	return gen.generateType(0, typ, true)
 }
 
-func (gen *SchemaTypeGenerator) generateType(typ reflect.Type, isInputType bool) string {
+func (gen *SchemaTypeGenerator) generateType(index int, typ reflect.Type, isInputType bool) string {
 	// if type is pointer, convert it to non pointer type.
 	if typ.Kind() == reflect.Ptr {
 		typ = typ.Elem()
@@ -100,19 +99,18 @@ func (gen *SchemaTypeGenerator) generateType(typ reflect.Type, isInputType bool)
 	var sbb strings.Builder
 	sb := &sbb
 	sb.WriteString(fmt.Sprintf("%s %s {\n", schemaType, schemaName))
-	gen.readFields(sb, typ, isInputType)
+	gen.readFields(index, sb, typ, isInputType)
 	sb.WriteString("}\n")
 	gen.generated = append(gen.generated, sb.String())
-	gen.typeAndCodes = append(gen.typeAndCodes, GeneratedTypeCode{gen.index, sb.String(), typ})
-	gen.index = gen.index + 1
+	gen.typeAndCodes = append(gen.typeAndCodes, GeneratedTypeCode{index, sb.String(), typ})
 	return schemaName
 }
 
-func (gen *SchemaTypeGenerator) readFields(sb *strings.Builder, typ reflect.Type, isInputType bool) {
+func (gen *SchemaTypeGenerator) readFields(index int, sb *strings.Builder, typ reflect.Type, isInputType bool) {
 	for i := 0; i < typ.NumField(); i++ {
 		field := typ.Field(i)
 		if gen.isInlineField(field) {
-			gen.readFields(sb, field.Type, isInputType)
+			gen.readFields(index, sb, field.Type, isInputType)
 			continue
 		}
 		if !gen.hasJsonTag(field) || gen.isIgnoredField(field) { // ignore fields that dont have json tag.
@@ -147,16 +145,16 @@ func (gen *SchemaTypeGenerator) readFields(sb *strings.Builder, typ reflect.Type
 			}
 			if fieldType.Kind() == reflect.Slice {
 				if fieldType.Elem().Kind() == reflect.Struct { // List value type is Non pointer type.
-					fieldTypeStr = "[" + gen.generateType(fieldType.Elem(), isInputType) + requiredString + "]"
+					fieldTypeStr = "[" + gen.generateType(index+1, fieldType.Elem(), isInputType) + requiredString + "]"
 				} else if fieldType.Elem().Kind() == reflect.Ptr && fieldType.Elem().Elem().Kind() == reflect.Struct { // List value type is pointer type.
-					fieldTypeStr = "[" + gen.generateType(fieldType.Elem().Elem(), isInputType) + requiredString + "]"
+					fieldTypeStr = "[" + gen.generateType(index+1, fieldType.Elem().Elem(), isInputType) + requiredString + "]"
 				} else if fieldType.Kind() == reflect.String && fieldType.Name() != "" { // List value type is scalar type.
 					fieldTypeStr = fieldTypeName + requiredString
 				} else { // List value type is scalar type.
 					fieldTypeStr = "[" + gen.GetGraphQLType(fieldType) + requiredString + "]"
 				}
 			} else if fieldType.Kind() == reflect.Struct {
-				fieldTypeStr = gen.generateType(fieldType, isInputType) + requiredString
+				fieldTypeStr = gen.generateType(index+1, fieldType, isInputType) + requiredString
 			} else {
 				fieldTypeStr = gen.GetGraphQLType(fieldType) + requiredString
 			}

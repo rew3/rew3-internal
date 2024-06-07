@@ -1,14 +1,20 @@
 # THIS IS GENERATED CODES. 
 # DO NOT MODIFY. ANY CHANGES WILL BE REPLACED. 
 
+{{ "" }}
+{{- if .HasQueries -}}
 extend type Query {
     {{- range .SchemaQueries}}
 	{{.Code}}
     {{- end }}
 }
+{{- end }}
 
+{{ "" }}
+{{- if .HasMutations -}}
 extend type Mutation {
     {{- range .SchemaMutations}}
 	{{.Code}}
     {{- end }}
 }
+{{- end }}

@@ -200,7 +200,6 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 				}
 			}
 			for _, code := range generatedInput {
-				fmt.Println("Input: ", code)
 				if reflect.TypeOf(api.Input.Data) == code.Type {
 					types = append(types, prepareSchemaType(true, SchemaTypeContext{RawType: &api.Input, Type: code.Type, Code: code.Code}))
 				} else {
@@ -211,7 +210,6 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 			gen.schemaGenerator.GenerateGraphQLSchemaType(api.Output.Data)
 			generated := gen.schemaGenerator.GetGeneratedTypes()
 			for _, code := range generated {
-				fmt.Println("Regular: ", code.Type.Name())
 				if reflect.TypeOf(api.Output.Data) == code.Type {
 					types = append(types, prepareSchemaType(false,
 						SchemaTypeContext{GenerateWrapper: api.WrapOutput,
@@ -257,7 +255,6 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 		})
 	}
 	for entity, v := range entityTypeMaps {
-		fmt.Println("Entity Types: ", len(v), " : ", entity)
 		if len(v) != 0 {
 			schemaDir := v[0].SchemaDir
 			entityTypeCodes := gen.prepareSchemaTypesCodes(v)
@@ -280,6 +277,9 @@ func (gen *APIGenerator) makeDistinctSchemaTypes(types []SchemaType) []SchemaTyp
 	unique := []SchemaType{}
 	for _, tc := range types {
 		typeName := tc.Type.Type.PkgPath() + "/" + tc.Type.Type.Name()
+		if tc.IsInputType {
+			typeName = typeName + "Input"
+		}
 		if !seen[typeName] {
 			seen[typeName] = true
 			unique = append(unique, tc)
@@ -400,13 +400,33 @@ type SchemaAPICodes struct {
 	SchemaMutations []Code
 }
 
+func (c SchemaAPICodes) HasQueries() bool {
+	return len(c.SchemaQueries) > 0
+}
+
+func (c SchemaAPICodes) HasMutations() bool {
+	return len(c.SchemaMutations) > 0
+}
+
 /**
  * Schema type codes for all type (input, models, output etc)
  */
 type SchemaTypeCodes struct {
-	Inputs  []Code
 	Models  []Code
+	Inputs  []Code
 	Outputs []Code
+}
+
+func (c SchemaTypeCodes) HasModels() bool {
+	return len(c.Models) > 0
+}
+
+func (c SchemaTypeCodes) HasInputs() bool {
+	return len(c.Inputs) > 0
+}
+
+func (c SchemaTypeCodes) HasOutputs() bool {
+	return len(c.Outputs) > 0
 }
 
 func (sc *SchemaTypeCodes) IsEmpty() bool {
