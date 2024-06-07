@@ -488,7 +488,7 @@ func (sc *SchemaTypeCodes) generateEnumSchemaType(enums []EnumType) {
 		for _, e := range i.Items {
 			str = str + "\n\t" + e
 		}
-		str = str + "}"
+		str = str + "\n}\n"
 		sc.Enums = append(sc.Enums, Code{Code: str})
 	}
 }
