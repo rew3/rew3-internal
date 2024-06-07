@@ -1,15 +1,18 @@
 package gen
 
+import "reflect"
+
 type Config struct {
 	Module        string
 	BaseSchemaDir string
 	Entities      []EntityConfig
+	Enums         EnumTypeMapping
 }
 
 type EntityConfig struct {
 	Directory   Directory
 	Entity      string // Note entity must be unique (no duplicate within same application, otherwise undesired things can happen)
-	BasePackage string // base package for this entity/model in the project. in / notation for directory. this is to make sure, all the sub entities are within this package or note. 
+	BasePackage string // base package for this entity/model in the project. in / notation for directory. this is to make sure, all the sub entities are within this package or note.
 	ReadAPIs    []API
 	WriteAPIs   []API
 }
@@ -41,4 +44,56 @@ type DataType struct {
 type Import struct {
 	ImportUrl   string
 	ImportAlias string
+}
+
+/**
+ * Enum type mapping.
+ */
+type EnumTypeMapping struct {
+	CoreEnums   []EnumType
+	SharedEnums []EnumType
+	EntityEnums []EntityEnums
+}
+
+// Check if given type name is enum or not (defined in enum mapping)
+func (em *EnumTypeMapping) IsEnum(enum reflect.Type) bool {
+	isEnum := false
+	for _, i := range em.CoreEnums {
+		if i.Type == enum {
+			isEnum = true
+		}
+	}
+	for _, i := range em.SharedEnums {
+		if i.Type == enum {
+			isEnum = true
+		}
+	}
+	for _, i := range em.EntityEnums {
+		for _, ii := range i.Enums {
+			if ii.Type == enum {
+				isEnum = true
+			}
+		}
+	}
+	return isEnum
+}
+
+// Check the enums for given entity type / empty is not exists.
+func (e *EnumTypeMapping) ForEntity(entity string) []EnumType {
+	list := []EnumType{}
+	for _, i := range e.EntityEnums {
+		if i.Entity == entity {
+			list = i.Enums
+		}
+	}
+	return list
+}
+
+type EnumType struct {
+	Type  reflect.Type
+	Items []string
+}
+type EntityEnums struct {
+	Entity string
+	Enums  []EnumType
 }

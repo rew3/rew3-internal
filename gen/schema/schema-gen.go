@@ -10,12 +10,16 @@ import (
 	fUtil "github.com/rew3/rew3-internal/gen/utils"
 )
 
+/**
+ * A Utility to generate graphql schema type code.
+ */
 type SchemaTypeGenerator struct {
 	generated      []string
 	overrides      map[string]string
 	processedTypes map[reflect.Type]bool
 	typeAndCodes   []GeneratedTypeCode
 	config         SchemaConfig
+	enumChecker    func(reflect.Type) bool
 }
 
 type GeneratedTypeCode struct {
@@ -29,10 +33,10 @@ type SchemaConfig struct {
 	EnableRequiredField bool // if true, will check for requried and option field (omitempty tag)
 }
 
-func NewSchemaTypeGenerator(overrides map[string]string, config SchemaConfig) *SchemaTypeGenerator {
+func NewSchemaTypeGenerator(overrides map[string]string, config SchemaConfig, enumChecker func(reflect.Type) bool) *SchemaTypeGenerator {
 	v1 := []string{}
 	v2 := make(map[reflect.Type]bool)
-	return &SchemaTypeGenerator{v1, overrides, v2, []GeneratedTypeCode{}, config}
+	return &SchemaTypeGenerator{v1, overrides, v2, []GeneratedTypeCode{}, config, enumChecker}
 }
 
 func (gen *SchemaTypeGenerator) GetGeneratedTypes() []GeneratedTypeCode {
@@ -42,6 +46,7 @@ func (gen *SchemaTypeGenerator) GetGeneratedTypes() []GeneratedTypeCode {
 	return gen.typeAndCodes
 }
 
+// Deprecated-------------------------------------
 func (gen *SchemaTypeGenerator) GetResult() []string {
 	sort.Slice(gen.typeAndCodes, func(i, j int) bool {
 		return gen.typeAndCodes[i].Index < gen.typeAndCodes[j].Index
@@ -79,6 +84,9 @@ func (gen *SchemaTypeGenerator) generateType(index int, typ reflect.Type, isInpu
 	}
 	// for non struct type, e.g. primitive type, return.
 	if typ.Kind() != reflect.Struct {
+		if gen.enumChecker(typ) {
+			return typ.Name() + "Enum"
+		}
 		return gen.GetGraphQLType(typ)
 	}
 	schemaType := "type"
@@ -235,6 +243,7 @@ func NewSchemaTypesContext() *SchemaTypesContext {
 	return &SchemaTypesContext{Types: []SchemaType{}}
 }
 
+// Deprecated-------------------------------------
 type SchemaType struct {
 	Type        interface{}
 	IsInputType bool
@@ -253,6 +262,7 @@ func (m *SchemaTypesContext) GenInputType(model interface{}, fileName string) {
  * Main method.
  * Generate Schems types.
  */
+// Deprecated-------------------------------------
 func GenerateSchemaTypes(context *SchemaTypesContext, generator *SchemaTypeGenerator) {
 	for _, tpe := range context.Types {
 		if !tpe.IsInputType {
@@ -271,6 +281,7 @@ func GenerateSchemaTypes(context *SchemaTypesContext, generator *SchemaTypeGener
 }
 
 // Example usage:
+// Deprecated-------------------------------------
 type Address struct {
 	Street  string
 	City    string
@@ -293,6 +304,7 @@ const (
 )
 
 // Example code generation.
+// Deprecated-------------------------------------
 func RunExample() {
 	// You can provide override to replace types present in model.
 	// e.g. in below, Time type will be replaced by String.
@@ -300,7 +312,7 @@ func RunExample() {
 		"Time": "String",
 	}
 	config := SchemaConfig{true, true}
-	generator := NewSchemaTypeGenerator(overrides, config)
+	generator := NewSchemaTypeGenerator(overrides, config, func(t reflect.Type) bool { return false })
 	typeContext := NewSchemaTypesContext()
 
 	typeContext.GenInputType(User{}, "user_input_type.graphql")

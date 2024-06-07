@@ -22,7 +22,7 @@ type APIGenerator struct {
 func NewGenerator(config Config, typeOverrides map[string]string) *APIGenerator {
 	schemaConfig := schema.SchemaConfig{JsonTagFieldName: true, EnableRequiredField: true}
 	typeOverrides["Time"] = "String"
-	sGen := schema.NewSchemaTypeGenerator(typeOverrides, schemaConfig)
+	sGen := schema.NewSchemaTypeGenerator(typeOverrides, schemaConfig, config.Enums.IsEnum)
 	return &APIGenerator{sGen, config}
 }
 
@@ -30,9 +30,9 @@ func NewGenerator(config Config, typeOverrides map[string]string) *APIGenerator 
  * Will load required templated to running project folder.
  * Note: project folder for generation must be in `gen` in base directory.
  */
-func (gen *APIGenerator) LoadTemplates(internalVersion string) {
-	utils.DeleteDirectory("gen/template")
-	utils.CopyModuleFiles("github.com/rew3/rew3-internal@"+internalVersion+"/gen/template", "gen/template")
+func (gen *APIGenerator) LoadTemplates(internalVersion, genDir string) {
+	utils.DeleteDirectory(genDir)
+	utils.CopyModuleFiles("github.com/rew3/rew3-internal@"+internalVersion+"/gen/template", genDir)
 	utils.DeleteFile("gen/template/template-gen.go")
 }
 
@@ -234,7 +234,9 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 	coreTypes, sharedTypes, entityTypeMaps := gen.filterSchemaTypes(distinct)
 
 	coreTypeCodes := gen.prepareSchemaTypesCodes(coreTypes)
+	coreTypeCodes.generateEnumSchemaType(gen.config.Enums.CoreEnums)
 	sharedTypeCodes := gen.prepareSchemaTypesCodes(sharedTypes)
+	sharedTypeCodes.generateEnumSchemaType(gen.config.Enums.SharedEnums)
 
 	if !coreTypeCodes.IsEmpty() {
 		outputPath := config.BaseSchemaDir + "/core/" + "core_types.graphql"
@@ -258,6 +260,7 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 		if len(v) != 0 {
 			schemaDir := v[0].SchemaDir
 			entityTypeCodes := gen.prepareSchemaTypesCodes(v)
+			entityTypeCodes.generateEnumSchemaType(gen.config.Enums.ForEntity(entity))
 			outputPath := schemaDir + "/" + config.Module + "_" + strings.ToLower(entity) + "_types.graphql"
 			template.GenerateFromTemplate(template.TemplateConfig{
 				TemplatePath:  "gen/template/schema-type.tmpl",
@@ -415,6 +418,7 @@ type SchemaTypeCodes struct {
 	Models  []Code
 	Inputs  []Code
 	Outputs []Code
+	Enums   []Code
 }
 
 func (c SchemaTypeCodes) HasModels() bool {
@@ -429,8 +433,12 @@ func (c SchemaTypeCodes) HasOutputs() bool {
 	return len(c.Outputs) > 0
 }
 
+func (c SchemaTypeCodes) HasEnums() bool {
+	return len(c.Enums) > 0
+}
+
 func (sc *SchemaTypeCodes) IsEmpty() bool {
-	return len(sc.Inputs) == 0 && len(sc.Models) == 0 && len(sc.Outputs) == 0
+	return len(sc.Inputs) == 0 && len(sc.Models) == 0 && len(sc.Outputs) == 0 && len(sc.Enums) == 0
 }
 
 /**
@@ -468,6 +476,21 @@ func (sc *SchemaTypeCodes) generateWrapperSchemaType(typeContext SchemaTypeConte
 	data: %s
 }`, tName, dtName)
 	sc.Outputs = append(sc.Outputs, Code{Code: str})
+}
+
+/**
+ * Generate enum schema type.
+ */
+func (sc *SchemaTypeCodes) generateEnumSchemaType(enums []EnumType) {
+	for _, i := range enums {
+		tName := i.Type.Name() + "Enum"
+		str := fmt.Sprintf(`enum %s {`, tName)
+		for _, e := range i.Items {
+			str = str + "\n\t" + e
+		}
+		str = str + "}"
+		sc.Enums = append(sc.Enums, Code{Code: str})
+	}
 }
 
 type SchemaType struct {
