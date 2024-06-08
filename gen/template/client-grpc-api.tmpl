@@ -15,20 +15,20 @@ import (
 {{ $entity := .Entity }}
 // GRPC Client API for {{$entity}}
 type {{$entity}}ClientAPI struct {
-    client *client.Client
+    Client *client.Client
 }
 {{ "" }}
 {{- range .ServiceReadAPIs}}
 /**
  * Client Read API: {{.APIName}}
  */
-func (api *{{$entity}}ClientAPI) {{.MethodName}}(ctx context.Context, rCtx request.RequestContext, input map[string]interface{}) payload.ResponsePayload {
-    jsonData, err := payload.ToJson[map[string]interface{}](input)
+func (api *{{$entity}}ClientAPI) {{.MethodName}}(ctx context.Context, rCtx request.RequestContext, input interface{}) payload.ResponsePayload {
+    jsonData, err := payload.ToJson[interface{}](input)
     if err != nil {
         return payload.InvalidRequestResponsePayload("{{.APIName}}", err.Error())
     }
     requestPayload := payload.RequestPayload{API: "{{.APIName}}", Context: rCtx, Data: jsonData}
-    response := api.client.ExecuteRequest(ctx, requestPayload)
+    response := api.Client.ExecuteRequest(ctx, requestPayload)
     return response
 }
 {{ "" }}
@@ -38,13 +38,13 @@ func (api *{{$entity}}ClientAPI) {{.MethodName}}(ctx context.Context, rCtx reque
 /**
  * Client Write API: {{.APIName}}
  */
-func (api *{{$entity}}ClientAPI) {{.MethodName}}(ctx context.Context, rCtx request.RequestContext, input map[string]interface{}) payload.ResponsePayload {
-    jsonData, err := payload.ToJson[map[string]interface{}](input)
+func (api *{{$entity}}ClientAPI) {{.MethodName}}(ctx context.Context, rCtx request.RequestContext, input interface{}) payload.ResponsePayload {
+    jsonData, err := payload.ToJson[interface{}](input)
     if err != nil {
         return payload.InvalidRequestResponsePayload("{{.APIName}}", err.Error())
     }
     requestPayload := payload.RequestPayload{API: "{{.APIName}}", Context: rCtx, Data: jsonData}
-    response := api.client.ExecuteRequest(ctx, requestPayload)
+    response := api.Client.ExecuteRequest(ctx, requestPayload)
     return response
 }
 {{ "" }}

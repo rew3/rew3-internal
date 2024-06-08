@@ -2,7 +2,9 @@ package schema
 
 import (
 	"fmt"
+	"os"
 	"reflect"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -319,4 +321,32 @@ func RunExample() {
 	typeContext.GenType(User{}, "user_type.graphql")
 
 	GenerateSchemaTypes(typeContext, generator)
+}
+
+/**
+ * From given file, read schema types present in that file.
+ */
+func ReadSchemaTypes(filePath string) map[string]string {
+	// Read the contents of the file
+	data, err := os.ReadFile(filePath)
+	if err != nil {
+		panic(err)
+	}
+
+	// Define a regular expression that matches the type blocks
+	re := regexp.MustCompile(`(?s)(type|input)\s+(\w+)\s*{([^}]*)}`)
+
+	// Find all matches in the file contents
+	matches := re.FindAllStringSubmatch(string(data), -1)
+
+	// Create a map to store the type blocks
+	types := make(map[string]string)
+
+	// Iterate over the matches and add them to the map
+	for _, match := range matches {
+		name := match[2]
+		block := fmt.Sprintf("%s %s {%s}\n", match[1], match[2], match[3])
+		types[name] = block
+	}
+	return types
 }

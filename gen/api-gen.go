@@ -66,7 +66,7 @@ func (gen *APIGenerator) GenerateClientGrpcAPI() {
 func (gen *APIGenerator) GenerateServiceAPI() {
 	config := gen.config
 	for _, entity := range config.Entities {
-		apiCodes := ClientCQRSAPICodes{Entity: entity.Entity}
+		apiCodes := ServiceCQRSAPICodes{Entity: entity.Entity}
 		imports := make(map[string]string)
 		generate := func(rAPI API) Code {
 			inputTypeName := reflect.TypeOf(rAPI.Input.Data).Name()
@@ -215,8 +215,7 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 						SchemaTypeContext{GenerateWrapper: api.WrapOutput,
 							WrapperName: api.WrapOutputName, RawType: &api.Output, Type: code.Type, Code: code.Code}))
 				} else {
-					types = append(types, prepareSchemaType(false,
-						SchemaTypeContext{GenerateWrapper: api.WrapOutput, WrapperName: api.WrapOutputName, Type: code.Type, Code: code.Code}))
+					types = append(types, prepareSchemaType(false, SchemaTypeContext{Type: code.Type, Code: code.Code}))
 				}
 			}
 			gen.schemaGenerator.ClearResult()
@@ -282,6 +281,9 @@ func (gen *APIGenerator) makeDistinctSchemaTypes(types []SchemaType) []SchemaTyp
 		typeName := tc.Type.Type.PkgPath() + "/" + tc.Type.Type.Name()
 		if tc.IsInputType {
 			typeName = typeName + "Input"
+		}
+		if tc.Type.GenerateWrapper {
+			typeName = tc.Type.WrapperName
 		}
 		if !seen[typeName] {
 			seen[typeName] = true
@@ -387,7 +389,7 @@ type ServiceAPI struct {
 /**
  * Service API codes for CQRS.
  */
-type ClientCQRSAPICodes struct {
+type ServiceCQRSAPICodes struct {
 	Entity      string
 	PackageName string
 	Imports     []Code
