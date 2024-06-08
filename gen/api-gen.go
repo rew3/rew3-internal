@@ -474,7 +474,7 @@ func (sc *SchemaTypeCodes) generateWrapperSchemaType(typeContext SchemaTypeConte
 	str := fmt.Sprintf(`type %s {
 	action: String!
 	message: String!
-	status: PlatformStatusEnum!
+	status: StatusTypeEnum!
 	data: %s
 }`, tName, dtName)
 	sc.Outputs = append(sc.Outputs, Code{Code: str})
