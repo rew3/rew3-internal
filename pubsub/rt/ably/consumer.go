@@ -6,10 +6,10 @@ import (
 	"errors"
 
 	"github.com/ably/ably-go/ably"
-	"github.com/rew3/rew3-internal/pkg/utils/logger"
-	"github.com/rew3/rew3-internal/pubsub/rt/config"
-	"github.com/rew3/rew3-internal/pubsub/rt/message"
-	"github.com/rew3/rew3-internal/pubsub/rt/types"
+	"github.com/rew3/rew3-pkg/pubsub/rt/config"
+	"github.com/rew3/rew3-pkg/pubsub/rt/message"
+	"github.com/rew3/rew3-pkg/pubsub/rt/types"
+	"github.com/rew3/rew3-pkg/utils/logger"
 )
 
 /**

@@ -5,9 +5,9 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/rew3/rew3-internal/gen/schema"
-	"github.com/rew3/rew3-internal/gen/template"
-	"github.com/rew3/rew3-internal/gen/utils"
+	"github.com/rew3/rew3-pkg/gen/schema"
+	"github.com/rew3/rew3-pkg/gen/template"
+	"github.com/rew3/rew3-pkg/gen/utils"
 )
 
 /**
@@ -32,7 +32,7 @@ func NewGenerator(config Config, typeOverrides map[string]string) *APIGenerator 
  */
 func (gen *APIGenerator) LoadTemplates(internalVersion, genDir string) {
 	utils.DeleteDirectory(genDir)
-	utils.CopyModuleFiles("github.com/rew3/rew3-internal@"+internalVersion+"/gen/template", genDir)
+	utils.CopyModuleFiles("github.com/rew3/rew3-pkg@"+internalVersion+"/gen/template", genDir)
 	utils.DeleteFile("gen/template/template-gen.go")
 }
 
@@ -332,7 +332,7 @@ func (gen *APIGenerator) filterSchemaTypes(types []SchemaType) ([]SchemaType, []
 				isEntityType = true
 			}
 		}
-		if strings.Contains(i.Type.Type.PkgPath(), "github.com/rew3/rew3-internal") {
+		if strings.Contains(i.Type.Type.PkgPath(), "github.com/rew3/rew3-pkg") {
 			coreTypes = append(coreTypes, i)
 		} else if isEntityType {
 			entityTypes = append(entityTypes, i)

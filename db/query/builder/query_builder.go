@@ -3,7 +3,7 @@ package builder
 import (
 	"fmt"
 
-	dsl "github.com/rew3/rew3-internal/db/query"
+	dsl "github.com/rew3/rew3-pkg/db/query"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

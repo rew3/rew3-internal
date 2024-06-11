@@ -1,8 +1,8 @@
 package filter
 
 import (
-	c "github.com/rew3/rew3-internal/db/security/constants"
-	s "github.com/rew3/rew3-internal/service/shared/request"
+	s "github.com/rew3/rew3-pkg/core/service/shared/request"
+	c "github.com/rew3/rew3-pkg/db/security/constants"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

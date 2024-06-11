@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/rew3/rew3-internal/pkg/utils/logger"
+	"github.com/rew3/rew3-pkg/utils/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )

@@ -3,9 +3,9 @@ package meta
 import (
 	"time"
 
-	ac "github.com/rew3/rew3-internal/app/common"
-	mUtil "github.com/rew3/rew3-internal/db/utils"
-	s "github.com/rew3/rew3-internal/service/shared/request"
+	ac "github.com/rew3/rew3-pkg/common/misc"
+	s "github.com/rew3/rew3-pkg/core/service/shared/request"
+	mUtil "github.com/rew3/rew3-pkg/db/utils"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

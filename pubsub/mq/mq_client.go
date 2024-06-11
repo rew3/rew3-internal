@@ -1,9 +1,9 @@
 package mq
 
 import (
-	"github.com/rew3/rew3-internal/pubsub/mq/config"
-	"github.com/rew3/rew3-internal/pubsub/mq/rabbitmq"
-	"github.com/rew3/rew3-internal/pubsub/mq/types"
+	"github.com/rew3/rew3-pkg/pubsub/mq/config"
+	"github.com/rew3/rew3-pkg/pubsub/mq/rabbitmq"
+	"github.com/rew3/rew3-pkg/pubsub/mq/types"
 )
 
 /**

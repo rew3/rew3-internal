@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/rew3/rew3-internal/pkg/utils/logger"
+	"github.com/rew3/rew3-pkg/utils/logger"
 )
 
 /**

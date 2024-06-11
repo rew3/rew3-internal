@@ -2,8 +2,8 @@ package rtc
 
 import (
 	"github.com/ably/ably-go/ably"
-	"github.com/rew3/rew3-internal/pkg/utils/logger"
-	"github.com/rew3/rew3-internal/pubsub/rt/config"
+	"github.com/rew3/rew3-pkg/pubsub/rt/config"
+	"github.com/rew3/rew3-pkg/utils/logger"
 )
 
 /**

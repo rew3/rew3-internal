@@ -2,7 +2,8 @@ package main
 
 import (
 	"reflect"
-	"github.com/rew3/rew3-internal/app/account"
+
+	"github.com/rew3/rew3-pkg/common/account"
 )
 
 func main() {

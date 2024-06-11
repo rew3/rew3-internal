@@ -1,4 +1,4 @@
-module github.com/rew3/rew3-internal
+module github.com/rew3/rew3-pkg
 
 go 1.21
 

@@ -4,10 +4,10 @@ import (
 	"context"
 	"errors"
 
-	"github.com/rew3/rew3-internal/db/repository/constants"
-	mongoUtility "github.com/rew3/rew3-internal/db/utils"
-	service "github.com/rew3/rew3-internal/service/shared/request"
-	rcUtil "github.com/rew3/rew3-internal/service/utils/context"
+	service "github.com/rew3/rew3-pkg/core/service/shared/request"
+	rcUtil "github.com/rew3/rew3-pkg/core/service/utils/context"
+	"github.com/rew3/rew3-pkg/db/repository/constants"
+	mongoUtility "github.com/rew3/rew3-pkg/db/utils"
 	"go.mongodb.org/mongo-driver/bson"
 )
 

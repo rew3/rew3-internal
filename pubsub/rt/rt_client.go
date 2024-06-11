@@ -1,10 +1,10 @@
 package rt
 
 import (
-	"github.com/rew3/rew3-internal/pkg/utils/logger"
-	rtc "github.com/rew3/rew3-internal/pubsub/rt/ably"
-	"github.com/rew3/rew3-internal/pubsub/rt/config"
-	"github.com/rew3/rew3-internal/pubsub/rt/types"
+	rtc "github.com/rew3/rew3-pkg/pubsub/rt/ably"
+	"github.com/rew3/rew3-pkg/pubsub/rt/config"
+	"github.com/rew3/rew3-pkg/pubsub/rt/types"
+	"github.com/rew3/rew3-pkg/utils/logger"
 )
 
 /**

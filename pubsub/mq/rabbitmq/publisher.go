@@ -7,10 +7,10 @@ import (
 	"time"
 
 	"github.com/rabbitmq/amqp091-go"
-	"github.com/rew3/rew3-internal/pkg/utils/logger"
-	"github.com/rew3/rew3-internal/pubsub/mq/config"
-	"github.com/rew3/rew3-internal/pubsub/mq/message"
-	"github.com/rew3/rew3-internal/pubsub/mq/types"
+	"github.com/rew3/rew3-pkg/pubsub/mq/config"
+	"github.com/rew3/rew3-pkg/pubsub/mq/message"
+	"github.com/rew3/rew3-pkg/pubsub/mq/types"
+	"github.com/rew3/rew3-pkg/utils/logger"
 )
 
 /**

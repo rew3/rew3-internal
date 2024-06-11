@@ -3,11 +3,11 @@ package rtc
 import (
 	"context"
 
-	"github.com/rew3/rew3-internal/pkg/utils/json"
-	"github.com/rew3/rew3-internal/pkg/utils/logger"
-	"github.com/rew3/rew3-internal/pubsub/rt/config"
-	"github.com/rew3/rew3-internal/pubsub/rt/message"
-	"github.com/rew3/rew3-internal/pubsub/rt/types"
+	"github.com/rew3/rew3-pkg/pubsub/rt/config"
+	"github.com/rew3/rew3-pkg/pubsub/rt/message"
+	"github.com/rew3/rew3-pkg/pubsub/rt/types"
+	"github.com/rew3/rew3-pkg/utils/json"
+	"github.com/rew3/rew3-pkg/utils/logger"
 )
 
 /**
@@ -67,8 +67,6 @@ func (p *AblyPublisher) PublishAsync(route config.MessageRoute, msg message.Mess
 	}
 	return nil
 }
-
-
 
 // create log message
 func (p *AblyPublisher) logMsg(msg string) string {

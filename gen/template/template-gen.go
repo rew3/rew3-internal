@@ -5,7 +5,7 @@ import (
 	"os"
 	"text/template"
 
-	fUtil "github.com/rew3/rew3-internal/gen/utils"
+	fUtil "github.com/rew3/rew3-pkg/gen/utils"
 )
 
 /**

@@ -3,10 +3,10 @@ package enums
 import (
 	"reflect"
 
-	ac "github.com/rew3/rew3-internal/app/account/constants"
-	"github.com/rew3/rew3-internal/app/common/constants"
-	"github.com/rew3/rew3-internal/gen"
-	rs "github.com/rew3/rew3-internal/service/shared/response/constants"
+	ac "github.com/rew3/rew3-pkg/common/account/constants"
+	"github.com/rew3/rew3-pkg/common/misc/constants"
+	rs "github.com/rew3/rew3-pkg/core/service/shared/response/constants"
+	"github.com/rew3/rew3-pkg/gen"
 )
 
 func GetCoreEnumTypeMapping() []gen.EnumType {
