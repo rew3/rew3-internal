@@ -10,18 +10,21 @@ import (
 /**
  * THIS IS GENERATED CODES. 
  * DO NOT MODIFY. ANY CHANGES WILL BE REPLACED. 
+ * 
+ * Version: {{.Version}}
+ * Generated Date: {{.CurrentDate}}
  */ 
 
 /**
  * Register {{.Entity}} APIs. 
  */
 func Register{{.Entity}}APIs(binder *api.CQRSAPIBinder) {
-    // Read APIs
+    // Write APIs
     {{- range .CommandAPIs}}
 	{{.Code}}
     {{- end }}
     {{ "" }}
-    // Write APIs
+    // Read APIs
     {{- range .QueryAPIs}}
 	{{.Code}}
     {{- end }}

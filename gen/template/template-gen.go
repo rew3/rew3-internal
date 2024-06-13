@@ -4,6 +4,7 @@ import (
 	"log"
 	"os"
 	"text/template"
+	"time"
 
 	fUtil "github.com/rew3/rew3-pkg/gen/utils"
 )
@@ -16,6 +17,7 @@ type TemplateConfig struct {
 	OutputPath    string
 	Data          any
 	DeleteIfExist bool
+	Version       string
 }
 
 /**
@@ -26,6 +28,14 @@ func GenerateFromTemplate(config TemplateConfig) error {
 	if err != nil {
 		log.Fatal("Error parsing template:", err)
 	}
+	tmpl = tmpl.Funcs(template.FuncMap{
+		"CurrentDate": func() string {
+			return time.Now().Format("2006-01-02")
+		},
+		"Version": func() string {
+			return config.Version
+		},
+	})
 	if config.DeleteIfExist {
 		os.Remove(config.OutputPath)
 	} else if fUtil.IsFileAlreadyExists(config.OutputPath) {

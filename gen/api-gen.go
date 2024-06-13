@@ -17,13 +17,14 @@ import (
 type APIGenerator struct {
 	schemaGenerator *schema.SchemaTypeGenerator
 	config          Config
+	version         string
 }
 
-func NewGenerator(config Config, typeOverrides map[string]string) *APIGenerator {
+func NewGenerator(config Config, typeOverrides map[string]string, version string) *APIGenerator {
 	schemaConfig := schema.SchemaConfig{JsonTagFieldName: true, EnableRequiredField: true}
 	typeOverrides["Time"] = "String"
 	sGen := schema.NewSchemaTypeGenerator(typeOverrides, schemaConfig, config.Enums.IsEnum)
-	return &APIGenerator{sGen, config}
+	return &APIGenerator{sGen, config, version}
 }
 
 /**
@@ -56,6 +57,7 @@ func (gen *APIGenerator) GenerateClientGrpcAPI() {
 			OutputPath:    outputPath,
 			Data:          apiCodes,
 			DeleteIfExist: true,
+			Version: gen.version,
 		})
 	}
 }
@@ -110,6 +112,7 @@ func (gen *APIGenerator) GenerateServiceAPI() {
 			OutputPath:    outputPath,
 			Data:          apiCodes,
 			DeleteIfExist: true,
+			Version: gen.version,
 		})
 	}
 }
@@ -174,6 +177,7 @@ func (gen *APIGenerator) generateSchemaAPI(config Config) {
 			OutputPath:    outputPath,
 			Data:          schemaAPICodes,
 			DeleteIfExist: true,
+			Version: gen.version,
 		})
 	}
 }
@@ -244,6 +248,7 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 			OutputPath:    outputPath,
 			Data:          coreTypeCodes,
 			DeleteIfExist: true,
+			Version: gen.version,
 		})
 	}
 	if !sharedTypeCodes.IsEmpty() {
@@ -253,6 +258,7 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 			OutputPath:    outputPath,
 			Data:          sharedTypeCodes,
 			DeleteIfExist: true,
+			Version: gen.version,
 		})
 	}
 	for entity, v := range entityTypeMaps {
@@ -266,6 +272,7 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 				OutputPath:    outputPath,
 				Data:          entityTypeCodes,
 				DeleteIfExist: true,
+				Version: gen.version,
 			})
 		}
 	}
