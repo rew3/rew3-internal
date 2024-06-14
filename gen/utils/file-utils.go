@@ -114,7 +114,7 @@ func DeleteDirectory(dir string) error {
  * Note: destination file will be created if not exists.
  * Source shoule include version too, such as github.com/projectname@version/path, it will be downloaded and copied.
  */
- func CopyModuleFiles(repoPath, tagVersion, schemaDir, dstPath string) {
+func CopyModuleFiles(repoPath, tagVersion, schemaDir, dstPath string) {
 	modulePath := repoPath + "@" + tagVersion
 	println("MODULE PATH: ", modulePath)
 	cmd := exec.Command("go", "mod", "download", modulePath)
@@ -133,7 +133,8 @@ func DeleteDirectory(dir string) error {
 		cacheDir = os.Getenv("HOME")
 	}
 	cacheDir = filepath.Join(cacheDir, "go", "pkg", "mod")
-	cacheDir = cacheDir + "/" + modulePath
+	cacheDir = cacheDir + "/" + modulePath + "/" + schemaDir
+	cacheDir = CleanDirPath(cacheDir)
 	CopyDirectory(cacheDir, dstPath)
 }
 
@@ -183,7 +184,6 @@ func CopyDirectory(srcPath string, dstPath string) {
 		panic(err)
 	}
 }
-
 
 /**
  * Delete Given path file.

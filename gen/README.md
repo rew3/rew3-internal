@@ -9,3 +9,8 @@ There are 3 type of code generation:
 `GenerateSchema()` for schema generation
 `GenerateServiceAPI()` for service API generation
 `GenerateClientGrpcAPI()` for Client GRPC API Code generation
+
+Note: `LoadTemplates()` will load the templates in working project generation directory. This is required, since code generation is running from local project, it require
+the templates to be in its local scope, this will copy the templates defined in this directory in local project directory in speficied path. 
+
+#### 
