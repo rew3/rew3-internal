@@ -3,10 +3,10 @@ package gen
 import "reflect"
 
 type Config struct {
-	Module        string
-	BaseSchemaDir string
-	Entities      []EntityConfig
-	Enums         EnumTypeMapping
+	Module   string
+	BaseDir  string
+	Entities []EntityConfig
+	Enums    EnumTypeMapping
 }
 
 type EntityConfig struct {
@@ -18,9 +18,9 @@ type EntityConfig struct {
 }
 
 type Directory struct {
-	SchemaDir            string // can be nested.
-	ServiceAPIDir        string // can be nested.
-	ClientGrpcAPIDir     string // can be nested.
+	SchemaDir            string // will be inside {BaseDir}/schema/<dir-path>
+	ServiceAPIDir        string // will be inside {BaseDir}/api/<dir-path> , put "/" is in base dir api.
+	ClientGrpcAPIDir     string // will be inside {BaseDir}/grpc/client/<dir-path> , put "/" is in base dir client.
 	ServiceAPIPackage    string
 	ClientGrpcAPIPackage string
 }

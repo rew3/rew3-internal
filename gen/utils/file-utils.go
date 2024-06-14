@@ -114,8 +114,14 @@ func DeleteDirectory(dir string) error {
  * Note: destination file will be created if not exists.
  * Source shoule include version too, such as github.com/projectname@version/path, it will be downloaded and copied.
  */
-func CopyModuleFiles(modulePath, dstPath string) {
-	cmd := exec.Command("go", "mod", "download")
+ func CopyModuleFiles(repoPath, tagVersion, schemaDir, dstPath string) {
+	modulePath := repoPath + "@" + tagVersion
+	println("MODULE PATH: ", modulePath)
+	cmd := exec.Command("go", "mod", "download", modulePath)
+	envs := append(os.Environ(), "GOPRIVATE="+repoPath)
+	envs = append(envs, "GONOSUMDB="+repoPath)
+	envs = append(envs, "GIT_TERMINAL_PROMPT=1")
+	cmd.Env = envs
 	if err := cmd.Run(); err != nil {
 		panic(err)
 	}
@@ -177,6 +183,7 @@ func CopyDirectory(srcPath string, dstPath string) {
 		panic(err)
 	}
 }
+
 
 /**
  * Delete Given path file.
