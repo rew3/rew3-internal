@@ -19,10 +19,10 @@ type EntityConfig struct {
 
 type Directory struct {
 	SchemaDir            string // will be inside {BaseDir}/schema/<dir-path>
-	ServiceAPIDir        string // will be inside {BaseDir}/api/<dir-path> , put "/" is in base dir api.
-	ClientGrpcAPIDir     string // will be inside {BaseDir}/grpc/client/<dir-path> , put "/" is in base dir client.
-	ServiceAPIPackage    string
-	ClientGrpcAPIPackage string
+	ServiceAPIDir        string // will be inside {BaseDir}/api/<dir-path> , put "/" to generate files in base `api` dir
+	ClientGrpcAPIDir     string // will be inside {BaseDir}/grpc/client/<dir-path> , put "/" to generate files in base `client/grpc` dir
+	ServiceAPIPackage    string // if empty, `api` package name is used. 
+	ClientGrpcAPIPackage string // if empty, `client` package name is used. 
 }
 
 type API struct {

@@ -56,7 +56,10 @@ func (gen *APIGenerator) GenerateClientGrpcAPI() {
 			apiCodes.ServiceReadAPIs = append(apiCodes.ServiceReadAPIs, ServiceAPI{MethodName: utils.CapitalizeFirst(wAPI.Name), APIName: wAPI.Name})
 		}
 		apiCodes.PackageName = entity.Directory.ClientGrpcAPIPackage
-		outputPath := gen.config.BaseDir + "client/grpc" + entity.Directory.ClientGrpcAPIDir + "/" + strings.ToLower(entity.Entity) + "_client_api.go"
+		if apiCodes.PackageName == "" {
+			apiCodes.PackageName = "client"
+		}
+		outputPath := gen.config.BaseDir + "/grpc/client/" + entity.Directory.ClientGrpcAPIDir + "/" + strings.ToLower(entity.Entity) + "_client_api.go"
 		outputPath = utils.CleanDirPath(outputPath)
 		template.GenerateFromTemplate(template.TemplateConfig{
 			TemplatePath:  "gen/template/client-grpc-api.tmpl",
@@ -111,6 +114,9 @@ func (gen *APIGenerator) GenerateServiceAPI() {
 			apiCodes.Imports = append(apiCodes.Imports, code)
 		}
 		apiCodes.PackageName = entity.Directory.ServiceAPIPackage
+		if apiCodes.PackageName == "" {
+			apiCodes.PackageName = "api"
+		}
 
 		outputPath := gen.config.BaseDir + "/api/" + entity.Directory.ServiceAPIDir + "/" + strings.ToLower(entity.Entity) + "_apis.go"
 		outputPath = utils.CleanDirPath(outputPath)
