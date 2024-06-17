@@ -59,7 +59,7 @@ func (gen *APIGenerator) GenerateClientGrpcAPI() {
 		if apiCodes.PackageName == "" {
 			apiCodes.PackageName = "client"
 		}
-		outputPath := gen.config.ClientGrpcBaseDir + "/" + entity.Directory.ClientGrpcAPIDir + "/" + strings.ToLower(entity.Entity) + "_client_api.go"
+		outputPath := gen.config.ClientGrpcBaseDir + "/" + entity.Directory.ClientGrpcAPIDir + "/" + strings.ToLower(entity.Entity) + "_grpc_client.go"
 		outputPath = utils.CleanDirPath(outputPath)
 		template.GenerateFromTemplate(template.TemplateConfig{
 			TemplatePath:  "gen/template/client-grpc-api.tmpl",

@@ -17,7 +17,7 @@ import (
  */ 
 {{ $entity := .Entity }}
 // GRPC Client API for {{$entity}}
-type {{$entity}}ClientAPI struct {
+type {{$entity}}GrpcClient struct {
     Client *client.Client
 }
 {{ "" }}
@@ -25,7 +25,7 @@ type {{$entity}}ClientAPI struct {
 /**
  * Client Read API: {{.APIName}}
  */
-func (api *{{$entity}}ClientAPI) {{.MethodName}}(ctx context.Context, rCtx request.RequestContext, input interface{}) payload.ResponsePayload {
+func (api *{{$entity}}GrpcClient) {{.MethodName}}(ctx context.Context, rCtx request.RequestContext, input interface{}) payload.ResponsePayload {
     jsonData, err := payload.ToJson[interface{}](input)
     if err != nil {
         return payload.InvalidRequestResponsePayload("{{.APIName}}", err.Error())
@@ -41,13 +41,13 @@ func (api *{{$entity}}ClientAPI) {{.MethodName}}(ctx context.Context, rCtx reque
 /**
  * Client Write API: {{.APIName}}
  */
-func (api *{{$entity}}ClientAPI) {{.MethodName}}(ctx context.Context, rCtx request.RequestContext, input interface{}) payload.ResponsePayload {
+func (client *{{$entity}}GrpcClient) {{.MethodName}}(ctx context.Context, rCtx request.RequestContext, input interface{}) payload.ResponsePayload {
     jsonData, err := payload.ToJson[interface{}](input)
     if err != nil {
         return payload.InvalidRequestResponsePayload("{{.APIName}}", err.Error())
     }
     requestPayload := payload.RequestPayload{API: "{{.APIName}}", Context: rCtx, Data: jsonData}
-    response := api.Client.ExecuteRequest(ctx, requestPayload)
+    response := client.Client.ExecuteRequest(ctx, requestPayload)
     return response
 }
 {{ "" }}
