@@ -59,7 +59,7 @@ func (gen *APIGenerator) GenerateClientGrpcAPI() {
 		if apiCodes.PackageName == "" {
 			apiCodes.PackageName = "client"
 		}
-		outputPath := gen.config.BaseDir + "/grpc/client/" + entity.Directory.ClientGrpcAPIDir + "/" + strings.ToLower(entity.Entity) + "_client_api.go"
+		outputPath := gen.config.ClientGrpcBaseDir + "/" + entity.Directory.ClientGrpcAPIDir + "/" + strings.ToLower(entity.Entity) + "_client_api.go"
 		outputPath = utils.CleanDirPath(outputPath)
 		template.GenerateFromTemplate(template.TemplateConfig{
 			TemplatePath:  "gen/template/client-grpc-api.tmpl",
@@ -118,7 +118,7 @@ func (gen *APIGenerator) GenerateServiceAPI() {
 			apiCodes.PackageName = "api"
 		}
 
-		outputPath := gen.config.BaseDir + "/api/" + entity.Directory.ServiceAPIDir + "/" + strings.ToLower(entity.Entity) + "_apis.go"
+		outputPath := gen.config.APIBaseDir + "/" + entity.Directory.ServiceAPIDir + "/" + strings.ToLower(entity.Entity) + "_apis.go"
 		outputPath = utils.CleanDirPath(outputPath)
 		template.GenerateFromTemplate(template.TemplateConfig{
 			TemplatePath:  "gen/template/service-api.tmpl",
@@ -184,7 +184,7 @@ func (gen *APIGenerator) generateSchemaAPI(config Config) {
 			schemaAPICodes.SchemaMutations = append(schemaAPICodes.SchemaMutations, code)
 		}
 
-		outputPath := gen.config.BaseDir + "/schema/" + entity.Directory.SchemaDir + "/" + config.Module + "_" + strings.ToLower(entity.Entity) + "_schema.graphql"
+		outputPath := gen.config.SchemaBaseDir + "/" + entity.Directory.SchemaDir + "/" + config.Module + "_" + strings.ToLower(entity.Entity) + "_schema.graphql"
 		outputPath = utils.CleanDirPath(outputPath)
 		template.GenerateFromTemplate(template.TemplateConfig{
 			TemplatePath:  "gen/template/schema-api.tmpl",
@@ -212,7 +212,7 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 				return SchemaType{
 					Entity:      entity.Entity,
 					BasePackage: entity.BasePackage,
-					SchemaDir:   utils.CleanDirPath(gen.config.BaseDir + "/schema/" + entity.Directory.SchemaDir),
+					SchemaDir:   utils.CleanDirPath(gen.config.SchemaBaseDir + "/" + entity.Directory.SchemaDir),
 					Type:        tCtx,
 					IsInputType: isInputType,
 				}
@@ -256,7 +256,7 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 	sharedTypeCodes.generateEnumSchemaType(gen.config.Enums.SharedEnums)
 
 	if !coreTypeCodes.IsEmpty() {
-		outputPath := config.BaseDir + "/schema/core/" + "core_types.graphql"
+		outputPath := config.SchemaBaseDir + "/core/" + "core_types.graphql"
 		outputPath = utils.CleanDirPath(outputPath)
 		template.GenerateFromTemplate(template.TemplateConfig{
 			TemplatePath:  "gen/template/schema-type.tmpl",
@@ -267,7 +267,7 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 		})
 	}
 	if !sharedTypeCodes.IsEmpty() {
-		outputPath := config.BaseDir + "/schema/shared/" + "shared_types.graphql"
+		outputPath := config.SchemaBaseDir + "/shared/" + "shared_types.graphql"
 		outputPath = utils.CleanDirPath(outputPath)
 		template.GenerateFromTemplate(template.TemplateConfig{
 			TemplatePath:  "gen/template/schema-type.tmpl",

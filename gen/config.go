@@ -3,10 +3,12 @@ package gen
 import "reflect"
 
 type Config struct {
-	Module   string
-	BaseDir  string
-	Entities []EntityConfig
-	Enums    EnumTypeMapping
+	Module            string
+	SchemaBaseDir     string
+	APIBaseDir        string
+	ClientGrpcBaseDir string
+	Entities          []EntityConfig
+	Enums             EnumTypeMapping
 }
 
 type EntityConfig struct {
@@ -21,8 +23,8 @@ type Directory struct {
 	SchemaDir            string // will be inside {BaseDir}/schema/<dir-path>
 	ServiceAPIDir        string // will be inside {BaseDir}/api/<dir-path> , put "/" to generate files in base `api` dir
 	ClientGrpcAPIDir     string // will be inside {BaseDir}/grpc/client/<dir-path> , put "/" to generate files in base `client/grpc` dir
-	ServiceAPIPackage    string // if empty, `api` package name is used. 
-	ClientGrpcAPIPackage string // if empty, `client` package name is used. 
+	ServiceAPIPackage    string // if empty, `api` package name is used.
+	ClientGrpcAPIPackage string // if empty, `client` package name is used.
 }
 
 type API struct {
