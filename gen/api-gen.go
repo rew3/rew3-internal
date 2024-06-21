@@ -132,7 +132,7 @@ func (gen *APIGenerator) GenerateServiceAPI() {
 			apiCodes.PackageName = "api"
 		}
 
-		outputPath := gen.config.APIBaseDir + "/" + entity.Directory.ServiceAPIDir + "/" + strings.ToLower(entity.Entity) + "_service.go"
+		outputPath := gen.config.APIBaseDir + "/" + entity.Directory.ServiceAPIDir + "/" + strings.ToLower(entity.Entity) + "_service_registry.go"
 		outputPath = utils.CleanDirPath(outputPath)
 		template.GenerateFromTemplate(template.TemplateConfig{
 			TemplatePath:  "gen/template/service-api.tmpl",
