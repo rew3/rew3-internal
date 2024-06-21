@@ -41,6 +41,8 @@ type DataType struct {
 	IsRequired bool
 	IsList     bool
 	Import     *Import
+	IsPointer         bool
+	IsListItemPointer bool
 }
 
 type Import struct {

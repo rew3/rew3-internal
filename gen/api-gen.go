@@ -91,10 +91,24 @@ func (gen *APIGenerator) GenerateServiceAPI() {
 				outputTypeName = rAPI.Output.Import.ImportAlias + "." + outputTypeName
 			}
 			if rAPI.Input.IsList {
-				inputTypeName = "[]" + inputTypeName
+				if rAPI.Input.IsListItemPointer {
+					inputTypeName = "[]*" + inputTypeName
+				} else {
+					inputTypeName = "[]" + inputTypeName
+				}
+			}
+			if rAPI.Input.IsPointer {
+				inputTypeName = "*" + inputTypeName
 			}
 			if rAPI.Output.IsList {
-				outputTypeName = "[]" + outputTypeName
+				if rAPI.Output.IsListItemPointer {
+					outputTypeName = "[]*" + outputTypeName
+				} else {
+					outputTypeName = "[]" + outputTypeName
+				}
+			}
+			if rAPI.Output.IsPointer {
+				outputTypeName = "*" + outputTypeName
 			}
 			code := fmt.Sprintf("[%s, %s](binder, api.ResolveEndpoint(%s))", inputTypeName, outputTypeName, "\""+rAPI.Name+"\"")
 			return Code{Code: code}
