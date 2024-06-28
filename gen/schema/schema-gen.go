@@ -212,11 +212,16 @@ func (gen *SchemaTypeGenerator) readFieldJsonTag(field reflect.StructField) (str
 	return fieldName, isRequired
 }
 
+/*
+ * Get graphql type for given primitive type. Note, if not matched to any primitive type, it will return String graphql type.
+ */
 func (gen *SchemaTypeGenerator) GetGraphQLType(typ reflect.Type) string {
 	switch typ.Kind() {
 	case reflect.String:
 		return "String"
 	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return "Int"
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
 		return "Int"
 	case reflect.Float32, reflect.Float64:
 		return "Float"
@@ -224,6 +229,23 @@ func (gen *SchemaTypeGenerator) GetGraphQLType(typ reflect.Type) string {
 		return "Boolean"
 	default:
 		return "String"
+	}
+}
+
+func (gen *SchemaTypeGenerator) IsPrimitiveType(typ reflect.Type) bool {
+	switch typ.Kind() {
+	case reflect.String:
+		return true
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		return true
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		return true
+	case reflect.Float32, reflect.Float64:
+		return true
+	case reflect.Bool:
+		return true
+	default:
+		return false
 	}
 }
 

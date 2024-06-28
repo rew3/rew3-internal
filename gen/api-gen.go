@@ -239,9 +239,7 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 				}
 			}
 			gen.schemaGenerator.ClearResult()
-			oTpe := gen.schemaGenerator.GenerateGraphQLSchemaType(api.Output.Data)
-			generated := gen.schemaGenerator.GetGeneratedTypes()
-			if len(generated) == 0 {
+			if gen.schemaGenerator.IsPrimitiveType(reflect.TypeOf(api.Output.Data)) {
 				// seems like output data type is some primitive,
 				types = append(types, prepareSchemaType(false,
 					SchemaTypeContext{
@@ -249,8 +247,11 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 						WrapperName:     api.WrapOutputName,
 						RawType:         &api.Output,
 						Type:            reflect.TypeOf(api.Output.Data),
-						Code:            oTpe}))
+						IsPrimitiveType: true,
+						Code:            gen.schemaGenerator.GetGraphQLType(reflect.TypeOf(api.Output.Data))}))
 			} else {
+				gen.schemaGenerator.GenerateGraphQLSchemaType(api.Output.Data)
+				generated := gen.schemaGenerator.GetGeneratedTypes()
 				for _, code := range generated {
 					if reflect.TypeOf(api.Output.Data) == code.Type {
 						types = append(types, prepareSchemaType(false,
@@ -519,6 +520,9 @@ func (sc *SchemaTypeCodes) generate(types []SchemaTypeContext, inputTypes []Sche
 func (sc *SchemaTypeCodes) generateWrapperSchemaType(typeContext SchemaTypeContext) {
 	tName := typeContext.WrapperName
 	dtName := typeContext.Type.Name()
+	if typeContext.IsPrimitiveType {
+		dtName = typeContext.Code
+	}
 	if typeContext.RawType != nil && typeContext.RawType.IsList {
 		dtName = "[" + dtName + "]"
 	}
@@ -563,6 +567,7 @@ type SchemaTypeContext struct {
 	WrapperName     string
 	RawType         *DataType
 	Type            reflect.Type
+	IsPrimitiveType bool
 	Code            string
 }
 
