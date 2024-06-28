@@ -239,7 +239,7 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 				}
 			}
 			gen.schemaGenerator.ClearResult()
-			if gen.schemaGenerator.IsPrimitiveType(reflect.TypeOf(api.Output.Data)) {
+			if gen.schemaGenerator.IsPrimitiveType(reflect.TypeOf(api.Output.Data)) && api.WrapOutput {
 				// seems like output data type is some primitive,
 				types = append(types, prepareSchemaType(false,
 					SchemaTypeContext{
