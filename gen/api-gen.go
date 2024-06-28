@@ -239,15 +239,26 @@ func (gen *APIGenerator) generateSchemaTypes(config Config) {
 				}
 			}
 			gen.schemaGenerator.ClearResult()
-			gen.schemaGenerator.GenerateGraphQLSchemaType(api.Output.Data)
+			oTpe := gen.schemaGenerator.GenerateGraphQLSchemaType(api.Output.Data)
 			generated := gen.schemaGenerator.GetGeneratedTypes()
-			for _, code := range generated {
-				if reflect.TypeOf(api.Output.Data) == code.Type {
-					types = append(types, prepareSchemaType(false,
-						SchemaTypeContext{GenerateWrapper: api.WrapOutput,
-							WrapperName: api.WrapOutputName, RawType: &api.Output, Type: code.Type, Code: code.Code}))
-				} else {
-					types = append(types, prepareSchemaType(false, SchemaTypeContext{Type: code.Type, Code: code.Code}))
+			if len(generated) == 0 {
+				// seems like output data type is some primitive,
+				types = append(types, prepareSchemaType(false,
+					SchemaTypeContext{
+						GenerateWrapper: api.WrapOutput,
+						WrapperName:     api.WrapOutputName,
+						RawType:         &api.Output,
+						Type:            reflect.TypeOf(api.Output.Data),
+						Code:            oTpe}))
+			} else {
+				for _, code := range generated {
+					if reflect.TypeOf(api.Output.Data) == code.Type {
+						types = append(types, prepareSchemaType(false,
+							SchemaTypeContext{GenerateWrapper: api.WrapOutput,
+								WrapperName: api.WrapOutputName, RawType: &api.Output, Type: code.Type, Code: code.Code}))
+					} else {
+						types = append(types, prepareSchemaType(false, SchemaTypeContext{Type: code.Type, Code: code.Code}))
+					}
 				}
 			}
 			gen.schemaGenerator.ClearResult()
@@ -367,6 +378,11 @@ func (gen *APIGenerator) filterSchemaTypes(types []SchemaType) ([]SchemaType, []
 		isEntityType := false
 		for _, bp := range allEntityBasePackages {
 			if strings.Contains(i.Type.Type.PkgPath(), bp) {
+				isEntityType = true
+			}
+			// if wrapper type and primitive type (package path for primitive type is empty)
+			// and this belongs to respective entity (not shared, or core)
+			if i.Type.Type.PkgPath() == "" && i.Type.GenerateWrapper {
 				isEntityType = true
 			}
 		}
